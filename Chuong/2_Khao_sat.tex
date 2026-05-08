@@ -193,100 +193,254 @@ của nhiễu.
 
 \subsection{Chuẩn hóa tần suất xuất hiện – NIF (Normalized Inverse Frequency)}
 \label{subsection:2.4.1}
-Trong dữ liệu log \textbf{Windows}, tần suất xuất hiện của tiến trình là một tín hiệu quan trọng phản ánh mức độ phổ biến của hành vi. Tuy nhiên, việc sử dụng trực tiếp tần suất tuyệt đối là không phù hợp do phân phối tiến trình trong hệ thống mang tính lệch mạnh (\textit{heavy-tailed distribution}). Một số tiến trình hệ thống như \textbf{svchost.exe}, \textbf{explorer.exe} hoặc \textbf{chrome.exe} có thể xuất hiện hàng nghìn lần, trong khi các công cụ quản trị hoặc công cụ \textit{recon} như \textbf{whoami.exe}, \textbf{quser.exe} hoặc \textbf{nltest.exe} có thể chỉ xuất hiện một vài lần.
 
-Nếu sử dụng trực tiếp số lần xuất hiện $f_i$, thì các tiến trình hiếm gần như luôn bị đánh giá là bất thường, mặc dù nhiều hành vi hiếm vẫn hoàn toàn hợp lệ trong thực tế. Do đó, cần một đại lượng phản ánh mức độ ``hiếm tương đối'' thay vì tần suất tuyệt đối. Gọi $f_i$ là số lần xuất hiện của tiến trình $image_i$, và $f_{max} = \max_i(f_i)$ là tần suất lớn nhất trong toàn bộ tập dữ liệu.
+Để định lượng mức độ ``hiếm'' của một tiến trình trong tập log đang phân tích, bài toán đặt ra là cần một hàm $\phi: \mathbb{Z}^+ \to [0,1]$ ánh xạ số lần xuất hiện $f_i$ của tiến trình $i$ sang một chỉ số hiếm, sao cho $\phi$ đơn điệu giảm theo $f_i$ và $\phi$ được chuẩn hóa nội tại theo tập dữ liệu (không phụ thuộc ngưỡng cứng bên ngoài).
 
-Hệ thống định nghĩa chuẩn hóa tần suất nghịch đảo (\textbf{NIF} - \textit{Normality Isolation Factor}):
+Phương án đơn giản nhất là chuẩn hóa tuyến tính $\phi_{lin}(f_i) = 1 - f_i / f_{max}$, trong đó $f_{max} = \max_i f_i$. Tuy nhiên, tiếp cận này thất bại trong thực tế vì phân phối tần suất tiến trình trong log Windows mang đặc trưng \textit{power-law}: một số tiến trình hệ thống như \texttt{svchost.exe} có thể xuất hiện hàng chục nghìn lần trong khi phần lớn tiến trình khác chỉ xuất hiện vài chục lần. Khi $f_{max}$ quá lớn so với $f_i$ trung bình, gần như toàn bộ tiến trình đều nhận $\phi_{lin} \approx 1$, tức mọi tiến trình đều ``hiếm như nhau'' — thông tin phân biệt bị mất hoàn toàn.
+
+Giải pháp là áp dụng co giãn logarithmic. Xét rằng $\log$ là hàm đồng biến và nén khoảng cách bậc lớn: nếu $f_A = 1000$ và $f_B = 2000$, tỷ lệ tuyến tính là $2:1$ nhưng $\log(f_B)/\log(f_A)$ tiến về $1$ khi cả hai đủ lớn. Ngược lại, sự khác biệt giữa $f = 1$ và $f = 2$ được phóng đại đáng kể trên thang log. Đây chính xác là hành vi mong muốn: phân biệt tốt ở vùng tần suất thấp (nơi ẩn chứa tín hiệu attack) và nén lại ở vùng tần suất cao (nhiễu hệ thống).
+
+Hệ thống định nghĩa \textbf{Normalized Inverse Frequency}:
 \begin{equation}
-    NIF_i = 1 - \frac{\log(f_i)}{\log(f_{max})}
+    NIF_i = 1 - \frac{\log f_i}{\log f_{max}}, \qquad f_{max} = \max_i f_i
 \end{equation}
 
-Việc sử dụng hàm $\log$ có ý nghĩa quan trọng về mặt thống kê. Trong phân phối lệch mạnh, khoảng cách giữa các tiến trình phổ biến và không phổ biến có thể lên tới nhiều bậc độ lớn. Nếu sử dụng tỷ lệ tuyến tính $1 - \frac{f_i}{f_{max}}$, thì phần lớn tiến trình hiếm sẽ bị dồn về giá trị gần 1 và mất khả năng phân biệt. Hàm $\log$ giúp nén khoảng cách này, đồng thời vẫn giữ được tính thứ tự giữa các tiến trình.
+Chia cho $\log f_{max}$ — thay vì một hằng số cứng — đảm bảo $NIF_i \in [0,1]$ bất kể kích thước log hay môi trường phân tích, vì $f_i \le f_{max}$ nên $\log f_i \le \log f_{max}$. Cụ thể: khi $f_i = f_{max}$, $NIF_i = 0$ (phổ biến nhất, không đáng ngờ về mức hiếm); khi $f_i = 1$, $NIF_i = 1 - 0 = 1$ (xuất hiện đúng một lần, hiếm tuyệt đối). Đặc tính này làm cho NIF trở thành một chỉ số tự chuẩn hóa (\textit{self-calibrating}): cùng một tiến trình có $f_i = 50$ sẽ có NIF khác nhau trên log 10.000 sự kiện so với log 1.000.000 sự kiện, phản ánh đúng ngữ cảnh tương đối của nó.
 
-Theo định nghĩa trên:
-\begin{itemize}
-    \item Nếu $f_i = f_{max}$, thì $NIF_i = 0$.
-    \item Nếu $f_i = 1$, thì $NIF_i = 1$.
-\end{itemize}
-Do đó, $NIF_i \in [0, 1]$ và có thể được sử dụng trực tiếp như một đặc trưng chuẩn hóa. 
-
-Ngoài tần suất của tên tiến trình, hệ thống còn áp dụng \textbf{NIF} cho các quan hệ tiến trình cha–con $(parent, child)$ nhằm đánh giá mức độ hiếm của hành vi sinh tiến trình. Điều này đặc biệt hữu ích trong các kịch bản như $\textbf{winword.exe} \rightarrow \textbf{cmd.exe}$ hoặc $\textbf{powershell.exe} \rightarrow \textbf{certutil.exe}$, vốn hiếm gặp trong hoạt động thông thường nhưng xuất hiện phổ biến trong nhiều chiến dịch tấn công.
+Ngoài biến thể \texttt{NIF\_binary} tính theo tần suất tên binary, hệ thống còn định nghĩa \texttt{NIF\_pair} áp dụng trên không gian các cặp $(parent, child)$. Điều này nắm bắt được chiều thông tin quan trọng hơn: không phải chỉ binary $child$ có hiếm không, mà chính hành vi ``$parent$ sinh ra $child$'' có hiếm không. Chuỗi \texttt{winword.exe} $\to$ \texttt{cmd.exe} là một cặp $(parent, child)$ hoàn toàn riêng biệt với \texttt{explorer.exe} $\to$ \texttt{cmd.exe}, dù $child$ là cùng một binary. Kỹ thuật tấn công MITRE ATT\&CK T1566.001 (Spearphishing Attachment) chính xác khai thác điểm mù này: dùng binary hợp lệ nhưng qua chuỗi cha-con bất thường.
 
 \subsection{Phát hiện bất thường điểm (Point Anomaly) – Điểm P}
 \label{subsection:2.4.2}
 Bất thường điểm (\textit{Point Anomaly}) là dạng bất thường cổ điển nhất trong phát hiện dị thường (\textit{anomaly detection}), tương ứng với các điểm dữ liệu nằm cách xa phần lớn quần thể. Trong bối cảnh log \textbf{Windows}, điều này tương ứng với các tiến trình có hành vi khác biệt rõ rệt về mặt thống kê so với phần còn lại của hệ thống.
 
-Điểm bất thường điểm được ký hiệu là $P$ và được xây dựng từ hai thành phần chính:
-\begin{itemize}
-    \item Bất thường toàn cục (\textit{global anomaly}) dựa trên \textbf{MAD},
-    \item Bất thường nội bộ nhóm (\textit{local anomaly}) dựa trên \textbf{IPAS}.
-\end{itemize}
+Điểm bất thường điểm được ký hiệu là $P$ và được xây dựng từ hai thành phần bổ sung lẫn nhau: bất thường toàn cục dựa trên \textbf{MAD} và bất thường nội bộ nhóm dựa trên \textbf{IPAS}. Mỗi thành phần giải quyết một điểm mù mà thành phần kia bỏ sót.
 
-
-\subsubsection{Median Absolute Deviation (MAD)}
+\subsubsection{Thước đo phân tán bền vững: Median Absolute Deviation (MAD)}
 \label{subsubsection:2.4.2.1}
-Các đặc trưng hành vi như độ dài \textit{command line}, \textit{entropy} chuỗi lệnh, số lượng tiến trình con hoặc số kết nối mạng thường có phân phối lệch và chứa nhiều \textit{outlier}. Trong trường hợp này, việc sử dụng trung bình (\textit{mean}) và độ lệch chuẩn (\textit{standard deviation}) sẽ thiếu ổn định do rất nhạy với các giá trị cực đoan.
 
-Để giải quyết vấn đề này, hệ thống sử dụng \textbf{Median Absolute Deviation} (\textbf{MAD}), một đại lượng thống kê \textit{robust} có khả năng chống nhiễu cao. Cho tập dữ liệu $X = \{x_1, x_2, ..., x_n\}$, gọi $m = \text{median}(X)$ là trung vị của tập dữ liệu. Khi đó, \textbf{MAD} được xác định:
+Bài toán đặt ra là: cho tập các đặc trưng hành vi định lượng của toàn bộ tiến trình trong log — chẳng hạn độ dài command line, entropy chuỗi lệnh, số tiến trình con, số kết nối mạng — làm thế nào xác định tiến trình nào ``lệch xa'' phần còn lại theo nghĩa thống kê?
+
+Trực quan ban đầu là dùng z-score chuẩn: $z_i = (x_i - \bar{x}) / \sigma$, trong đó $\bar{x}$ là trung bình và $\sigma$ là độ lệch chuẩn. Tuy nhiên, cách tiếp cận này mang một điểm yếu chết người trong ngữ cảnh DFIR: cả $\bar{x}$ lẫn $\sigma$ đều phụ thuộc vào toàn bộ tập dữ liệu, bao gồm chính những outlier cần phát hiện. Khi có $k$ tiến trình độc hại với command line cực dài (Powershell obfuscated payload thường dài 5.000–20.000 ký tự so với trung bình vài trăm), chúng kéo $\bar{x}$ lệch lên và tăng $\sigma$. Kết quả: z-score của chính các outlier này giảm xuống, và chúng không còn bị nhận diện là bất thường nữa. Đây là hiện tượng \textit{masking} — outlier tự che giấu bằng cách làm hỏng thước đo dùng để phát hiện chúng.
+
+Giải pháp là thay thế toàn bộ bằng các đại lượng \textit{robust} — tức đại lượng không bị ảnh hưởng bởi một số nhỏ giá trị cực đoan. Median là ước lượng vị trí robust nhất: giá trị ở giữa khi sắp xếp dữ liệu, và chỉ thay đổi khi hơn 50\% dữ liệu bị thay thế. Tương tự, \textbf{Median Absolute Deviation} (MAD) mở rộng ý tưởng này sang đo phân tán: cho tập $X = \{x_1, \ldots, x_n\}$ và $m = \text{median}(X)$:
 \begin{equation}
-    \text{MAD} = \text{median}(|x_i - m|)
+    \text{MAD} = \text{median}\!\left(\,|x_i - m|\,\right)
 \end{equation}
 
-Từ đó, \textbf{robust z-score} được xác định:
+MAD đo ``khoảng cách trung bình đến trung tâm'' nhưng dùng median ở cả hai lớp — bên trong lẫn bên ngoài — thay vì mean. Hệ quả là \textbf{Breakdown Point} của MAD bằng 50\%: ngay cả khi 49\% dữ liệu là các outlier cực đoan, MAD vẫn ước lượng đúng phân tán của 51\% còn lại. Đây là giới hạn lý thuyết tốt nhất có thể đạt được với bất kỳ thước đo phân tán nào \cite{Rousseeuw1993}.
+
+Để so sánh z-score robust với z-score chuẩn và tái sử dụng bảng phân phối chuẩn, cần hiệu chỉnh tỷ lệ. Với dữ liệu có phân phối chuẩn $\mathcal{N}(0, \sigma^2)$, kỳ vọng lý thuyết của $|X - \text{median}(X)|$ là:
 \begin{equation}
-    z_{robust} = \frac{0.6745(x_i - m)}{\text{MAD}}
+    \mathbb{E}\left[|X - \text{median}(X)|\right] = \sigma \cdot \Phi^{-1}(3/4) \approx 0.6745\,\sigma
+\end{equation}
+trong đó $\Phi^{-1}$ là nghịch đảo hàm phân phối tích lũy chuẩn. Suy ra $\text{MAD} \approx 0.6745\,\sigma$, hay $\sigma \approx \text{MAD}/0.6745$. Robust z-score do đó được định nghĩa:
+\begin{equation}
+    z_{robust}(x_i) = \frac{0.6745\,(x_i - m)}{\text{MAD}}
 \end{equation}
 
-Hệ số $0.6745$ xuất phát từ quan hệ giữa \textbf{MAD} và độ lệch chuẩn trong phân phối chuẩn: $\text{MAD} \approx 0.6745\sigma$. Nhờ đó, \textbf{robust z-score} vẫn có thể được diễn giải tương tự \textbf{z-score} truyền thống nhưng bền vững hơn đối với \textit{outlier}.
+Với định nghĩa này, $z_{robust}$ tương đương z-score thông thường khi dữ liệu thực sự chuẩn, nhưng không bị nhiễm độc bởi outlier trong trường hợp tổng quát.
 
-Điểm bất thường dựa trên \textbf{MAD} được xây dựng dưới dạng:
+Cuối cùng, để chuyển $z_{robust}$ sang điểm trong $[0, 10]$, hệ thống áp dụng hàm tuyến tính có ngưỡng:
 \begin{equation}
-    P_{MAD} = g(z_{robust})
+    P_{MAD}(x_i) = \begin{cases} 0 & z_{robust}(x_i) \le \theta \\ \min\!\left(10,\ \dfrac{z_{robust}(x_i) - \theta}{\theta} \times 10 \right) & z_{robust}(x_i) > \theta \end{cases}
 \end{equation}
-trong đó $g(\cdot)$ là hàm \textit{scale} đưa giá trị về khoảng $[0, 10]$. Cách tiếp cận này giúp phản ánh mức độ bất thường theo khoảng cách thống kê thay vì sử dụng phân loại nhị phân ``bình thường/bất thường''.
 
-\subsubsection{IPAS – Intra-binary Population Anomaly Score}
+Ngưỡng $\theta$ đóng vai trò ``vùng câm'' thống kê: mọi tiến trình có $z_{robust} \le \theta$ không được coi là bất thường ở mức điểm. Điều này cần thiết vì trong log thực tế, luôn có một lượng nhỏ tiến trình hợp lệ có đặc trưng hơi lệch so với trung tâm — chúng không nên bị flag chỉ vì lệch một chút. Hệ số $10/\theta$ trong nhánh còn lại đảm bảo rằng tại $z_{robust} = 2\theta$, điểm đạt đúng 10.0, tạo dải tuyến tính $[\theta, 2\theta] \to [0, 10]$.
+
+\subsubsection{Bất thường nội bộ nhóm: IPAS}
 \label{subsubsection:2.4.2.2}
-Trong nhiều trường hợp, một tiến trình không bất thường ở mức toàn cục (\textit{global}) nhưng lại khác biệt rõ rệt so với các tiến trình cùng loại. Ví dụ, trong hàng trăm tiến trình \textbf{powershell.exe}, chỉ một tiến trình duy nhất thực hiện \textit{obfuscation} hoặc \textit{injection}. Nếu chỉ sử dụng \textbf{MAD} toàn cục, các trường hợp này có thể bị pha loãng bởi số lượng lớn tiến trình hợp lệ cùng tên.
 
-Để giải quyết vấn đề này, hệ thống sử dụng \textbf{Intra-binary Population Anomaly Score} (\textbf{IPAS}). Đối với mỗi nhóm tiến trình có cùng tên tệp, hệ thống xây dựng vector đặc trưng $V_{10}$ gồm 10 chiều hành vi. Với mỗi tiến trình $j$, khoảng cách tới trung tâm nhóm được tính:
+MAD toàn cục giải quyết tốt bài toán phát hiện tiến trình khác biệt so với toàn bộ tập dữ liệu. Nhưng có một kịch bản mà nó thất bại: khi một server web production chạy đồng thời 500 instance \texttt{php-cgi.exe}, và kẻ tấn công khai thác một lỗ hổng CVE để chiếm quyền điều khiển đúng một instance — cái bị weaponized đó có thêm kết nối mạng ra ngoài và thả file vào \texttt{\%TEMP\%}. Trên toàn bộ tập log, \texttt{php-cgi.exe} với kết nối mạng là hoàn toàn phổ biến (499 instance còn lại đều kết nối đến database). MAD toàn cục không phát hiện gì cả.
 
+Bài toán thực sự là: ``instance này có hành vi khác so với 499 đồng loại của nó không?'' — đây là bài toán so sánh nội bộ nhóm (\textit{intra-group comparison}), không phải so sánh toàn cục. Hệ thống giải quyết bằng \textbf{Intra-binary Population Anomaly Score} (IPAS).
+
+Với mỗi binary $b$ có ít nhất $N_{min}^{IPAS}$ instance trong log, vector đặc trưng hành vi $V_{10}$ của từng instance $j$ được so sánh với phân phối của chính nhóm đó. Công thức khoảng cách sử dụng dạng đơn giản hóa của khoảng cách Mahalanobis, trong đó giả sử ma trận hiệp phương sai là đường chéo (các chiều độc lập):
 \begin{equation}
-    dist_j = \frac{1}{10} \sum_{k=1}^{10} \frac{|v_{j,k} - \mu_k|}{\sigma_k + \epsilon}
+    dist_j = \frac{1}{d} \sum_{k=1}^{d} \frac{|v_{j,k} - \mu_k|}{\sigma_k + \varepsilon}
 \end{equation}
 
-trong đó:
-\begin{itemize}
-    \item $\mu_k$ là giá trị trung bình của chiều thứ $k$,
-    \item $\sigma_k$ là độ lệch chuẩn (\textit{standard deviation}),
-    \item $\epsilon$ là hằng số nhỏ để tránh lỗi chia cho 0.
-\end{itemize}
+Giả định độc lập là hợp lý vì các chiều trong $V_{10}$ được thiết kế để đo các khía cạnh hành vi riêng biệt. Hằng số $\varepsilon > 0$ ngăn chia cho 0 trong trường hợp đặc biệt: khi $\sigma_k = 0$, tức toàn bộ group đồng nhất trên chiều $k$, mọi instance đều có khoảng cách 0 trên chiều đó — đúng về mặt logic, vì không ai khác biệt trong nhóm hoàn toàn đồng nhất.
 
-Biểu thức này tương đương với một dạng đơn giản hóa của khoảng cách \textbf{Mahalanobis} trong trường hợp giả sử các chiều độc lập. Giá trị khoảng cách càng lớn thì tiến trình càng khác biệt so với các tiến trình cùng loại. Sau đó, điểm \textbf{IPAS} được xây dựng:
-
+Giá trị $dist_j$ sau đó được scale về $[0, 10]$:
 \begin{equation}
-    IPAS = h(dist_j)
+    IPAS_j = \min\!\left(10,\ dist_j \times \kappa\right)
 \end{equation}
 
-trong đó $h(\cdot)$ là hàm \textit{scale} đưa giá trị về miền $[0, 10]$.
+Hệ số $\kappa$ được xác định thực nghiệm sao cho instance bị weaponized trong các tập benchmark đạt điểm tối đa 10.0.
 
 \subsubsection{Tổng hợp điểm P}
 \label{subsubsection:2.4.2.3}
-Điểm bất thường điểm cuối cùng được xây dựng bằng cách kết hợp bất thường toàn cục và bất thường nội bộ nhóm:
+
+Hai thành phần $P_{MAD}$ và $IPAS$ bổ sung lẫn nhau: $P_{MAD}$ bắt tiến trình bất thường so với toàn bộ tập; $IPAS$ bắt tiến trình bất thường trong nội bộ nhóm của nó. Điểm $P$ cuối cùng là tổ hợp tuyến tính có trọng số:
 \begin{equation}
-    P = \alpha P_{MAD} + \beta IPAS
+    P = \min\!\left(10,\ \alpha \cdot P_{MAD} + (1-\alpha) \cdot IPAS\right)
 \end{equation}
-trong đó $\alpha + \beta = 1$. Cách kết hợp này giúp hệ thống vừa phát hiện được các hành vi cực đoan trên toàn bộ tập dữ liệu, vừa giữ được khả năng phát hiện các tiến trình bị ``vũ khí hóa'' (\textit{weaponized}) lẩn khuất trong cùng một nhóm tiến trình phổ biến.
 
-Ngoài ra, hệ thống còn xem xét thông tin từ quá trình phân cụm \textbf{HDBSCAN}. Các tiến trình thuộc \textit{cluster} nhiễu ($cluster = -1$) được xem là các điểm không thuộc bất kỳ cấu trúc mật độ ổn định nào và thường mang tính dị thường cao. Do đó, các tiến trình này sẽ được tăng trọng số bất thường trong quá trình tính điểm.
+Giá trị $\alpha > 0.5$ ưu tiên tín hiệu toàn cục, phù hợp với thực tế rằng $P_{MAD}$ hoạt động trên tập dữ liệu lớn hơn và ổn định hơn về mặt thống kê. Tiến trình thuộc cluster $-1$ của HDBSCAN (sẽ được giới thiệu ở mục kế tiếp) nhận thêm một điểm thưởng $\delta$, vì hai phương pháp độc lập — thống kê phân tán và phân cụm mật độ — đồng thuận đánh giá tiến trình là bất thường, làm tăng đáng kể độ tin cậy của tín hiệu.
 
-
-\subsection{Phát hiện bất thường điểm (Point Anomaly) – Điểm P}
+\subsection{Phát hiện bất thường ngữ cảnh (Contextual Anomaly) – Điểm C}
 \label{subsection:2.4.3}
 
+Bất thường ngữ cảnh (\textit{Contextual Anomaly}) phát sinh khi một tiến trình không bộc lộ bất kỳ bất thường nào nếu xét riêng lẻ các đặc trưng định lượng của nó, nhưng trở nên đáng ngờ khi so sánh với tập hợp hành vi của các tiến trình cùng kiểu đang chạy song song trong cùng một môi trường. Chandola et al. (2009) nhận xét rằng đây là dạng bất thường đòi hỏi định nghĩa rõ ràng về ``ngữ cảnh'' — câu hỏi không phải là ``tiến trình này bất thường so với toàn bộ log không?'' mà là ``tiến trình này bất thường so với những tiến trình cùng nhóm hành vi không?''. Sự phân biệt này có tầm quan trọng đặc biệt với kỹ thuật \textit{process hollowing} (T1055.012) và \textit{DLL side-loading} (T1574.002): kẻ tấn công ẩn payload vào một tiến trình hợp lệ, làm cho binary name và nhiều đặc trưng đơn lẻ hoàn toàn không phân biệt được với tiến trình thật.
 
+\subsubsection{Không gian đặc trưng hành vi $V_{10}$}
+\label{subsubsection:2.4.3.1}
 
+Để định nghĩa ``ngữ cảnh hành vi'' một cách hình thức, hệ thống cần một không gian vector trong đó mỗi tiến trình được biểu diễn bởi các hành vi quan sát được — không phải tên binary, vì tên có thể bị giả mạo. Mười chiều hành vi trong $V_{10}$ được chọn dựa trên hai tiêu chí: (1) có thể thu thập trực tiếp từ Sysmon mà không cần suy luận, và (2) có tương quan cao với các TTP đã được lập danh mục trong MITRE ATT\&CK:
+
+Bốn chiều đầu ($v_1$–$v_4$) là đặc trưng nhị phân: tiến trình có kết nối mạng ra ngoài không, có tạo remote thread không, có thả file vào đĩa không, có chỉnh sửa registry không. Các chiều này mã hóa hành vi tấn công cốt lõi mà rất ít phần mềm hợp lệ thực hiện đồng thời. Hai chiều tiếp theo ($v_5$–$v_6$) là NIF\_binary và NIF\_pair — đo mức hiếm của binary và của cặp cha-con — đã được phân tích ở mục \ref{subsection:2.4.1}. Ba chiều $v_7$–$v_9$ là phiên bản rời rạc hóa (binned) của entropy command line, độ dài command line, và số tiến trình con — rời rạc hóa giúp giảm nhiễu khi phân cụm với dữ liệu hỗn hợp nhị phân và liên tục. Chiều cuối $v_{10}$ đánh dấu liệu tiến trình cha có điểm Sigma đáng kể không, nắm bắt ngữ cảnh kế thừa từ chuỗi cha-con.
+
+Việc chọn đặc trưng hành vi thay vì đặc trưng ngữ nghĩa (TF-IDF trên command line, Word2Vec) là có chủ đích: các đặc trưng ngữ nghĩa có thể bị vô hiệu hóa bằng obfuscation đơn giản như \texttt{p\^{}o\^{}w\^{}e\^{}r\^{}s\^{}h\^{}e\^{}l\^{}l}, trong khi hành vi quan sát được (có kết nối mạng hay không) không thể giả mạo mà không thực sự thực hiện hành vi đó.
+
+\subsubsection{Tự học ngữ cảnh bình thường bằng HDBSCAN}
+\label{subsubsection:2.4.3.2}
+
+Với không gian $V_{10}$ đã định nghĩa, bài toán tiếp theo là xác định các ``nhóm ngữ cảnh'' tự nhiên tồn tại trong log. Đây là bài toán phân cụm không giám sát — không có nhãn, không có số cụm biết trước, không có dữ liệu baseline bên ngoài.
+
+Phương pháp phân cụm phổ biến nhất là K-Means, song nó đặt ra hai yêu cầu không thỏa mãn được trong bối cảnh này. Thứ nhất, K-Means yêu cầu biết trước $K$ — số nhóm hành vi tự nhiên trong một môi trường Windows không thể biết trước mà không phân tích. Thứ hai, K-Means giả định các cụm có dạng hình cầu và kích thước xấp xỉ bằng nhau, trong khi thực tế, một nhóm như ``tiến trình hệ thống nền'' có thể chứa hàng nghìn tiến trình còn nhóm ``công cụ quản trị'' chỉ vài chục — mật độ chênh lệch nhiều bậc.
+
+\textbf{HDBSCAN} (\textit{Hierarchical Density-Based Spatial Clustering of Applications with Noise}) giải quyết cả hai vấn đề. Thuật toán xác định các vùng mật độ cao trong không gian $V_{10}$ mà không cần biết $K$ trước, và tự động đánh nhãn các điểm không thuộc vùng mật độ ổn định nào là \textit{noise} với nhãn cụm $-1$. Tập $-1$ này — không phải nhiễu đo lường mà là các tiến trình có hành vi quá đặc thù để hình thành nhóm — chính là tập nghi vấn tự nhiên nhất: nếu một tiến trình không giống bất kỳ nhóm hành vi nào đã biết, nó đáng được điều tra.
+
+Một ràng buộc cứng được áp đặt: tuyệt đối không gộp cụm $-1$ vào cụm nào, và không đưa bất kỳ tiến trình nào từ cụm có mật độ vào $-1$. Vi phạm ràng buộc đầu tiên pha loãng tập nghi vấn; vi phạm thứ hai làm ô nhiễm các profile hành vi bình thường bằng các tiến trình đáng ngờ.
+
+\subsubsection{Định lượng mức nguy hiểm của cụm và chuẩn hóa một phía}
+\label{subsubsection:2.4.3.3}
+
+Sau khi phân cụm, mỗi cụm $k$ được đặc trưng bởi centroid $\vec{C}_k$ — vector trung bình hành vi của toàn bộ tiến trình trong cụm đó. Mức độ nguy hiểm tiềm ẩn của cụm được ước lượng bằng tích vô hướng:
+\begin{equation}
+    risk_k = \vec{C}_k \cdot \vec{w}_{sus}
+\end{equation}
+trong đó $\vec{w}_{sus}$ là vector trọng số tham chiếu theo MITRE ATT\&CK: các chiều như \texttt{has\_injection} hay \texttt{has\_network} nhận trọng số cao vì liên quan trực tiếp đến T1055 và T1071; các chiều như \texttt{child\_count} nhận trọng số thấp hơn vì ít đặc trưng hơn.
+
+Tuy nhiên, $risk_k$ là một đại lượng thô phụ thuộc vào đơn vị và thang đo của $\vec{w}_{sus}$. Để chuẩn hóa thành điểm $[0, 10]$ có thể so sánh giữa các log khác nhau, câu hỏi là: nên dùng chuẩn hóa nào? Min-Max chuẩn hóa $risk_k$ theo công thức $(risk_k - risk_{min})/(risk_{max} - risk_{min})$ có vẻ trực quan, nhưng nó phụ thuộc vào $risk_{max}$ — một cụm cực kỳ nguy hiểm trong một log có thể nén toàn bộ các cụm còn lại về gần 0, làm mất phân biệt. Z-score thông thường $(risk_k - \mu_r)/\sigma_r$ tốt hơn vì tự scale theo phân phối thực tế, song nó sản sinh cả giá trị âm cho các cụm an toàn hơn trung bình — điều không có ý nghĩa về mặt bảo mật và có thể triệt tiêu tín hiệu dương khi tổng hợp.
+
+Giải pháp là \textit{one-sided z-score}: tính z-score thông thường nhưng chặn tại 0 từ phía dưới. Gọi $\mu_r = \text{Mean}(\{risk_k\})$ và $\sigma_r = \text{Std}(\{risk_k\})$:
+\begin{equation}
+    z_k = \frac{risk_k - \mu_r}{\sigma_r}
+\end{equation}
+\begin{equation}
+    C\_profile[k] = \begin{cases} 0 & z_k \le 0 \\ \min\!\left(10,\ z_k \times \gamma\right) & z_k > 0 \end{cases}
+\end{equation}
+
+Hệ số $\gamma$ được chọn sao cho cụm ở vị trí $3\sigma$ trên mean nhận điểm tối đa 10, tức $3\gamma = 10 \Rightarrow \gamma \approx 3.33$. Trường hợp suy biến $\sigma_r \approx 0$ xảy ra khi toàn bộ cụm có profile risk gần bằng nhau — không có tín hiệu ngữ cảnh, $C = 0$ cho tất cả là kết quả đúng. Tiến trình thuộc cụm $-1$ không có centroid xác định nên được xử lý riêng: nếu mang hành vi nguy hiểm chủ động, điểm $C$ tỷ lệ nghịch với $NIF_{binary}$ (binary phổ biến bị weaponized nguy hiểm hơn binary lạ chưa ai biết); nếu chỉ là noise thụ động, hệ thống gán một mức điểm nền phản ánh sự bất thường về mặt density.
+
+\subsection{Phát hiện bất thường chuỗi (Sequential Anomaly) – Điểm Seq}
+\label{subsection:2.4.4}
+
+Bất thường chuỗi (\textit{Sequential Anomaly}) là dạng bất thường mà các thành phần riêng lẻ của chuỗi đều hoàn toàn bình thường, nhưng \textit{thứ tự chuyển tiếp} giữa chúng là bất thường. Đây chính là cốt lõi của kỹ thuật \textit{Living-off-the-Land Binaries} (LOLBins): kẻ tấn công không cần đưa binary lạ vào hệ thống, chỉ cần khai thác binary hệ thống theo chuỗi chưa từng thấy trong hoạt động bình thường. Chuỗi \texttt{WINWORD.EXE} $\to$ \texttt{cmd.exe} $\to$ \texttt{powershell.exe} $\to$ \texttt{net.exe} là điển hình: mỗi tiến trình tồn tại trên mọi máy Windows, song chuỗi cha-con này biểu thị một macro malware thực thi payload qua nhiều bước (T1566.001, T1059.001, T1021.002).
+
+\subsubsection{Mô hình Markov bậc 2 và lý do chọn bậc}
+\label{subsubsection:2.4.4.1}
+
+Hệ thống biểu diễn chuỗi lineage của mỗi tiến trình — từ tổ tiên gốc đến chính tiến trình đó — như một chuỗi quan sát $n_1 \to n_2 \to \cdots \to n_N$. Bài toán là: chuỗi chuyển tiếp này bất thường đến mức nào so với tất cả chuỗi đã quan sát trong cùng log?
+
+Mô hình Markov bậc 1 ước lượng xác suất $P(n_{i+1} \mid n_i)$ — xác suất tiến trình tiếp theo chỉ phụ thuộc vào tiến trình hiện tại. Điều này đủ để phát hiện một số trường hợp, nhưng không phân biệt được: \texttt{cmd.exe} sinh bởi \texttt{svchost.exe} (bình thường — dịch vụ Windows) và \texttt{cmd.exe} sinh bởi \texttt{svchost.exe} vốn được sinh bởi \texttt{WINWORD.EXE} (bất thường — macro malware). Cả hai trường hợp đều cho cùng xác suất bậc 1 $P(\texttt{cmd} \mid \texttt{svchost})$.
+
+Mô hình Markov bậc 2 khắc phục bằng cách mô hình hóa $P(n_{i+2} \mid n_i, n_{i+1})$ — xác suất phụ thuộc vào hai bước trước. Với ví dụ trên: $P(\texttt{cmd} \mid \texttt{WINWORD}, \texttt{svchost})$ là xác suất rất thấp trong log bình thường, trong khi $P(\texttt{cmd} \mid \texttt{services}, \texttt{svchost})$ cao hơn nhiều. Bậc 2 nắm bắt đủ ngữ cảnh để phân biệt hai trường hợp này mà không đòi hỏi quá nhiều dữ liệu để ước lượng (bậc 3 trở lên gặp vấn đề data sparsity nghiêm trọng trong không gian $K^3$ trạng thái).
+
+\subsubsection{Laplace Smoothing và cross-entropy path score}
+\label{subsubsection:2.4.4.2}
+
+Xác suất chuyển tiếp bậc 2 được ước lượng từ tần suất quan sát trong log:
+\begin{equation}
+    \hat{P}(n_{i+2} \mid n_i, n_{i+1}) = \frac{\text{Count}(n_i, n_{i+1}, n_{i+2})}{\text{Count}(n_i, n_{i+1})}
+\end{equation}
+
+Vấn đề nảy sinh khi gặp các chuyển tiếp chưa từng thấy trong log — điều tất yếu xảy ra vì attacker cố tình tạo chuỗi mới. Khi đó $\text{Count}(n_i, n_{i+1}, n_{i+2}) = 0 \Rightarrow \hat{P} = 0 \Rightarrow \log \hat{P} = -\infty$, khiến toàn bộ điểm Seq bị vô nghĩa. Laplace Smoothing giải quyết bằng cách thêm một hằng số nhỏ $\varepsilon_L > 0$ vào cả tử và mẫu:
+\begin{equation}
+    P_{lap}(n_{i+2} \mid n_i, n_{i+1}) = \frac{\text{Count}(n_i, n_{i+1}, n_{i+2}) + \varepsilon_L}{\text{Count}(n_i, n_{i+1}) + \varepsilon_L \cdot K}
+\end{equation}
+trong đó $K$ là tổng số node khác nhau. Số hạng $\varepsilon_L \cdot K$ ở mẫu đảm bảo tổng xác suất trên tất cả $K$ khả năng vẫn bằng 1. Về mặt Bayesian, đây là prior phân phối đều với cường độ $\varepsilon_L$: khi dữ liệu nhiều, prior bị áp đảo và xác suất hội tụ về tần suất quan sát; khi dữ liệu ít hoặc bằng 0, prior kéo xác suất về $1/K$ thay vì để nó bằng 0.
+
+Từ các xác suất chuyển tiếp này, độ bất thường của toàn bộ chuỗi độ dài $N$ được đo bằng cross-entropy trung bình — bình quân số bit cần thiết để mã hóa mỗi bước chuyển tiếp theo mô hình:
+\begin{equation}
+    Seq_{raw} = \frac{-1}{N-2} \sum_{i=1}^{N-2} \log_2 P_{lap}(n_{i+2} \mid n_i, n_{i+1})
+\end{equation}
+
+Chia cho $N - 2$ là cần thiết để so sánh công bằng giữa các chuỗi dài và ngắn: một chuỗi dài gồm toàn transition thông thường không nên bị penalize hơn chuỗi ngắn gồm một transition bất thường. Giá trị $Seq_{raw}$ cao biểu thị chuỗi có nhiều bước chuyển tiếp bất ngờ — tức attack chain chưa từng xuất hiện trong log.
+
+Một trường hợp đặc biệt cần xử lý: khi $N = 2$ (chuỗi chỉ có hai node), không có transition bậc 2 nào để đánh giá. Hệ thống giải quyết bằng cách nhân đôi node đầu thành bộ ba $(n_1, n_1, n_2)$, tức giả định node gốc ``tự sinh ra chính nó'' trước khi sinh $n_2$. Đây là heuristic có cơ sở: nếu $(n_1, n_1, n_2)$ có xác suất thấp, nghĩa là chuỗi gốc $n_1 \to n_2$ hiếm gặp trong log — thông tin hữu ích.
+
+Cuối cùng, $Seq_{raw}$ được chuẩn hóa về $[0, 10]$ bằng cùng cơ chế MAD Z-robust như P score, với cùng ngưỡng $\theta$. Sự nhất quán này có ý nghĩa thống kê: tiến trình đạt $Seq = 5.0$ và tiến trình đạt $P = 5.0$ đều lệch khỏi phân phối của tập log một lượng tương đương về mặt statistical significance, cho phép so sánh và tổng hợp trực tiếp hai thành phần.
+
+\subsection{Phát hiện bất thường tập thể (Collective Anomaly) – Điểm Col}
+\label{subsection:2.4.5}
+
+Bất thường tập thể (\textit{Collective Anomaly}) theo phân loại Chandola et al. (2009) là dạng bất thường mà không một quan sát đơn lẻ nào trong tập bộc lộ bất thường, nhưng \textit{phân phối thống kê tổng thể} của tập đó bất thường so với phân phối kỳ vọng. Trong bối cảnh DFIR, biểu hiện điển hình là \textit{Command-and-Control beaconing}: các framework C2 như Cobalt Strike (mặc định check-in mỗi 60 giây với jitter $\pm$10\%), Sliver, hay Brute Ratel duy trì kênh liên lạc bằng cách gửi tín hiệu định kỳ. Mỗi HTTP request đơn lẻ là lưu lượng hoàn toàn hợp lệ, nhưng khoảng cách thời gian giữa các request mang đặc trưng thống kê không tự nhiên: độ đều đặn quá cao so với bất kỳ phần mềm hợp lệ nào — kể cả các phần mềm có lịch đồng bộ định kỳ như Windows Update, vì chúng thêm jitter ngẫu nhiên để tránh tải đồng thời.
+
+\subsubsection{Coefficient of Variation — thước đo độ đều đặn không phụ thuộc tần suất}
+\label{subsubsection:2.4.5.1}
+
+Bài toán là: cho chuỗi timestamp các kết nối mạng $t_1, t_2, \ldots, t_m$ của một tiến trình, định lượng mức độ đều đặn của chúng theo cách không phụ thuộc vào chu kỳ tuyệt đối (beacon 60 giây và beacon 300 giây đều là beaconing, cần bị phát hiện bởi cùng một ngưỡng).
+
+Xét chuỗi khoảng cách thời gian $\Delta t_i = t_{i+1} - t_i$. Phương sai $\sigma_{\Delta t}^2$ đo mức độ biến thiên tuyệt đối, nhưng giá trị tuyệt đối của nó phụ thuộc vào đơn vị thời gian và chu kỳ: beacon 60 giây có $\sigma$ nhỏ hơn beacon 3600 giây dù cả hai đều đều đặn như nhau. Cần một đại lượng tương đối, không có đơn vị. \textbf{Coefficient of Variation} (CoV) — tỷ số giữa độ lệch chuẩn và trung bình — đáp ứng đúng yêu cầu này:
+\begin{equation}
+    CoV = \frac{\sigma_{\Delta t}}{\mu_{\Delta t}}
+\end{equation}
+
+CoV bằng 0 khi tất cả khoảng cách hoàn toàn bằng nhau (đều đặn tuyệt đối); CoV lớn khi khoảng cách biến thiên mạnh (hành vi con người, tải ngẫu nhiên). Vì là tỷ số, CoV không thay đổi khi nhân toàn bộ chuỗi $\Delta t_i$ với một hằng số — tức khi thay đổi đơn vị thời gian hay chu kỳ beacon. Đây là tính chất \textit{scale-invariance} cho phép dùng cùng một ngưỡng phát hiện cho mọi chu kỳ.
+
+Điểm Col được tính theo công thức ánh xạ CoV về $[0, 10]$, trong đó CoV thấp (đều đặn) cho điểm cao:
+\begin{equation}
+    Col = \max\!\left(0,\ (1 - CoV) \times 10\right)
+\end{equation}
+
+Hàm $\max(0, \cdot)$ ngăn điểm âm khi $CoV > 1$ — trường hợp xảy ra với các kết nối rất thất thường (burst traffic). Một điều kiện thống kê tối thiểu được áp đặt: cần ít nhất 4 timestamp để có 3 interval, mức tối thiểu để ước lượng $\sigma_{\Delta t}$ có ý nghĩa. Dưới mức này, $Col = 0$ — không phán quyết gì từ dữ liệu không đủ.
+
+\subsection{Tín hiệu luật phát hiện đã biết – Điểm S}
+\label{subsection:2.4.6}
+
+Các thành phần P, C, Seq và Col đều thuộc paradigm phát hiện bất thường (\textit{anomaly detection}): chúng phát hiện những gì khác thường so với hành vi quan sát được trong log, kể cả khi mẫu tấn công chưa từng được lập danh mục. Song có một lớp mối đe dọa quan trọng mà anomaly detection đơn thuần có thể bỏ sót: các kỹ thuật tấn công đã được triển khai đủ lâu và đủ rộng đến mức hành vi của chúng không còn thực sự bất thường trong nhiều môi trường nữa — chẳng hạn \texttt{powershell.exe -enc} chạy Base64-encoded payload là hành vi phổ biến trong cả phần mềm hợp lệ lẫn tấn công. Để bổ sung lớp phòng thủ này, hệ thống tích hợp \textbf{SigmaHQ} — framework quy tắc phát hiện mối đe dọa mã nguồn mở với hơn 3.000 rule được cộng đồng DFIR đóng góp và bảo trì, tương đương YARA nhưng hoạt động trên log sự kiện thay vì binary.
+
+Vấn đề kỹ thuật nảy sinh khi một tiến trình khớp với nhiều rule Sigma: cộng điểm tuyến tính $S = \sum_i B_i$ gây ra \textit{score explosion} — năm rule mức Low (mỗi rule 2 điểm) cho $S = 10$, vượt một rule mức Critical (8 điểm), sai về mặt bảo mật vì severity của một cuộc tấn công không tỷ lệ tuyến tính với số rule phát hiện được. Triết lý tính điểm của CVSS (Common Vulnerability Scoring System) giải quyết vấn đề tương tự bằng cách lấy sub-score cao nhất làm dominant, với corroboration bonus có diminishing returns. Hệ thống áp dụng nguyên lý này:
+\begin{equation}
+    S = \min\!\left(10,\ \max_i\!\left(B_i \cdot CM_i\right) + \lambda_S \cdot \log_2(1 + N_{rules})\right)
+\end{equation}
+
+Số hạng $\max_i(B_i \cdot CM_i)$ chọn severity của rule nặng nhất — một rule Critical xác định điểm nền. $CM_i \in (0, 1]$ là hệ số tin cậy (\textit{Confidence Multiplier}) của rule $i$: một số Sigma rule nổi tiếng có tỷ lệ False Positive cao trong môi trường production (ví dụ rule phát hiện \texttt{net.exe} chạy trong một số môi trường hoàn toàn bình thường) — $CM_i$ cho phép ``bóp'' ảnh hưởng của các rule này mà không cần vô hiệu hóa hoàn toàn. Số hạng $\lambda_S \cdot \log_2(1 + N_{rules})$ cộng bonus khi nhiều rule khớp cùng một tiến trình: mỗi rule bổ sung là bằng chứng corroboration, nhưng hàm logarithm đảm bảo rằng rule thứ 10 đóng góp ít hơn rule thứ 2 (diminishing returns) — 10 rule khớp không đáng tin cậy gấp đôi 5 rule khớp.
+
+\section{Tổng hợp tín hiệu và cơ chế xếp hạng cuối}
+\label{section:2.5}
+
+\subsection{Corroboration Index và vấn đề vùng chết toán học}
+\label{subsection:2.5.1}
+
+Năm thành phần P, C, S, Seq, Col đã được thiết kế để đo năm chiều độc lập của hành vi bất thường. Câu hỏi tổng hợp là: làm thế nào kết hợp chúng thành một điểm cuối duy nhất theo cách phản ánh đúng mức độ nguy hiểm thực sự?
+
+Tổng hợp tuyến tính đơn giản $Final = \sum w_i \cdot x_i$ gặp hai vấn đề. Thứ nhất, \textit{vùng chết toán học} (\textit{Dead Zone}): nếu tất cả các thành phần đều ở mức trung bình (ví dụ $P=4, C=3, S=0, Seq=3, Col=0$), tổng trọng số có thể vẫn dưới ngưỡng điều tra, dù đây chính là profile điển hình của APT — nhiều tín hiệu mức vừa thay vì một tín hiệu bùng nổ duy nhất. Thứ hai, tổng hợp tuyến tính không phân biệt được ``một tín hiệu rất mạnh'' với ``nhiều tín hiệu trung bình đồng thuận'' — hai trường hợp có tính chất điều tra rất khác nhau.
+
+Nguyên lý \textit{convergence of evidence} từ khoa học pháp y nhận xét rằng khi nhiều nguồn bằng chứng độc lập cùng chỉ ra một kết luận, độ tin cậy tổng thể tăng phi tuyến — không phải cộng tuyến tính. Hệ thống hiện thực hóa điều này bằng \textbf{Corroboration Index} (CI), một hệ số nhân áp dụng lên tổng trọng số:
+
+Mỗi thành phần $x \in \{P, C, S, Seq, Col\}$ được coi là ``active'' khi $x > \tau_x$ — vượt ngưỡng ý nghĩa thống kê riêng của nó. Gọi $N_{active}$ là số thành phần active:
+\begin{equation}
+    CI = \max\!\left(\rho_{floor},\ \min\!\left(\rho_{ceil},\ 1.0 + \Delta_{CI} \cdot (N_{active} - 2)\right)\right)
+\end{equation}
+
+Thiết kế này mã hóa các nguyên lý sau. Khi $N_{active} = 2$, CI $= 1.0$ — baseline trung hòa, không khuếch đại cũng không pha loãng. Mỗi tín hiệu active bổ sung tăng CI thêm $\Delta_{CI}$: ba tín hiệu đồng thuận nguy hiểm hơn hai. $\rho_{floor}$ là chặn dưới quan trọng nhất: nó đảm bảo rằng ngay cả khi chỉ có một hoặc hai tín hiệu active, CI vẫn không giảm xuống quá thấp gây \textit{Dead Zone}. Trong phiên bản v8.5 của hệ thống, $\rho_{floor} = 0.9$ — nghĩa là tín hiệu moderate luôn giữ được ít nhất 90\% trọng lượng trong công thức cuối. $\rho_{ceil} = 1.5$ giới hạn trên để Final Score không vượt $[0, 10]$.
+
+Hai cơ chế bổ sung được tích hợp để xử lý các trường hợp đặc biệt. \textit{Screaming Sigma Override}: khi $S \ge \eta_\sigma$ (rule Critical với độ tin cậy cao), đây là tín hiệu Known-Known threat không cần tổng hợp thống kê — hệ thống bypass weighted sum và đảm bảo Final Score đạt mức cảnh báo tối thiểu. \textit{Parent Context Boost}: khi tiến trình cha trực tiếp thuộc cluster $-1$ hoặc có IPAS vượt ngưỡng, toàn bộ ngưỡng $\{\tau_x\}$ của tiến trình con được giảm xuống một hệ số $\rho_{boost} < 1$, làm cho các tín hiệu của con dễ active hơn — phản ánh nguyên lý DFIR rằng trong ngữ cảnh cha đáng ngờ, hành vi trung bình của con cũng đáng điều tra hơn.
+
+\subsection{Công thức Final Score và lan truyền rủi ro trong cây tiến trình}
+\label{subsection:2.5.2}
+
+Sau khi có CI, điểm cuối của mỗi tiến trình được tính:
+\begin{equation}
+    Final\_Score = \left(w_P \cdot P + w_C \cdot C + w_S \cdot S + w_{Seq} \cdot Seq\right) \times CI + w_{Col} \cdot Col
+\end{equation}
+
+Ràng buộc $w_P + w_C + w_S + w_{Seq} = 1.0$ đảm bảo phần trong ngoặc $\in [0, 10]$ trước khi nhân CI (vì mỗi thành phần $\in [0, 10]$). Col nằm ngoài hệ số nhân CI vì CoV đo một đặc trưng thống kê của phân phối thời gian — độc lập về mặt toán học với các anomaly score đo đặc trưng hành vi. Nhân CI sẽ khuếch đại Col theo số tín hiệu active của các thành phần khác — không có cơ sở, vì beaconing không nguy hiểm hơn chỉ vì tiến trình đó cũng có injection.
+
+Sau khi tính xong điểm cho toàn bộ node, một bước lan truyền rủi ro được thực hiện nhằm highlight toàn bộ attack chain, không chỉ node lá. Trong thực tế DFIR, analyst cần thấy không chỉ tiến trình cuối thực hiện hành vi độc hại mà cả toàn bộ chuỗi cha-con dẫn đến nó — đây là cơ sở để tái dựng kill chain và xác định điểm xâm nhập ban đầu (\textit{initial access}). Thuật toán \textbf{Guilt Backpropagation} duyệt cây tiến trình từ lá lên gốc (Bottom-Up Traversal):
+\begin{equation}
+    Score(v) \leftarrow \max\!\left(Score(v),\ \max_{u \in \text{children}(v)} Score(u) \times \beta\right)
+\end{equation}
+
+Sử dụng $\max$ thay vì cộng đảm bảo tính đơn điệu: điểm của node cha chỉ tăng, không bao giờ giảm vì con an toàn. Hệ số $\beta \in (0, 1)$ là \textit{decay factor} tạo ra ``attenuation theo cấp độ'': tiến trình cha nhận điểm bằng $\beta$ lần điểm con; ông nội nhận $\beta^2$; cụ nhận $\beta^3$. Điều này phản ánh nguyên lý trách nhiệm suy giảm theo khoảng cách trong cây: tiến trình sinh trực tiếp tiến trình độc hại chịu trách nhiệm cao nhất; tiến trình nhiều cấp phía trên chịu trách nhiệm thấp hơn. Mọi node có điểm được nâng qua bước này được gắn cờ \texttt{INHERITED\_RISK} trong output, cho phép analyst phân biệt ``tiến trình bản thân bất thường'' với ``tiến trình bình thường nhưng sinh ra con độc hại''.
+
+\section{Tổng kết chương}
+\label{section:2.6}
+
+Chương này đã xây dựng toàn bộ nền tảng lý thuyết và mô hình toán học cho hệ thống triage log đề xuất. Điểm xuất phát là bài toán phân tích log Windows không có dữ liệu baseline bên ngoài; từ đó, hệ thống được thiết kế từ dưới lên với năm thành phần scoring giải quyết năm dạng bất thường khác nhau theo phân loại của Chandola et al.: Point Anomaly (P) dùng MAD và IPAS, Contextual Anomaly (C) dùng HDBSCAN và one-sided z-score, Sequential Anomaly (Seq) dùng Markov bậc 2 và cross-entropy, Collective Anomaly (Col) dùng CoV, và Known-threat signal (S) dùng Sigma với Max Override. Tất cả được tổng hợp qua Corroboration Index — cơ chế phản ánh nguyên lý convergence of evidence — và lan truyền ngược qua cây tiến trình để tái dựng toàn bộ attack chain. Chương tiếp theo sẽ hiện thực hóa kiến trúc này thành hệ thống hoàn chỉnh và trình bày các quyết định thiết kế cụ thể.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
