@@ -1,7 +1,7 @@
 # MASTER CONTEXT: AUTOMATED DFIR TRIAGE ENGINE
-> **Phiên bản:** v8.5 — Zero-Whitelist Architecture (Lossless Structural Deduplication)
-> **Mục tiêu:** Tối ưu Recall (>90%) thông qua việc xóa bỏ "Vùng chết toán học" và bảo tồn bằng chứng Recon.
-> **Trạng thái:** Production-ready  
+> **Phiên bản:** v8.6 — Principled, Reproducible, and Temporal Architecture
+> **Mục tiêu:** Vừa tối ưu Recall vừa đảm bảo minh bạch khoa học, khả năng tái hiện và phát hiện APT Slow-and-Low.
+> **Trạng thái:** Production-ready (config-driven)
 > **Ngôn ngữ:** Rust (L0) + Python (L1–L4)
 
 ---
@@ -21,8 +21,8 @@
 | Tiêu chí | Đặc tả |
 |----------|--------|
 | **Hiệu năng** | Xử lý file `.evtx` ≥ 1GB trong thời gian tính bằng phút. Giao tiếp L0-L1 thông qua C-binding (PyO3) để đạt Zero-copy memory, xóa bỏ bottleneck I/O. |
-| **Explainability (XAI)** | Mọi `Final_Score` phải phân rã được thành các thành phần P, C, S, Seq, Col, CI. Nghiêm cấm Black-box model. Zero-Whitelist: không check chữ ký, không Trust Factor. |
-| **Toàn vẹn Dữ liệu** | Không được làm đứt gãy chuỗi phả hệ tiến trình (Process Lineage) dưới bất kỳ hình thức pruning hay chuẩn hóa nào. Xử lý tốt Multi-file log cho các chiến dịch APT dài ngày. |
+| **Explainability (XAI)** | Mọi `Final_Score` phải phân rã được thành các thành phần P, C, S, Seq, Col, CI và trạng thái `effective_weights`. Nghiêm cấm Black-box model. Zero-Whitelist: không check chữ ký, không Trust Factor. |
+| **Toàn vẹn Dữ liệu** | Không được làm đứt gãy chuỗi phả hệ tiến trình. Signal Preservation Guarantee: node có `Sigma_Score > 0` hoặc behavioral signal active (`has_network`, `has_injection`, `has_file_drop`, `has_reg_mod`) tuyệt đối không bị dedup. |
 | **Key định danh** | Dùng `ProcessGuid` (Sysmon field) làm primary key cho mọi node, **không dùng PID** — PID bị Windows tái sử dụng trên log dài. |
 
 ---
@@ -33,12 +33,13 @@
 |----------|-------|
 | **Zero Pre-training** | Tự học Baseline trực tiếp trên file log đang phân tích bằng HDBSCAN. Không cần dataset sạch bên ngoài. |
 | **Zero-Whitelist / Zero-Blacklist** | Mọi phán quyết đều dựa trên xác suất thống kê nội tại của chính log đó. Không có danh sách cứng, không check chữ ký số, không Trust Factor. Ngoại lệ duy nhất là định luật vật lý của OS (Vd: Shell wrappers). |
-| **One-way Pipeline** | Dữ liệu chỉ chảy theo một chiều: L0 → L1 → L2 → L3 → L4. Gọt rác O(1) ở tầng thấp để tầng cao chạy thuật toán nặng trên tập dữ liệu đã tinh lọc. |
+| **One-way Pipeline** | Dữ liệu chảy một chiều: L0 → L1 → L2-A → L2-B → L2-C → L3 → L4. L2-C giữ trạng thái liên-run cho chiến dịch dài ngày. |
 | **White-box XAI** | Định lượng bằng phương trình toán học tuyến tính. Analyst phải đọc được báo cáo và hiểu ngay tại sao một process bị flag. |
+| **Single Source of Truth** | Toàn bộ tham số vận hành nằm trong `config.toml`; code và báo cáo đọc từ cùng nguồn để tránh lệch thực nghiệm. |
 
 ---
 
-## 4. KIẾN TRÚC PIPELINE 5 TẦNG
+## 4. KIẾN TRÚC PIPELINE 6 TẦNG
 
 ---
 
@@ -107,6 +108,25 @@ $$NIF = 1.0 - \frac{\log(Count)}{\log(Count_{max})}$$
 - Cluster Ceiling: Gộp vi mô vào cụm lớn bằng Euclidean distance nếu K > 30.
 - **VÙNG ĐẤT THÁNH (CLUSTER -1):** Tuyệt đối KHÔNG gộp -1 đi đâu, và không gộp ai vào -1.
 
+**Graceful Degradation Stack:**
+- Ưu tiên `hdbscan` khi khả dụng.
+- Fallback `dbscan` khi thiếu dependency.
+- Cuối cùng `disabled` (all cluster 0) nếu không còn lựa chọn.
+- Mỗi run phải xuất `clustering_mode` trong health report.
+
+---
+
+### LAYER 2-C — TEMPORAL AGGREGATION (MỚI)
+
+Persistent state lưu trên SQLite để tích lũy tín hiệu theo thời gian cho mỗi `ProcessGuid`.
+
+$$CS_{new} = CS_{prev}\cdot e^{-\lambda \Delta t} + Event\_Score$$
+
+Trong đó:
+- `lambda` (decay constant) lấy từ `config.toml` (`temporal.decay_lambda`).
+- Output song song `Event_Score` và `Campaign_Score`.
+- Health state của tầng này phải khai báo `AVAILABLE` hoặc `COLD_START`.
+
 ---
 
 ### LAYER 3 — RISK EVALUATOR & SEQUENCE SCORER
@@ -116,7 +136,7 @@ $$NIF = 1.0 - \frac{\log(Count)}{\log(Count_{max})}$$
 Chống nhiễu tuyệt đối, tự động scale.
 $$MAD = Median(|X_i - Median(X)|)$$
 $$Z_{robust} = \frac{0.6745 \times (X_i - Median(X))}{MAD}$$
-*Gate:* Nếu $Z_{max} \le 3.5 \rightarrow P_{MAD} = 0.0$. Nếu $> 3.5 \rightarrow P_{MAD} = \min(10.0, (Z_{max} - 3.5) \times \frac{10}{3.5})$.
+*Gate:* Nếu $Z_{max} \le 2.5 \rightarrow P_{MAD} = 0.0$. Nếu $> 2.5 \rightarrow P_{MAD} = \min(10.0, (Z_{max} - 2.5) \times \frac{10}{2.5})$.
 
 **Công thức 2: IPAS - Intra-binary Population Anomaly Score (Dị thường nội bộ)**
 Bắt tiến trình bị weaponized (Vd: 1 php-cgi.exe bị exploit vs 499 php-cgi.exe sạch). Population $\ge 5$.
@@ -154,21 +174,23 @@ $$Seq\_raw = \frac{-1}{N-2} \sum \log_2(P_{laplace})$$
 *2-pass: Pass 1 build transition matrix. Pass 2 calibrate population statistics trên PRUNED paths:*
 $$Median_{seq} = Median(\{Seq\_raw_i\}),\quad MAD_{seq} = Median(|Seq\_raw_i - Median_{seq}|)$$
 $$Z_{seq} = \frac{0.6745 \times (Seq\_raw - Median_{seq})}{MAD_{seq}}$$
-$$Seq = \begin{cases} 0 & Z_{seq} \le 3.5 \\ \min\bigl(10,\ (Z_{seq}-3.5)\times\frac{10}{3.5}\bigr) & Z_{seq} > 3.5 \end{cases}$$
-*Gate = 3.5 nhất quán với MAD_GATE của P_score (§3.1). Tự hiệu chỉnh theo data — không magic number.*
+$$Seq = \begin{cases} 0 & Z_{seq} \le 2.5 \\ \min\bigl(10,\ (Z_{seq}-2.5)\times\frac{10}{2.5}\bigr) & Z_{seq} > 2.5 \end{cases}$$
+*Gate = 2.5 nhất quán với MAD_GATE của P_score (§3.1). Tự hiệu chỉnh theo data — không magic number.*
 
 #### 3.5 — Col: Collective Anomaly Score (Beaconing Detector)
 Sử dụng Coefficient of Variation (CoV) trên EID 3.
 **Gate chống chia 0:** `if len(timestamps) < 4 -> Col = 0.0` (Phải có ít nhất 3 intervals mới có ý nghĩa thống kê).
 $Col\_Score = \max(0.0, \min(10.0, (1.0 - CoV) \times 10.0))$
 
-#### 3.6 — CI: Corroboration Index & Screaming Sigma (v8.5)
+#### 3.6 — CI: Corroboration Index & Sigma Floor (v8.6)
 Khuếch đại khi đa tín hiệu đồng thuận.
 
-- **CI Calculation:** $CI = \max(0.9, \min(1.5, 1.0 + 0.2 \times (N_{active} - 2)))$
-- **v8.5 — CI Floor Relaxation:** Nâng sàn CI từ 0.8 lên **0.9** để xóa bỏ "Vùng chết toán học" (Dead Zone) triệt tiêu các tín hiệu moderate.
-- **v8.5 — Screaming Sigma Override:** Nếu một tiến trình có **Sigma_Score >= 7.0** (Critical), hệ thống cho phép **Bypass Weighted Sum** để đảm bảo cảnh báo không bị pha loãng bởi các thành phần anomaly yếu. 
-- **Parent Context Boost:** Nếu Cha trực tiếp có `Cluster == -1` HOẶC `IPAS > 3.0` $\rightarrow$ Hạ toàn bộ ngưỡng Gates xuống 20% (nhân $0.8$).
+- **CI Calculation (unified):**  
+  $$CI_{raw}=1.0+0.2\times(N_{active}-2),\quad CI=\text{clip}(CI_{raw}, CI_{min}(max\_signal), 1.5)$$
+- **Continuous CI Floor:** dùng hàm liên tục theo `max_signal`, không dùng nhiều floor rời rạc.
+- **Sigma Floor (không bypass):** nếu `Sigma_Score >= 7.0` thì:
+  $$Final\_Score = \max(Final\_Score,\ \alpha\times Sigma\_Score),\ \alpha = 0.85$$
+  Giá trị `0.85` là `sigma.floor_alpha` trong config.
 
 ---
 
@@ -176,8 +198,13 @@ Khuếch đại khi đa tín hiệu đồng thuận.
 
 #### 4.1 — Công thức Final Score & Backpropagation
 **Bước 1: Tính Final Score thô**
-$$Final\_Score = \Bigl(0.25 \cdot P + 0.20 \cdot C + 0.30 \cdot S + 0.25 \cdot Seq\Bigr) \times CI + 0.10 \cdot Col$$
+$$Final\_Score = \Bigl(w_P \cdot P + w_C \cdot C + w_S \cdot S + w_{Seq} \cdot Seq\Bigr)\times CI + w_{Col}\cdot Col$$
 *(Col là Additive Bonus ngoài hệ số nhân CI).*
+
+Trong đó:
+- weights mặc định lấy từ `config.toml`:  
+  `P=0.25, C=0.20, S=0.30, Seq=0.25, Col=0.10`.
+- `effective_weights` là bộ trọng số sau rescaling khi có scorer inactive.
 
 **Bước 2: Guilt Backpropagation (Truyền rủi ro ngược)**
 Duyệt đồ thị từ Lá lên Rễ (Bottom-Up). Rủi ro của con truyền lên cha với hệ số suy hao 0.8:
@@ -250,6 +277,8 @@ ROOT: <another_suspicious_root.exe> ...
 [THÉP-11] Weights L4: Tổng weight (S, P, C, Seq) BẮT BUỘC = 1.0. Col nằm ngoài.
 [THÉP-12] Ngôn ngữ: L0 bằng Rust, L1-L4 bằng Python.
 [THÉP-13] Giao tiếp L0-L1: Sử dụng PyO3 để pass Native Python Objects từ Rust sang Python. Tuyệt đối KHÔNG dùng luồng text JSON qua IPC stdout/stdin để chống nghẽn thắt cổ chai hiệu năng.
+[THÉP-14] Single Source of Truth: Mọi tham số runtime phải lấy từ `config.toml`, không hardcode rải rác.
+[THÉP-15] Health Report bắt buộc: mỗi lần chạy phải khai báo `clustering_mode`, `seq_mode`, `campaign_state`, `effective_weights`.
 
 ---
 
@@ -262,7 +291,7 @@ S,"[0, 10]","max(B×CM) + 0.25×log₂(1+N_rules), clip [0,10]"
 P,"[0, 10]","MAD Z-robust + IPAS, scale max 10. Bonus +4.0 nếu cluster=-1"
 C,"[0, 10]","One-sided Z-score: z=(risk-μ)/σ; C=min(10,z×3.33) nếu z>0 else 0. Cluster -1 Active=10.0, Passive=4.0+3.0×nif_binary"
 Seq_raw,"[0, ∞)",-1/(N-2) × Σ log₂(P_laplace). N=2 → duplicate node đầu.
-Seq,"[0, 10]","MAD Z-robust: Z=(0.6745×(raw-Median))/MAD. Seq=0 nếu Z≤3.5; min(10,(Z-3.5)×10/3.5) nếu Z>3.5"
+Seq,"[0, 10]","MAD Z-robust: Z=(0.6745×(raw-Median))/MAD. Seq=0 nếu Z≤2.5; min(10,(Z-2.5)×10/2.5) nếu Z>2.5"
 Col,"[0, 10]","max(0, (1-CoV) × 10). Yêu cầu len(timestamps) >= 4"
 CI,"[0.6, 1.5]","max(0.8, min(1.5, 1.0+0.2×(N_active-2))). Adaptive floor=0.6 khi N_active=0 và max_signal<4.0. Override max(1.0,CI) nếu max signal>=8.0 (v8.4.2)"
 Final,"[0, 10]",((0.25P + 0.15C + 0.35S + 0.25Seq) × CI + 0.10Col) truyền ngược Bottom-Up 80% (v8.4.2 weights)
@@ -270,8 +299,8 @@ Final,"[0, 10]",((0.25P + 0.15C + 0.35S + 0.25Seq) × CI + 0.10Col) truyền ng�
 ### Tham số mặc định (v8.3)
 
 Tham số,Giá trị mặc định
-MAD_GATE,3.5 (Dưới mức này P=0 và Seq=0)
-SEQ_MAD_GATE,3.5 (Nhất quán với MAD_GATE — cùng cơ sở thống kê 99.98% CI)
+MAD_GATE,2.5 (Dưới mức này P=0 và Seq=0)
+SEQ_MAD_GATE,2.5 (Nhất quán với MAD_GATE — điểm ngọt thực nghiệm v8.6)
 C_Z_SCALE,3.33 (z=3σ → C=10.0)
 CI_adaptive_floor,"0.6 khi N_active=0 VÀ max_signal<4.0; 0.8 otherwise"
 CI_active_thresholds,"P>6, C>6, S>=3.0, Seq>5, Col>6 (Giảm 20% nếu Parent C=-1 hoặc IPAS>3.0)"

@@ -123,7 +123,7 @@ Sau khi chuẩn hóa, chuỗi: \textbf{c:/windows/system32/cmd.exe} được s�
 \label{subsection:2.2.2}
 Từ các sự kiện \textbf{Sysmon Event ID 1}, hệ thống xây dựng đồ thị tiến trình có hướng:
 \begin{equation}
-    G = (V, E)
+    G = (V, E) \tag{1.1}
 \end{equation}
 trong đó:
 \begin{itemize}
@@ -162,7 +162,7 @@ Trong các hệ thống điều tra số hiện đại, đặc biệt trên nề
 
 Về bản chất, bài toán có thể được mô hình hóa như một hàm ánh xạ:
 \begin{equation}
-    Score = f(X)
+    Score = f(X) \tag{1.2}
 \end{equation}
 trong đó $X$ là tập các đặc trưng mô tả tiến trình, bao gồm hành vi nội tại, quan hệ tiến trình cha–con, ngữ cảnh thực thi, tín hiệu từ luật phát hiện và các đặc trưng thống kê khác.
 
@@ -170,7 +170,7 @@ Trong thực tế, các đặc trưng này phản ánh nhiều khía cạnh khá
 
 Vì vậy, hệ thống lựa chọn mô hình tổ hợp tuyến tính có trọng số:
 \begin{equation}
-    Score \approx \sum_{i} w_i x_i
+    Score \approx \sum_i w_i x_i \tag{1.3}
 \end{equation}
 trong đó $x_i$ là các thành phần bất thường và $w_i$ là trọng số phản ánh tầm quan trọng tương đối của từng thành phần. Dựa trên phân loại của \textbf{Varun Chandola} về phát hiện bất thường, hệ thống chia các tín hiệu thành năm nhóm chính:
 \begin{itemize}
@@ -183,7 +183,7 @@ trong đó $x_i$ là các thành phần bất thường và $w_i$ là trọng s�
 
 Từ đó, mô hình tổng quát được xây dựng:
 \begin{equation}
-    Final\_Score = (w_1P + w_2C + w_3S + w_4Seq) \cdot CI + w_5Col
+    Final\_Score = (w_1 P + w_2 C + w_3 S + w_4 Seq) \cdot CI + w_5 Col \tag{1.4}
 \end{equation}
 trong đó \textbf{CI} là hệ số đồng thuận (\textit{Corroboration Index}), dùng để phản ánh mức độ cộng hưởng giữa các tín hiệu độc lập. Khi nhiều đặc trưng độc lập cùng chỉ ra
 bất thường, giá trị này sẽ tăng, giúp nhấn mạnh các trường hợp có độ tin cậy cao.
@@ -202,7 +202,7 @@ Giải pháp là áp dụng co giãn logarithmic. Xét rằng $\log$ là hàm đ
 
 Hệ thống định nghĩa \textbf{Normalized Inverse Frequency}:
 \begin{equation}
-    NIF_i = 1 - \frac{\log f_i}{\log f_{max}}, \qquad f_{max} = \max_i f_i
+    NIF_i = 1 - \frac{\log f_i}{\log f_{max}}, \quad f_{max} = \max_i f_i \tag{1.5}
 \end{equation}
 
 Chia cho $\log f_{max}$ — thay vì một hằng số cứng — đảm bảo $NIF_i \in [0,1]$ bất kể kích thước log hay môi trường phân tích, vì $f_i \le f_{max}$ nên $\log f_i \le \log f_{max}$. Cụ thể: khi $f_i = f_{max}$, $NIF_i = 0$ (phổ biến nhất, không đáng ngờ về mức hiếm); khi $f_i = 1$, $NIF_i = 1 - 0 = 1$ (xuất hiện đúng một lần, hiếm tuyệt đối). Đặc tính này làm cho NIF trở thành một chỉ số tự chuẩn hóa (\textit{self-calibrating}): cùng một tiến trình có $f_i = 50$ sẽ có NIF khác nhau trên log 10.000 sự kiện so với log 1.000.000 sự kiện, phản ánh đúng ngữ cảnh tương đối của nó.
@@ -224,25 +224,25 @@ Trực quan ban đầu là dùng z-score chuẩn: $z_i = (x_i - \bar{x}) / \sigm
 
 Giải pháp là thay thế toàn bộ bằng các đại lượng \textit{robust} — tức đại lượng không bị ảnh hưởng bởi một số nhỏ giá trị cực đoan. Median là ước lượng vị trí robust nhất: giá trị ở giữa khi sắp xếp dữ liệu, và chỉ thay đổi khi hơn 50\% dữ liệu bị thay thế. Tương tự, \textbf{Median Absolute Deviation} (MAD) mở rộng ý tưởng này sang đo phân tán: cho tập $X = \{x_1, \ldots, x_n\}$ và $m = \text{median}(X)$:
 \begin{equation}
-    \text{MAD} = \text{median}\!\left(\,|x_i - m|\,\right)
+    MAD = median(|x_i - m|) \tag{1.6}
 \end{equation}
 
 MAD đo ``khoảng cách trung bình đến trung tâm'' nhưng dùng median ở cả hai lớp — bên trong lẫn bên ngoài — thay vì mean. Hệ quả là \textbf{Breakdown Point} của MAD bằng 50\%: ngay cả khi 49\% dữ liệu là các outlier cực đoan, MAD vẫn ước lượng đúng phân tán của 51\% còn lại. Đây là giới hạn lý thuyết tốt nhất có thể đạt được với bất kỳ thước đo phân tán nào \cite{Rousseeuw1993}.
 
 Để so sánh z-score robust với z-score chuẩn và tái sử dụng bảng phân phối chuẩn, cần hiệu chỉnh tỷ lệ. Với dữ liệu có phân phối chuẩn $\mathcal{N}(0, \sigma^2)$, kỳ vọng lý thuyết của $|X - \text{median}(X)|$ là:
 \begin{equation}
-    \mathbb{E}\left[|X - \text{median}(X)|\right] = \sigma \cdot \Phi^{-1}(3/4) \approx 0.6745\,\sigma
+    E[|X - median(X)|] = \sigma \cdot \Phi^{-1}(3/4) \approx 0.6745\sigma \tag{1.7}
 \end{equation}
 trong đó $\Phi^{-1}$ là nghịch đảo hàm phân phối tích lũy chuẩn. Suy ra $\text{MAD} \approx 0.6745\,\sigma$, hay $\sigma \approx \text{MAD}/0.6745$. Robust z-score do đó được định nghĩa:
 \begin{equation}
-    z_{robust}(x_i) = \frac{0.6745\,(x_i - m)}{\text{MAD}}
+    z_{robust}(x_i) = \frac{0.6745(x_i - m)}{MAD} \tag{1.8}
 \end{equation}
 
 Với định nghĩa này, $z_{robust}$ tương đương z-score thông thường khi dữ liệu thực sự chuẩn, nhưng không bị nhiễm độc bởi outlier trong trường hợp tổng quát.
 
 Cuối cùng, để chuyển $z_{robust}$ sang điểm trong $[0, 10]$, hệ thống áp dụng hàm tuyến tính có ngưỡng:
 \begin{equation}
-    P_{MAD}(x_i) = \begin{cases} 0 & z_{robust}(x_i) \le \theta \\ \min\!\left(10,\ \dfrac{z_{robust}(x_i) - \theta}{\theta} \times 10 \right) & z_{robust}(x_i) > \theta \end{cases}
+    P_{MAD}(x_i) = \begin{cases} 0 & z_{robust}(x_i) \le \theta \\ \min\!\left(10,\ \dfrac{z_{robust}(x_i) - \theta}{\theta} \times 10\right) & z_{robust}(x_i) > \theta \end{cases} \tag{1.9}
 \end{equation}
 
 Ngưỡng $\theta$ đóng vai trò ``vùng câm'' thống kê: mọi tiến trình có $z_{robust} \le \theta$ không được coi là bất thường ở mức điểm. Điều này cần thiết vì trong log thực tế, luôn có một lượng nhỏ tiến trình hợp lệ có đặc trưng hơi lệch so với trung tâm — chúng không nên bị flag chỉ vì lệch một chút. Hệ số $10/\theta$ trong nhánh còn lại đảm bảo rằng tại $z_{robust} = 2\theta$, điểm đạt đúng 10.0, tạo dải tuyến tính $[\theta, 2\theta] \to [0, 10]$.
@@ -256,14 +256,14 @@ Bài toán thực sự là: ``instance này có hành vi khác so với 499 đ�
 
 Với mỗi binary $b$ có ít nhất $N_{min}^{IPAS}$ instance trong log, vector đặc trưng hành vi $V_{10}$ của từng instance $j$ được so sánh với phân phối của chính nhóm đó. Công thức khoảng cách sử dụng dạng đơn giản hóa của khoảng cách Mahalanobis, trong đó giả sử ma trận hiệp phương sai là đường chéo (các chiều độc lập):
 \begin{equation}
-    dist_j = \frac{1}{d} \sum_{k=1}^{d} \frac{|v_{j,k} - \mu_k|}{\sigma_k + \varepsilon}
+    dist_j = \frac{1}{d} \sum_{k=1}^{d} \frac{|v_{j,k} - \mu_k|}{\sigma_k + \varepsilon} \tag{1.10}
 \end{equation}
 
 Giả định độc lập là hợp lý vì các chiều trong $V_{10}$ được thiết kế để đo các khía cạnh hành vi riêng biệt. Hằng số $\varepsilon > 0$ ngăn chia cho 0 trong trường hợp đặc biệt: khi $\sigma_k = 0$, tức toàn bộ group đồng nhất trên chiều $k$, mọi instance đều có khoảng cách 0 trên chiều đó — đúng về mặt logic, vì không ai khác biệt trong nhóm hoàn toàn đồng nhất.
 
 Giá trị $dist_j$ sau đó được scale về $[0, 10]$:
 \begin{equation}
-    IPAS_j = \min\!\left(10,\ dist_j \times \kappa\right)
+    IPAS_j = \min(10,\ dist_j \times \kappa) \tag{1.11}
 \end{equation}
 
 Hệ số $\kappa$ được xác định thực nghiệm sao cho instance bị weaponized trong các tập benchmark đạt điểm tối đa 10.0.
@@ -273,7 +273,7 @@ Hệ số $\kappa$ được xác định thực nghiệm sao cho instance bị w
 
 Hai thành phần $P_{MAD}$ và $IPAS$ bổ sung lẫn nhau: $P_{MAD}$ bắt tiến trình bất thường so với toàn bộ tập; $IPAS$ bắt tiến trình bất thường trong nội bộ nhóm của nó. Điểm $P$ cuối cùng là tổ hợp tuyến tính có trọng số:
 \begin{equation}
-    P = \min\!\left(10,\ \alpha \cdot P_{MAD} + (1-\alpha) \cdot IPAS\right)
+    P = \min(10,\ \alpha \cdot P_{MAD} + (1-\alpha) \cdot IPAS) \tag{1.12}
 \end{equation}
 
 Giá trị $\alpha > 0.5$ ưu tiên tín hiệu toàn cục, phù hợp với thực tế rằng $P_{MAD}$ hoạt động trên tập dữ liệu lớn hơn và ổn định hơn về mặt thống kê. Tiến trình thuộc cluster $-1$ của HDBSCAN (sẽ được giới thiệu ở mục kế tiếp) nhận thêm một điểm thưởng $\delta$, vì hai phương pháp độc lập — thống kê phân tán và phân cụm mật độ — đồng thuận đánh giá tiến trình là bất thường, làm tăng đáng kể độ tin cậy của tín hiệu.
@@ -308,7 +308,7 @@ Một ràng buộc cứng được áp đặt: tuyệt đối không gộp cụm
 
 Sau khi phân cụm, mỗi cụm $k$ được đặc trưng bởi centroid $\vec{C}_k$ — vector trung bình hành vi của toàn bộ tiến trình trong cụm đó. Mức độ nguy hiểm tiềm ẩn của cụm được ước lượng bằng tích vô hướng:
 \begin{equation}
-    risk_k = \vec{C}_k \cdot \vec{w}_{sus}
+    risk_k = \vec{C}_k \cdot \vec{w}_{sus} \tag{1.13}
 \end{equation}
 trong đó $\vec{w}_{sus}$ là vector trọng số tham chiếu theo MITRE ATT\&CK: các chiều như \texttt{has\_injection} hay \texttt{has\_network} nhận trọng số cao vì liên quan trực tiếp đến T1055 và T1071; các chiều như \texttt{child\_count} nhận trọng số thấp hơn vì ít đặc trưng hơn.
 
@@ -316,13 +316,20 @@ Tuy nhiên, $risk_k$ là một đại lượng thô phụ thuộc vào đơn v�
 
 Giải pháp là \textit{one-sided z-score}: tính z-score thông thường nhưng chặn tại 0 từ phía dưới. Gọi $\mu_r = \text{Mean}(\{risk_k\})$ và $\sigma_r = \text{Std}(\{risk_k\})$:
 \begin{equation}
-    z_k = \frac{risk_k - \mu_r}{\sigma_r}
+    z_k = \frac{risk_k - \mu_r}{\sigma_r} \tag{1.14}
 \end{equation}
 \begin{equation}
-    C\_profile[k] = \begin{cases} 0 & z_k \le 0 \\ \min\!\left(10,\ z_k \times \gamma\right) & z_k > 0 \end{cases}
+    C\_profile[k] = \begin{cases} 0 & z_k \le 0 \\ \min\!\left(10,\ z_k \times \gamma\right) & z_k > 0 \end{cases} \tag{1.15}
 \end{equation}
 
-Hệ số $\gamma$ được chọn sao cho cụm ở vị trí $3\sigma$ trên mean nhận điểm tối đa 10, tức $3\gamma = 10 \Rightarrow \gamma \approx 3.33$. Trường hợp suy biến $\sigma_r \approx 0$ xảy ra khi toàn bộ cụm có profile risk gần bằng nhau — không có tín hiệu ngữ cảnh, $C = 0$ cho tất cả là kết quả đúng. Tiến trình thuộc cụm $-1$ không có centroid xác định nên được xử lý riêng: nếu mang hành vi nguy hiểm chủ động, điểm $C$ tỷ lệ nghịch với $NIF_{binary}$ (binary phổ biến bị weaponized nguy hiểm hơn binary lạ chưa ai biết); nếu chỉ là noise thụ động, hệ thống gán một mức điểm nền phản ánh sự bất thường về mặt density.
+Hệ số $\gamma$ được chọn sao cho cụm ở vị trí $3\sigma$ trên mean nhận điểm tối đa 10, tức $3\gamma = 10 \Rightarrow \gamma \approx 3.33$. Trường hợp suy biến $\sigma_r \approx 0$ xảy ra khi toàn bộ cụm có profile risk gần bằng nhau — không có tín hiệu ngữ cảnh, $C = 0$ cho tất cả là kết quả đúng. Tiến trình thuộc cụm $-1$ không có centroid xác định nên được xử lý dựa trên tính chất của binary và hành vi quan sát được:
+\begin{equation}
+    C = 10.0 \quad \text{(Cluster -1 Active)} \tag{1.16}
+\end{equation}
+\begin{equation}
+    C = 4.0 + 3.0 \times NIF_{binary} \quad \text{(Cluster -1 Passive)} \tag{1.17}
+\end{equation}
+Trong đó, "Active" chỉ các tiến trình thực hiện hành vi mạng hoặc tương tác hệ thống mạnh, "Passive" chỉ các tiến trình chỉ khác biệt về tham số dòng lệnh.
 
 \subsection{Phát hiện bất thường chuỗi (Sequential Anomaly) – Điểm Seq}
 \label{subsection:2.4.4}
@@ -343,18 +350,18 @@ Mô hình Markov bậc 2 khắc phục bằng cách mô hình hóa $P(n_{i+2} \m
 
 Xác suất chuyển tiếp bậc 2 được ước lượng từ tần suất quan sát trong log:
 \begin{equation}
-    \hat{P}(n_{i+2} \mid n_i, n_{i+1}) = \frac{\text{Count}(n_i, n_{i+1}, n_{i+2})}{\text{Count}(n_i, n_{i+1})}
+    \hat{P}(n_{i+2} \mid n_i, n_{i+1}) = \frac{\text{Count}(n_i, n_{i+1}, n_{i+2})}{\text{Count}(n_i, n_{i+1})} \tag{1.18}
 \end{equation}
 
 Vấn đề nảy sinh khi gặp các chuyển tiếp chưa từng thấy trong log — điều tất yếu xảy ra vì attacker cố tình tạo chuỗi mới. Khi đó $\text{Count}(n_i, n_{i+1}, n_{i+2}) = 0 \Rightarrow \hat{P} = 0 \Rightarrow \log \hat{P} = -\infty$, khiến toàn bộ điểm Seq bị vô nghĩa. Laplace Smoothing giải quyết bằng cách thêm một hằng số nhỏ $\varepsilon_L > 0$ vào cả tử và mẫu:
 \begin{equation}
-    P_{lap}(n_{i+2} \mid n_i, n_{i+1}) = \frac{\text{Count}(n_i, n_{i+1}, n_{i+2}) + \varepsilon_L}{\text{Count}(n_i, n_{i+1}) + \varepsilon_L \cdot K}
+    P_{lap}(n_{i+2} \mid n_i, n_{i+1}) = \frac{\text{Count}(n_i, n_{i+1}, n_{i+2}) + \varepsilon_L}{\text{Count}(n_i, n_{i+1}) + \varepsilon_L \cdot K} \tag{1.19}
 \end{equation}
 trong đó $K$ là tổng số node khác nhau. Số hạng $\varepsilon_L \cdot K$ ở mẫu đảm bảo tổng xác suất trên tất cả $K$ khả năng vẫn bằng 1. Về mặt Bayesian, đây là prior phân phối đều với cường độ $\varepsilon_L$: khi dữ liệu nhiều, prior bị áp đảo và xác suất hội tụ về tần suất quan sát; khi dữ liệu ít hoặc bằng 0, prior kéo xác suất về $1/K$ thay vì để nó bằng 0.
 
 Từ các xác suất chuyển tiếp này, độ bất thường của toàn bộ chuỗi độ dài $N$ được đo bằng cross-entropy trung bình — bình quân số bit cần thiết để mã hóa mỗi bước chuyển tiếp theo mô hình:
 \begin{equation}
-    Seq_{raw} = \frac{-1}{N-2} \sum_{i=1}^{N-2} \log_2 P_{lap}(n_{i+2} \mid n_i, n_{i+1})
+    Seq_{raw} = \frac{-1}{N-2} \sum_{i=1}^{N-2} \log_2 P_{lap}(n_{i+2} \mid n_i, n_{i+1}) \tag{1.20}
 \end{equation}
 
 Chia cho $N - 2$ là cần thiết để so sánh công bằng giữa các chuỗi dài và ngắn: một chuỗi dài gồm toàn transition thông thường không nên bị penalize hơn chuỗi ngắn gồm một transition bất thường. Giá trị $Seq_{raw}$ cao biểu thị chuỗi có nhiều bước chuyển tiếp bất ngờ — tức attack chain chưa từng xuất hiện trong log.
@@ -375,14 +382,14 @@ Bài toán là: cho chuỗi timestamp các kết nối mạng $t_1, t_2, \ldots,
 
 Xét chuỗi khoảng cách thời gian $\Delta t_i = t_{i+1} - t_i$. Phương sai $\sigma_{\Delta t}^2$ đo mức độ biến thiên tuyệt đối, nhưng giá trị tuyệt đối của nó phụ thuộc vào đơn vị thời gian và chu kỳ: beacon 60 giây có $\sigma$ nhỏ hơn beacon 3600 giây dù cả hai đều đều đặn như nhau. Cần một đại lượng tương đối, không có đơn vị. \textbf{Coefficient of Variation} (CoV) — tỷ số giữa độ lệch chuẩn và trung bình — đáp ứng đúng yêu cầu này:
 \begin{equation}
-    CoV = \frac{\sigma_{\Delta t}}{\mu_{\Delta t}}
+    CoV = \frac{\sigma_{\Delta t}}{\mu_{\Delta t}} \tag{1.21}
 \end{equation}
 
 CoV bằng 0 khi tất cả khoảng cách hoàn toàn bằng nhau (đều đặn tuyệt đối); CoV lớn khi khoảng cách biến thiên mạnh (hành vi con người, tải ngẫu nhiên). Vì là tỷ số, CoV không thay đổi khi nhân toàn bộ chuỗi $\Delta t_i$ với một hằng số — tức khi thay đổi đơn vị thời gian hay chu kỳ beacon. Đây là tính chất \textit{scale-invariance} cho phép dùng cùng một ngưỡng phát hiện cho mọi chu kỳ.
 
 Điểm Col được tính theo công thức ánh xạ CoV về $[0, 10]$, trong đó CoV thấp (đều đặn) cho điểm cao:
 \begin{equation}
-    Col = \max\!\left(0,\ (1 - CoV) \times 10\right)
+    Col = \max\!\left(0,\ (1 - CoV) \times 10\right) \tag{1.22}
 \end{equation}
 
 Hàm $\max(0, \cdot)$ ngăn điểm âm khi $CoV > 1$ — trường hợp xảy ra với các kết nối rất thất thường (burst traffic). Một điều kiện thống kê tối thiểu được áp đặt: cần ít nhất 4 timestamp để có 3 interval, mức tối thiểu để ước lượng $\sigma_{\Delta t}$ có ý nghĩa. Dưới mức này, $Col = 0$ — không phán quyết gì từ dữ liệu không đủ.
@@ -394,7 +401,7 @@ Các thành phần P, C, Seq và Col đều thuộc paradigm phát hiện bất 
 
 Vấn đề kỹ thuật nảy sinh khi một tiến trình khớp với nhiều rule Sigma: cộng điểm tuyến tính $S = \sum_i B_i$ gây ra \textit{score explosion} — năm rule mức Low (mỗi rule 2 điểm) cho $S = 10$, vượt một rule mức Critical (8 điểm), sai về mặt bảo mật vì severity của một cuộc tấn công không tỷ lệ tuyến tính với số rule phát hiện được. Triết lý tính điểm của CVSS (Common Vulnerability Scoring System) giải quyết vấn đề tương tự bằng cách lấy sub-score cao nhất làm dominant, với corroboration bonus có diminishing returns. Hệ thống áp dụng nguyên lý này:
 \begin{equation}
-    S = \min\!\left(10,\ \max_i\!\left(B_i \cdot CM_i\right) + \lambda_S \cdot \log_2(1 + N_{rules})\right)
+    S = \min\!\left(10,\ \max_i\!\left(B_i \cdot CM_i\right) + \lambda_S \cdot \log_2(1 + N_{rules})\right) \tag{1.23}
 \end{equation}
 
 Số hạng $\max_i(B_i \cdot CM_i)$ chọn severity của rule nặng nhất — một rule Critical xác định điểm nền. $CM_i \in (0, 1]$ là hệ số tin cậy (\textit{Confidence Multiplier}) của rule $i$: một số Sigma rule nổi tiếng có tỷ lệ False Positive cao trong môi trường production (ví dụ rule phát hiện \texttt{net.exe} chạy trong một số môi trường hoàn toàn bình thường) — $CM_i$ cho phép ``bóp'' ảnh hưởng của các rule này mà không cần vô hiệu hóa hoàn toàn. Số hạng $\lambda_S \cdot \log_2(1 + N_{rules})$ cộng bonus khi nhiều rule khớp cùng một tiến trình: mỗi rule bổ sung là bằng chứng corroboration, nhưng hàm logarithm đảm bảo rằng rule thứ 10 đóng góp ít hơn rule thứ 2 (diminishing returns) — 10 rule khớp không đáng tin cậy gấp đôi 5 rule khớp.
@@ -413,7 +420,10 @@ Nguyên lý \textit{convergence of evidence} từ khoa học pháp y nhận xét
 
 Mỗi thành phần $x \in \{P, C, S, Seq, Col\}$ được coi là ``active'' khi $x > \tau_x$ — vượt ngưỡng ý nghĩa thống kê riêng của nó. Gọi $N_{active}$ là số thành phần active:
 \begin{equation}
-    CI = \max\!\left(\rho_{floor},\ \min\!\left(\rho_{ceil},\ 1.0 + \Delta_{CI} \cdot (N_{active} - 2)\right)\right)
+    CI_{raw} = 1.0 + \Delta_{CI} \cdot (N_{active} - 2) \tag{1.24}
+\end{equation}
+\begin{equation}
+    CI = \max\!\left(\rho_{floor},\ \min\!\left(\rho_{ceil},\ 1.0 + \Delta_{CI} \cdot (N_{active} - 2)\right)\right) \tag{1.25}
 \end{equation}
 
 Thiết kế này mã hóa các nguyên lý sau. Khi $N_{active} = 2$, CI $= 1.0$ — baseline trung hòa, không khuếch đại cũng không pha loãng. Mỗi tín hiệu active bổ sung tăng CI thêm $\Delta_{CI}$: ba tín hiệu đồng thuận nguy hiểm hơn hai. $\rho_{floor}$ là chặn dưới quan trọng nhất: nó đảm bảo rằng ngay cả khi chỉ có một hoặc hai tín hiệu active, CI vẫn không giảm xuống quá thấp gây \textit{Dead Zone}. Trong phiên bản v8.5 của hệ thống, $\rho_{floor} = 0.9$ — nghĩa là tín hiệu moderate luôn giữ được ít nhất 90\% trọng lượng trong công thức cuối. $\rho_{ceil} = 1.5$ giới hạn trên để Final Score không vượt $[0, 10]$.
@@ -425,14 +435,14 @@ Hai cơ chế bổ sung được tích hợp để xử lý các trường hợp
 
 Sau khi có CI, điểm cuối của mỗi tiến trình được tính:
 \begin{equation}
-    Final\_Score = \left(w_P \cdot P + w_C \cdot C + w_S \cdot S + w_{Seq} \cdot Seq\right) \times CI + w_{Col} \cdot Col
+    Final\_Score = \left(w_P \cdot P + w_C \cdot C + w_S \cdot S + w_{Seq} \cdot Seq\right) \times CI + w_{Col} \cdot Col \tag{1.26}
 \end{equation}
 
 Ràng buộc $w_P + w_C + w_S + w_{Seq} = 1.0$ đảm bảo phần trong ngoặc $\in [0, 10]$ trước khi nhân CI (vì mỗi thành phần $\in [0, 10]$). Col nằm ngoài hệ số nhân CI vì CoV đo một đặc trưng thống kê của phân phối thời gian — độc lập về mặt toán học với các anomaly score đo đặc trưng hành vi. Nhân CI sẽ khuếch đại Col theo số tín hiệu active của các thành phần khác — không có cơ sở, vì beaconing không nguy hiểm hơn chỉ vì tiến trình đó cũng có injection.
 
 Sau khi tính xong điểm cho toàn bộ node, một bước lan truyền rủi ro được thực hiện nhằm highlight toàn bộ attack chain, không chỉ node lá. Trong thực tế DFIR, analyst cần thấy không chỉ tiến trình cuối thực hiện hành vi độc hại mà cả toàn bộ chuỗi cha-con dẫn đến nó — đây là cơ sở để tái dựng kill chain và xác định điểm xâm nhập ban đầu (\textit{initial access}). Thuật toán \textbf{Guilt Backpropagation} duyệt cây tiến trình từ lá lên gốc (Bottom-Up Traversal):
 \begin{equation}
-    Score(v) \leftarrow \max\!\left(Score(v),\ \max_{u \in \text{children}(v)} Score(u) \times \beta\right)
+    Score(v) \leftarrow \max\!\left(Score(v),\ \max_{u \in \text{children}(v)} Score(u) \times \beta\right) \tag{1.27}
 \end{equation}
 
 Sử dụng $\max$ thay vì cộng đảm bảo tính đơn điệu: điểm của node cha chỉ tăng, không bao giờ giảm vì con an toàn. Hệ số $\beta \in (0, 1)$ là \textit{decay factor} tạo ra ``attenuation theo cấp độ'': tiến trình cha nhận điểm bằng $\beta$ lần điểm con; ông nội nhận $\beta^2$; cụ nhận $\beta^3$. Điều này phản ánh nguyên lý trách nhiệm suy giảm theo khoảng cách trong cây: tiến trình sinh trực tiếp tiến trình độc hại chịu trách nhiệm cao nhất; tiến trình nhiều cấp phía trên chịu trách nhiệm thấp hơn. Mọi node có điểm được nâng qua bước này được gắn cờ \texttt{INHERITED\_RISK} trong output, cho phép analyst phân biệt ``tiến trình bản thân bất thường'' với ``tiến trình bình thường nhưng sinh ra con độc hại''.

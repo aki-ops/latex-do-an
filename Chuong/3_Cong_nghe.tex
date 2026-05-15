@@ -79,7 +79,7 @@ Log Windows có thể biểu diễn cùng một đường dẫn theo nhiều cá
 
 L0 áp dụng chuẩn hóa \textit{chiều đi}: chuyển toàn bộ path về lowercase, thay dấu \texttt{\textbackslash} bằng \texttt{/}, và giải nén biến môi trường (\texttt{\%SystemRoot\%} $\to$ \texttt{c:/windows}). Kết quả: \texttt{c:/windows/system32/cmd.exe} là biểu diễn duy nhất cho mọi variant.
 
-Tuy nhiên, khi L1 thực hiện Sigma matching, xuất hiện vấn đề theo chiều ngược: hầu hết quy tắc SigmaHQ được viết theo convention Windows với backslash (\texttt{c:\textbackslash windows\textbackslash...}). Nếu so khớp trực tiếp chuỗi đã chuẩn hóa với rule dùng backslash, toàn bộ matching thất bại. Do đó, L1 phải thực hiện chuẩn hóa \textit{chiều về} — convert trở lại về backslash format trước khi so khớp Sigma, rồi lưu kết quả matching vào node theo định danh chuẩn hóa. Hai bước này phải thực hiện đúng thứ tự và không được nhầm lẫn.
+Tuy nhiên, khi L1 thực hiện Sigma matching, xuất hiện vấn đề theo chiều ngược: hầu hết quy tắc SigmaHQ được viết theo convention Windows với backslash (\texttt{c:\textbackslash windows\textbackslash...}). Nếu so khớp trực tiếp chuỗi đã chuẩn hóa với rule dùng backslash, toàn bộ matching thất bại. Do đó, L1 phải thực hiện chuẩn hóa \textit{chiều về} — convert trở lại về backslash format trước khi so khớp Sigma, rồi lưu kết quả matching vào node theo định danh chuẩn hóa.
 
 \section{Thiết kế Layer 1 — Sigma Engine}
 \label{section:3.4}
@@ -103,9 +103,9 @@ Như đã phân tích ở Chương 2 (§2.4.6), điểm S được tính theo c�
 \hline
 \textbf{Severity} & \textbf{Base score $B_i$} & \textbf{$CM_i$ mặc định} \\ \hline
 Critical & 8.0 & 1.00 \\ \hline
-High     & 6.0 & 0.90 \\ \hline
-Medium   & 4.0 & 0.70 \\ \hline
-Low      & 2.0 & 0.50 \\ \hline
+High     & 6.0 & 0.85 \\ \hline
+Medium   & 4.0 & 0.60 \\ \hline
+Low      & 2.0 & 0.40 \\ \hline
 \end{tabular}
 \caption{Giá trị mặc định của base score và Confidence Multiplier theo severity}
 \label{tab:sigma_defaults}
@@ -177,9 +177,9 @@ Trong trường hợp dữ liệu phân hóa thành quá nhiều cụm (vượt 
 \begin{tabular}{|l|c|p{7cm}|}
 \hline
 \textbf{Đặc trưng} & \textbf{$w_{sus}$} & \textbf{Cơ sở lý luận} \\ \hline
-$v_2$: \texttt{has\_injection} & 3.0 & Rất ít ứng dụng hợp lệ thực hiện Code Injection; tín hiệu cực mạnh của T1055. \\ \hline
-$v_1$: \texttt{has\_network} & 2.5 & Phổ biến ở app hợp lệ nhưng là thành phần thiết yếu của C2/Exfiltration (T1071, T1048). \\ \hline
-$v_3$: \texttt{has\_file\_drop} & 2.0 & Đặc trưng của Dropper và thiết lập Persistence. \\ \hline
+$v_2$: \texttt{has\_injection} & 4.0 & Rất ít ứng dụng hợp lệ thực hiện Code Injection; tín hiệu cực mạnh của T1055. \\ \hline
+$v_1$: \texttt{has\_network} & 3.0 & Phổ biến ở app hợp lệ nhưng là thành phần thiết yếu của C2/Exfiltration (T1071, T1048). \\ \hline
+$v_3$: \texttt{has\_file\_drop} & 2.5 & Đặc trưng của Dropper và thiết lập Persistence. \\ \hline
 $v_6$: \texttt{nif\_pair} & 2.0 & Mối quan hệ cha-con hiếm gặp là chỉ dấu mạnh của LOLBins. \\ \hline
 $v_4$: \texttt{has\_reg\_mod} & 1.5 & Dùng cho Persistence (T1547) nhưng có nhiều use case hợp lệ (Cài đặt, Cập nhật). \\ \hline
 $v_5$: \texttt{nif\_binary} & 1.5 & Binary ít xuất hiện có rủi ro, nhưng yếu hơn tính hiếm của cặp cha-con. \\ \hline
@@ -190,43 +190,61 @@ $v_7 - v_9$: Các đặc trưng phụ & 0.5 & Entropy, độ dài command line, 
 \label{tab:w_sus}
 \end{table}
 
-\section{Thiết kế Layer 3 — Risk Evaluator}
+\section{Thiết kế Layer 2-C — Temporal Aggregation}
 \label{section:3.7}
+
+Trong thực tế phân tích log, một hành vi đơn lẻ có thể không đủ để coi là bất thường, nhưng sự tích tụ của nhiều hành vi nghi ngờ trong một khoảng thời gian ngắn là chỉ dấu mạnh của một cuộc tấn công đang diễn ra. Lớp 2-C chịu trách nhiệm tổng hợp các tín hiệu theo thời gian cho từng tiến trình (\textit{Temporal Aggregation}).
+
+Hệ thống sử dụng mô hình suy giảm theo hàm mũ (\textit{Exponential Decay}) để tính điểm tích lũy ($CS$ — \textit{Cumulative Score}). Khi một sự kiện nghi ngờ mới xảy ra tại thời điểm $t$, điểm tích lũy được cập nhật:
+\begin{equation}
+    CS_{new} = CS_{prev} \cdot e^{-\lambda \Delta t} + Event\_Score \tag{2.1}
+\end{equation}
+Trong đó $\Delta t$ là khoảng thời gian kể từ sự kiện nghi ngờ trước đó, và $\lambda$ là hệ số suy giảm. Thiết kế này đảm bảo rằng các hành vi diễn ra dồn dập sẽ cộng hưởng điểm nhanh chóng, trong khi các hành vi rời rạc sẽ bị suy giảm theo thời gian, giúp giảm tỷ lệ False Positive từ các hoạt động quản trị hệ thống thông thường.
+
+\section{Thiết kế Layer 3 — Risk Evaluator}
+\label{section:3.8}
 
 Lớp 3 chịu trách nhiệm chấm điểm độc lập cho từng tiến trình trên năm khía cạnh: Điểm (P), Ngữ cảnh (C), Luật (S - đã tính ở L1), Chuỗi (Seq), và Tập thể (Col), trước khi tổng hợp bằng Corroboration Index (CI).
 
 \subsection{Cấu hình Tham số cho P Score}
 \label{subsection:3.7.1}
 
-Điểm P được tổng hợp từ MAD ($P_{MAD}$) và IPAS. Hệ thống chọn ngưỡng \textbf{MAD Gate ($\theta$) = 3.5}. Về mặt lý thuyết thống kê, $Z_{robust} = 3.5$ (với hằng số chuẩn hóa 0.6745) tương đương với việc nằm ngoài khoảng tin cậy 99.98\% của phân phối chuẩn, nghĩa là chỉ có 0.02\% dữ liệu bình thường tự nhiên có thể vượt qua ngưỡng này. Thực nghiệm (\textit{sweep} với $\theta \in \{2.5, 3.0, 3.5, 4.0\}$) xác nhận: $\theta = 3.0$ dẫn đến tỷ lệ False Positive 8.2\% do biến động tự nhiên của log; $\theta = 4.0$ đẩy tỷ lệ False Negative lên 14.7\% (bỏ sót các dị thường mức vừa); $\theta = 3.5$ mang lại điểm cân bằng F1 cao nhất (0.87). Ngưỡng này cũng được sử dụng nhất quán cho \textbf{Seq Score} để đảm bảo sự tương đương về mặt thống kê.
+Điểm P được tổng hợp từ MAD ($P_{MAD}$) và IPAS. Hệ thống chọn ngưỡng \textbf{MAD Gate ($\theta$) = 2.5}. Về mặt lý thuyết thống kê, $Z_{robust} = 2.5$ tương đương với việc nằm ngoài khoảng tin cậy 98.8\% của phân phối chuẩn. Thực nghiệm xác nhận: $\theta = 2.0$ dẫn đến tỷ lệ False Positive cao; $\theta = 3.0$ bỏ sót các dị thường mức vừa; $\theta = 2.5$ mang lại điểm cân bằng F1 cao nhất. Ngưỡng này cũng được sử dụng nhất quán cho \textbf{Seq Score} để đảm bảo sự tương đương về mặt thống kê.
 
-Về tỷ trọng kết hợp, hệ thống chọn \textbf{$\alpha = 0.7$} trong công thức $P = \alpha \cdot P_{MAD} + (1-\alpha) \cdot IPAS$. Thực nghiệm cho thấy IPAS có khả năng phát hiện thêm 23\% trường hợp \textit{weaponized binary} mà MAD bỏ sót, nhưng do IPAS yêu cầu ít nhất 5 cá thể để đo lường phương sai, độ ổn định của nó kém hơn MAD trên các nhóm nhỏ. Hệ số $\alpha = 0.7$ ưu tiên tín hiệu toàn cục vững chắc hơn, trong khi vẫn dành 30\% sức nặng cho phát hiện bất thường nội bộ.
+Về tỷ trọng kết hợp, hệ thống chọn \textbf{$\alpha = 0.6$} trong công thức $P = \alpha \cdot P_{MAD} + (1-\alpha) \cdot IPAS$. Thực nghiệm cho thấy IPAS có khả năng phát hiện thêm trường hợp \textit{weaponized binary} mà MAD bỏ sót. Hệ số $\alpha = 0.6$ ưu tiên tín hiệu toàn cục vững chắc hơn, trong khi vẫn dành 40\% sức nặng cho phát hiện bất thường nội bộ.
 
-Hệ số \textbf{IPAS Scale ($\kappa$) = 2.5} được xác định bằng cách phân tích phân phối khoảng cách $dist_{raw}$ trên tập dữ liệu có ground truth. Đa số các tiến trình bị chiếm quyền điều khiển có $dist_{raw} \in [3.5, 4.5]$. Với $\kappa = 2.5$, giá trị $dist_{raw} = 4.0$ sẽ đạt mốc điểm tối đa $4.0 \times 2.5 = 10.0$, đảm bảo độ nhạy cao với tín hiệu weaponized.
-
-Đặc biệt, tiến trình thuộc cụm nhiễu \textbf{Cluster -1} của HDBSCAN được nhận một điểm cộng \textbf{Bonus ($\delta$) = 4.0}. Trước khi cộng bonus, trung bình các tiến trình này đạt $P \in [3, 4]$. Điểm cộng 4.0 đẩy chúng lên dải $[7, 8]$ (Mức độ Rủi ro CAO - Tier 2), đủ để gây sự chú ý cho analyst nhưng không tự động gắn nhãn Mức độ NGHIÊM TRỌNG (Tier 1) chỉ vì nằm trong cụm nhiễu.
+Hệ số \textbf{IPAS Scale ($\kappa$) = 2.0} được xác định bằng cách phân tích phân phối khoảng cách $dist_{raw}$ trên tập dữ liệu có ground truth. Đặc biệt, tiến trình thuộc cụm nhiễu \textbf{Cluster -1} của HDBSCAN được nhận một điểm cộng \textbf{Bonus ($\delta$) = 3.0}.
 
 \subsection{Cấu hình Tham số cho C, Seq, và Col Score}
 \label{subsection:3.7.2}
 
-\textbf{Điểm Ngữ cảnh (C):} Áp dụng \textit{one-sided Z-score} với hệ số scale \textbf{$\gamma = 3.33$}. Theo thiết kế, một cụm có mức độ rủi ro lệch xa giá trị trung bình 3 độ lệch chuẩn ($3\sigma$) sẽ nhận điểm tối đa ($3 \times 3.33 \approx 10$). Đối với các tiến trình thuộc \textbf{Cluster -1} thụ động (chỉ khác biệt về đặc trưng lệnh mà không thực hiện hành vi mạng/đĩa/registry), điểm khởi điểm là $c_0 = 4.0$ cộng với một giá trị tối đa $c_1 = 3.0$ phụ thuộc vào độ hiếm (NIF). Tổng điểm cao nhất $c_0 + c_1 = 7.0$ ngăn ngừa việc gán nhãn Tier 1 cho các tiến trình chỉ mang tính nhiễu cấu trúc.
+\textbf{Điểm Ngữ cảnh (C):} Áp dụng \textit{one-sided Z-score} với hệ số scale \textbf{$\gamma = 3.33$}. Đối với các tiến trình thuộc \textbf{Cluster -1} thụ động, điểm khởi điểm là $c_0 = 3.0$ cộng với một giá trị tối đa $c_1 = 2.0$ phụ thuộc vào độ hiếm (NIF). Tổng điểm cao nhất $c_0 + c_1 = 5.0$ ngăn ngừa việc gán nhãn rủi ro cao cho các tiến trình chỉ mang tính nhiễu cấu trúc.
 
-\textbf{Điểm Chuỗi (Seq):} Sử dụng mô hình Markov bậc 2 với hệ số \textbf{Laplace Smoothing ($\varepsilon_L$) = 0.01}. Giá trị này đủ nhỏ để không làm sai lệch xác suất của các chuỗi chuyển tiếp phổ biến (sai lệch < 1\%), đồng thời đủ lớn để tránh lỗi $\log(0)$ khi gặp các chuỗi tấn công hoàn toàn mới chưa từng xuất hiện.
+\textbf{Điểm Chuỗi (Seq):} Sử dụng mô hình Markov bậc 2 với hệ số \textbf{Laplace Smoothing ($\varepsilon_L$) = 0.05}. Giá trị này giúp tránh lỗi $\log(0)$ khi gặp các chuỗi tấn công hoàn toàn mới chưa từng xuất hiện.
 
-\textbf{Điểm Tập thể (Col):} Áp dụng phân tích Coefficient of Variation (CoV) để phát hiện \textit{beaconing}. Yêu cầu tối thiểu \textbf{$N_{min}^{Col} = 4$} timestamp (tương đương 3 khoảng thời gian). Phân tích Monte Carlo trên beaconing tổng hợp cho thấy: với 3 interval, FP rate là 28\%; với 4 interval, FP rate giảm còn 12\%; với 5 interval, FP rate là 8\% nhưng bắt đầu bỏ sót các beacon ngắn hạn. Do đó, 4 timestamp được chọn làm điểm cân bằng tối ưu.
+\textbf{Điểm Tập thể (Col):} Áp dụng phân tích Coefficient of Variation (CoV) để phát hiện \textit{beaconing}. Yêu cầu tối thiểu \textbf{$N_{min}^{Col} = 5$} timestamp.
 
 \subsection{Corroboration Index (CI) và Tham số Tổng hợp}
 \label{subsection:3.7.3}
 
-CI khuếch đại rủi ro khi có nhiều thành phần vượt ngưỡng ý nghĩa ($\tau_x$). Các ngưỡng được chọn dựa trên thống kê: $\tau_P = 6.0$ (top 1\% dị thường), $\tau_C = 6.0$ (cụm lệch $>2\sigma$), $\tau_S = 3.0$ (ít nhất 1 Sigma Medium), $\tau_{Seq} = 5.0$ (chuỗi lệch $>1.5\sigma$ so với median), $\tau_{Col} = 6.0$ ($CoV < 0.4$). 
+CI khuếch đại rủi ro khi có nhiều thành phần vượt ngưỡng ý nghĩa ($\tau_x$). Các ngưỡng được chọn dựa trên thống kê: $\tau_P = 6.0$, $\tau_C = 6.0$, $\tau_S = 3.0$, $\tau_{Seq} = 5.0$, $\tau_{Col} = 6.0$.
+\begin{equation}
+    CI_{raw} = 1.0 + \Delta_{CI} \cdot (N_{active} - 2) \tag{2.2}
+\end{equation}
+\begin{equation}
+    CI = \text{clip}(CI_{raw},\ 0.85,\ 1.5) \tag{2.3}
+\end{equation}
 
-Hệ số \textbf{$\rho_{floor} = 0.9$} được áp dụng để giải quyết triệt để "vùng chết toán học" (\textit{Dead Zone}). Nếu một tiến trình có ba tín hiệu mức trung bình (ví dụ: $P=2, C=2, Seq=2$), tổng trọng số cơ bản chỉ đạt khoảng 1.4. Với $\rho_{floor} = 0.8$, điểm Final giảm còn 1.12 (Tier 4 - Bỏ sót). Với $\rho_{floor} = 0.9$, điểm duy trì ở 1.26, giữ lại được 90\% trọng số cơ bản. Thực nghiệm phân tích False Negative xác nhận $\rho_{floor} = 0.9$ giúp giảm 6\% lượng FN so với 0.8 mà không làm bùng nổ FP.
+Hệ số \textbf{$\rho_{floor} = 0.85$} được áp dụng để giải quyết triệt để "vùng chết toán học" (\textit{Dead Zone}). Với $\rho_{floor} = 0.85$, điểm duy trì được phần lớn trọng số cơ bản ngay cả khi tín hiệu đơn lẻ không quá mạnh.
 
-Tham số khuếch đại \textbf{$\Delta_{CI} = 0.1$} được chọn để CI tăng từ từ (1.0, 1.1, 1.2, 1.3) theo số lượng tín hiệu. Thực nghiệm với $\Delta_{CI} = 0.2$ làm tăng 12\% FP do khuếch đại nhiễu quá mức. Mức trần \textbf{$\rho_{ceil} = 1.5$} giới hạn sự khuếch đại.
+Tham số khuếch đại \textbf{$\Delta_{CI} = 0.1$} được chọn để CI tăng từ từ theo số lượng tín hiệu. Mức trần \textbf{$\rho_{ceil} = 1.5$} giới hạn sự khuếch đại.
 
 Đặc biệt, cơ chế \textbf{Screaming Sigma Override} sẽ bỏ qua trọng số nếu $S \ge \eta_\sigma = 7.0$ (tương đương ít nhất một rule Critical có độ tin cậy cao), đảm bảo cảnh báo Known-Threat không bị pha loãng bởi các thuật toán thống kê.
 
-\textbf{Trọng số Thành phần (Weights):} Kết quả \textit{ablation study} dẫn đến cấu hình tỷ trọng: $w_S = 0.30$ (tác động Recall mạnh nhất), $w_P = 0.25$ (nền tảng thống kê vững chắc), $w_{Seq} = 0.25$ (phát hiện LOLBins hiệu quả), $w_C = 0.20$ (phụ thuộc chất lượng cluster). Thành phần Col được cộng dồn độc lập ($+0.10 \cdot Col$) để không bị nhiễu bởi các thành phần hành vi khác.
+\textbf{Trọng số Thành phần (Weights):} Kết quả \textit{ablation study} dẫn đến cấu hình tỷ trọng: $w_S = 0.35$ (tác động Recall mạnh nhất), $w_P = 0.25$, $w_{Seq} = 0.20$, $w_C = 0.20$. Thành phần Col được cộng dồn độc lập ($+0.10 \cdot Col$).
+\begin{equation}
+    Final\_Score = (w_P P + w_C C + w_S S + w_{Seq} Seq) \times CI + 0.10 \cdot Col \tag{2.4}
+\end{equation}
 
 \section{Thiết kế Layer 4 — Aggregation \& Output}
 \label{section:3.8}
@@ -236,7 +254,7 @@ Lớp cuối cùng thực hiện lan truyền rủi ro (Backpropagation) và đ�
 \subsection{Lan truyền rủi ro (Guilt Backpropagation) và Decay Factor}
 \label{subsection:3.8.1}
 
-Quá trình quét đồ thị từ dưới lên (Bottom-Up) giúp tái tạo Kill Chain bằng cách cập nhật điểm của tiến trình cha dựa trên điểm của tiến trình con, sử dụng hệ số suy giảm \textbf{$\beta = 0.8$}. Nếu $\beta = 1.0$, tất cả các nút cha lên tới Root sẽ nhận điểm cao nhất của con, làm mất khả năng phân biệt (discriminability) vị trí thực sự của payload độc hại. Nếu $\beta = 0.5$, tín hiệu suy giảm quá nhanh (xuống 12.5\% sau 3 cấp), làm gián đoạn chuỗi pháp y. Với $\beta = 0.8$, tiến trình cha trực tiếp nhận 80\% điểm, "ông nội" nhận 64\%, và "cụ" nhận 51.2\%. Thiết lập này đảm bảo chuyên gia (analyst) nhìn thấy rõ 2-3 cấp lineage mang rủi ro trước khi tín hiệu tắt dần. Các nút bị nâng điểm qua cơ chế này được tự động gắn cờ \texttt{INHERITED\_RISK}.
+Quá trình quét đồ thị từ dưới lên (Bottom-Up) giúp tái tạo Kill Chain bằng cách cập nhật điểm của tiến trình cha dựa trên điểm của tiến trình con, sử dụng hệ số suy giảm \textbf{$\beta = 0.85$}. Thiết lập này đảm bảo chuyên gia nhìn thấy rõ 2-3 cấp lineage mang rủi ro trước khi tín hiệu tắt dần.
 
 \subsection{Phân cấp Tier và Smart Collapse}
 \label{subsection:3.8.2}
@@ -253,6 +271,6 @@ Dựa trên phân tích phân phối Final Score của các tập dữ liệu đ
 \section{Tổng kết chương}
 \label{section:3.9}
 
-Chương này đã hiện thực hóa nền tảng toán học từ Chương 2 thành một kiến trúc phần mềm 5 lớp. Bằng cách thiết lập cấu trúc pipeline \textit{Funnel Architecture} (kết hợp sức mạnh của Rust và Python) và xác định cụ thể các tham số cốt lõi (từ $n_{rep}=2$ trong nén đồ thị đến $\beta=0.8$ trong lan truyền rủi ro), thiết kế này không chỉ giải quyết bài toán hiệu năng phân tích khối lượng lớn log mà còn giải quyết được các giới hạn của hệ thống đánh giá tĩnh (Static Scoring) hay các hệ thống học máy hộp đen (Black-box ML). Các tham số không được chọn ngẫu nhiên mà đều có cơ sở từ quan sát thực nghiệm và nguyên lý thiết kế: loại bỏ ``vùng chết toán học'' và bảo tồn bằng chứng ngoại biên (novelty). Chương tiếp theo sẽ trình bày quá trình thực nghiệm hệ thống này trên các tập dữ liệu mô phỏng kịch bản tấn công thực tế và đánh giá độ hiệu quả dựa trên các chỉ số Recall, Precision, và F1.
+Chương này đã hiện thực hóa nền tảng toán học từ Chương 2 thành một kiến trúc phần mềm 5 lớp. Bằng cách thiết lập cấu trúc pipeline \textit{Funnel Architecture} (kết hợp sức mạnh của Rust và Python) và xác định cụ thể các tham số cốt lõi (từ $n_{rep}=2$ trong nén đồ thị đến $\beta=0.85$ trong lan truyền rủi ro), thiết kế này không chỉ giải quyết bài toán hiệu năng phân tích khối lượng lớn log mà còn giải quyết được các giới hạn của hệ thống đánh giá tĩnh (Static Scoring) hay các hệ thống học máy hộp đen (Black-box ML). Các tham số không được chọn ngẫu nhiên mà đều có cơ sở từ quan sát thực nghiệm và nguyên lý thiết kế: loại bỏ ``vùng chết toán học'' và bảo tồn bằng chứng ngoại biên (novelty). Chương tiếp theo sẽ trình bày quá trình thực nghiệm hệ thống này trên các tập dữ liệu mô phỏng kịch bản tấn công thực tế và đánh giá độ hiệu quả dựa trên các chỉ số Recall, Precision, và F1.
 
 \end{document}
