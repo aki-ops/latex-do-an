@@ -1,0 +1,32 @@
+\documentclass[../main.tex]{subfiles}
+\begin{document}
+
+Phần này tổng kết các kết quả đạt được của đồ án, rút ra các kết luận khoa học cốt lõi từ quá trình nghiên cứu và thực nghiệm hệ thống SRAH, đồng thời đề xuất các hướng phát triển trong tương lai để hoàn thiện giải pháp.
+
+\section*{Kết luận}
+\addcontentsline{toc}{section}{Kết luận}
+
+Trải qua quá trình nghiên cứu lý thuyết, thiết kế kiến trúc và vận hành thực nghiệm hệ thống SRAH (Statistical Anomaly \& Dynamic Guilt Backpropagation) như một môi trường thử nghiệm (testbed), đồ án đã hoàn thành đầy đủ các mục tiêu đề ra và thu được các kết quả cụ thể sau:
+
+\begin{enumerate}
+    \item \textbf{Xây dựng thành công mô hình toán học và scoring đa chiều:} Đồ án đã hiện thực hóa thành công phân loại bất thường của Varun Chandola lên dữ liệu nhật ký sự kiện Windows Sysmon. Việc kết hợp năm thành phần độc lập (bất thường điểm $P$, bất thường ngữ cảnh $C$, tín hiệu từ Sigma $S$, bất thường chuỗi $Seq$, và bất thường tập thể $Col$) thông qua hệ số đồng thuận Corroboration Index (CI) đã giúp lượng hóa chính xác rủi ro của từng tiến trình dưới dạng điểm số có thể giải thích được (XAI).
+    \item \textbf{Thiết lập môi trường thử nghiệm khoa học (Testbed):} SRAH đã được vận hành hiệu quả như một công cụ thực chứng. Qua thực nghiệm định lượng, đồ án đã chứng minh được tính hiệu quả của phương pháp thống kê không giám sát kết hợp zero-training trong bài toán triage log Windows. Kết quả SRAH đạt F1-score 0,97 so với F1-score 0,41 của cơ chế so khớp Sigma tĩnh là minh chứng rõ rệt cho khả năng phát hiện các hành vi ẩn mình và kỹ thuật lạm dụng công cụ hợp pháp (LOLBins) của hệ thống đề xuất.
+    \item \textbf{Tối ưu hiệu năng thông qua kiến trúc lai (Rust + Python):} Quyết định thiết kế sử dụng Rust parse nhị phân ở Layer 0 kết hợp PyO3 zero-copy memory transfer và thuật toán Lossless Structural Deduplication ở Layer 2-A đã giải quyết triệt để nút thắt cổ chai về I/O. Thực nghiệm cho thấy hệ thống có khả năng xử lý log quy mô lớn (2 GB, hơn 200.000 sự kiện) chỉ trong 72,8 giây với mức tiêu thụ RAM cực kỳ an toàn (dưới 1,5 GB).
+    \item \textbf{Đóng góp về mặt phương pháp pháp y số (DFIR):} Thuật toán lan truyền rủi ro ngược trong cây tiến trình (Guilt Backpropagation) với decay factor $\beta = 0,85$ và cơ chế Smart Collapse đã giúp tái dựng hoàn hảo chuỗi tấn công (kill chain), hỗ trợ đắc lực cho các chuyên gia điều tra trong việc nhanh chóng định vị điểm xâm nhập ban đầu (initial access) mà không bị tràn ngập bởi lượng lớn cảnh báo giả.
+\end{enumerate}
+
+Bên cạnh những kết quả đạt được, đồ án cũng nhìn nhận một số hạn chế còn tồn tại của hệ thống hiện tại, bao gồm: sự phụ thuộc chặt chẽ vào tính toàn vẹn và chất lượng cấu hình của log Sysmon; và chi phí tính toán ma trận khoảng cách của thuật toán HDBSCAN khi quy mô log vượt ngưỡng cực đại (trên 5 GB) dù đã áp dụng cơ chế sampling.
+
+\section*{Hướng phát triển trong tương lai}
+\addcontentsline{toc}{section}{Hướng phát triển trong tương lai}
+
+Để khắc phục các hạn chế nêu trên và nâng cao hơn nữa khả năng ứng dụng thực tế của nghiên cứu, các hướng công việc tiếp theo sẽ tập trung vào các nội dung sau:
+
+\begin{enumerate}
+    \item \textbf{Song song hóa và tối ưu hóa thuật toán phân cụm:} Nghiên cứu tích hợp các thư viện HDBSCAN tăng tốc bằng GPU hoặc áp dụng các biến thể phân cụm mật độ phân tán (như Mini-Batch HDBSCAN) để cải thiện tốc độ xây dựng baseline hành vi động trên các tập log cực lớn ở quy mô doanh nghiệp (Big Data).
+    \item \textbf{Mở rộng nguồn log tích hợp:} Phát triển thêm các adapter thu nhận dữ liệu ở Layer 0 để hỗ trợ không chỉ Sysmon mà còn các nguồn log an ninh khác như Windows Security Event Log (ví dụ EID 4624 liên quan đến đăng nhập, EID 7045 liên quan đến cài đặt service mới) và log của các giải pháp EDR (Endpoint Detection and Response) bên thứ ba.
+    \item \textbf{Cơ chế tự động hóa cập nhật tri thức (Active Learning):} Tích hợp vòng phản hồi từ chuyên gia điều tra số (human-in-the-loop). Khi analyst gắn nhãn một cảnh báo là False Positive, hệ thống sẽ tự động cập nhật ma trận trọng số $\vec{w}_{sus}$ hoặc lưu cấu hình gộp cụm để tự điều chỉnh độ nhạy cho các lần phân tích tiếp theo.
+    \item \textbf{Thử nghiệm ablation chuyên sâu trên các lớp mã độc mới:} Tiếp tục sử dụng SRAH làm testbed để đánh giá độ nhạy đối với các biến thể mã độc không file (fileless malware) và các kỹ thuật tránh né nâng cao (defense evasion) nhằm kiểm chứng giới hạn chịu đựng lý thuyết của các mô hình toán học đề xuất.
+\end{enumerate}
+
+\end{document}

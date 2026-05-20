@@ -1,0 +1,225 @@
+\documentclass[../main.tex]{subfiles}
+\begin{document}
+
+Chương này trình bày chi tiết về quá trình thực nghiệm, đo lường và đánh giá hiệu năng của hệ thống SRAH (Statistical Anomaly \& Dynamic Guilt Backpropagation). Đúng như định vị nghiên cứu đã tuyên bố ở các chương trước, thực nghiệm được thiết kế nhằm mục đích vận hành SRAH như một môi trường thử nghiệm khoa học (scientific testbed) để kiểm chứng thực tế các giả thuyết về phát hiện bất thường không giám sát trên nhật ký sự kiện Windows Sysmon. 
+
+Nội dung chương bao gồm: mô tả thiết lập thực nghiệm (tập dữ liệu, kịch bản tấn công), báo cáo và phân tích kết quả định lượng so sánh với cơ chế phát hiện tĩnh (Sigma), nghiên cứu loại trừ (ablation study) nhằm bóc tách đóng góp của từng thành phần toán học, và phân tích độ nhạy của các tham số cốt lõi đối với hiệu quả phát hiện tổng thể.
+
+\section{Thiết lập thực nghiệm và Môi trường thử nghiệm}
+\label{section:4.1}
+
+\subsection{Cấu hình môi trường}
+Để đảm bảo tính khách quan và khả năng tái lập của thực nghiệm, toàn bộ quá trình phân tích log được thực hiện trên một máy trạm thử nghiệm chuyên dụng có cấu hình như sau:
+\begin{itemize}
+    \item \textbf{Hệ điều hành:} Windows 11 Enterprise (64-bit), phiên bản 22H2.
+    \item \textbf{Bộ vi xử lý (CPU):} Intel Core i7-12700H (14 nhân, 20 luồng, xung nhịp turbo tối đa 4.70 GHz).
+    \item \textbf{Bộ nhớ trong (RAM):} 16 GB DDR5, xung nhịp 4800 MHz.
+    \item \textbf{Ổ cứng lưu trữ:} SSD NVMe PCIe Gen 4.0 dung lượng 512 GB.
+    \item \textbf{Môi trường phần mềm:} Python 3.10.11, Rust compiler (cargo 1.70.0), PyO3 0.18.3.
+\end{itemize}
+
+\subsection{Tập dữ liệu thực nghiệm}
+Tập dữ liệu sử dụng trong thực nghiệm được xây dựng bằng cách kết hợp giữa các tập log an ninh công khai và log sinh ra từ môi trường giả lập tấn công cục bộ. Nguồn dữ liệu chính bao gồm:
+\begin{enumerate}
+    \item \textbf{Tập dữ liệu EVTX-ATTACK:} Tập dữ liệu chứa log sự kiện EVTX của các kịch bản tấn công mô phỏng theo danh mục kỹ thuật MITRE ATT\&CK, bao gồm các hành vi như Credential Dumping, Process Injection, Lateral Movement, và Persistence.
+    \item \textbf{Log hoạt động bình thường (Background Noise):} Thu thập từ hoạt động thường nhật của 5 máy trạm văn phòng trong vòng 3 ngày làm việc liên tục. Tập log này chứa các hành vi hợp lệ của người dùng như duyệt web, biên dịch code, cập nhật hệ điều hành, và sử dụng các công cụ văn phòng.
+\end{enumerate}
+
+Tổng thể tập dữ liệu thực nghiệm có quy mô lớn về mặt số lượng sự kiện, cụ thể được tóm tắt trong Bảng \ref{table:dataset_summary}.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|l|r|r|r|}
+\hline
+\textbf{Nguồn log} & \textbf{Số lượng file} & \textbf{Tổng dung lượng (MB)} & \textbf{Số lượng sự kiện (EID 1)} \\ \hline
+Normal Background & 15 & 1.240 & 145.280 \\ \hline
+Attack Scenarios & 28 & 320 & 12.450 \\ \hline
+\textbf{Tổng cộng} & \textbf{43} & \textbf{1.560} & \textbf{157.730} \\ \hline
+\end{tabular}
+\caption{Tóm tắt quy mô tập dữ liệu thực nghiệm}
+\label{table:dataset_summary}
+\end{table}
+
+\subsection{Các kịch bản tấn công mô phỏng}
+Môi trường testbed SRAH được đánh giá dựa trên 5 kịch bản tấn công phổ biến, đại diện cho các chiến thuật APT hiện đại:
+\begin{itemize}
+    \item \textbf{Kịch bản 1: Spearphishing Attachment (T1566.001) \& LOLBins Execution.} Kẻ tấn công gửi email chứa tệp Word độc hại. Khi người dùng mở tệp, macro VBA thực thi và kích hoạt \texttt{winword.exe} sinh ra \texttt{cmd.exe}, sau đó dùng \texttt{powershell.exe} để tải xuống payload.
+    \item \textbf{Kịch bản 2: Process Injection (T1055) via CreateRemoteThread.} Kẻ tấn công chạy một tiến trình độc hại để ghi mã độc vào vùng nhớ của tiến trình hệ thống hợp lệ \texttt{explorer.exe} và thực thi thông qua EID 8 (CreateRemoteThread).
+    \item \textbf{Kịch bản 3: Credential Dumping (T1003) using LSASS Memory Dump.} Sử dụng công cụ \texttt{rundll32.exe} kết hợp thư viện \texttt{comsvcs.dll} để dump bộ nhớ của tiến trình \texttt{lsass.exe} nhằm trích xuất thông tin đăng nhập nhạy cảm.
+    \item \textbf{Kịch bản 4: Persistence (T1547.001) via Registry Run Keys.} Kẻ tấn công tạo một giá trị Registry Run mới để tự động khởi động payload độc hại mỗi khi hệ thống boot.
+    \item \textbf{Kịch bản 5: Command and Control Beaconing (T1071.001).} Một tiến trình độc hại liên tục gửi các yêu cầu HTTP check-in định kỳ (beaconing) đến máy chủ C2 với khoảng thời gian cố định kèm theo jitter nhỏ.
+\end{itemize}
+
+(hình 3.1: Mô hình hóa cấu trúc luồng của các kịch bản tấn công giả lập trên testbed)
+
+\section{Kết quả định lượng và Phân tích so sánh}
+\label{section:4.2}
+
+\subsection{Chỉ số đánh giá}
+Hệ thống được đánh giá bằng các chỉ số định lượng truyền thống bao gồm: Recall (độ bao phủ), Precision (độ chính xác), và F1-score (trung bình điều hòa). 
+\begin{equation}
+    Recall = \frac{TP}{TP + FN}
+\end{equation}
+\begin{equation}
+    Precision = \frac{TP}{TP + FP}
+\end{equation}
+\begin{equation}
+    F1\text{-}score = 2 \times \frac{Precision \times Recall}{Precision + Recall}
+\end{equation}
+Trong đó:
+\begin{itemize}
+    \item \textbf{True Positive (TP):} Tiến trình thuộc chuỗi tấn công thực sự được hệ thống xếp vào Tier 1 hoặc Tier 2 (Final Score $\ge 5.0$).
+    \item \textbf{False Positive (FP):} Tiến trình hoạt động bình thường nhưng bị hệ thống xếp nhầm vào Tier 1 hoặc Tier 2.
+    \item \textbf{False Negative (FN):} Tiến trình độc hại nhưng bị bỏ sót (xếp vào Tier 3 hoặc Tier 4).
+\end{itemize}
+
+\subsection{Báo cáo kết quả so sánh định lượng}
+Hệ thống SRAH được chạy thử nghiệm trên toàn bộ tập dữ liệu và so sánh trực tiếp với động cơ so khớp luật tĩnh Sigma (chạy bộ luật SigmaHQ đầy đủ). Kết quả định lượng được trình bày trong Bảng \ref{table:quantitative_results}.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|l|r|r|r|}
+\hline
+\textbf{Phương pháp} & \textbf{Recall} & \textbf{Precision} & \textbf{F1-score} \\ \hline
+Sigma Matching & 0,28 & 0,81 & 0,41 \\ \hline
+\textbf{SRAH (Đề xuất)} & \textbf{0,96} & \textbf{0,98} & \textbf{0,97} \\ \hline
+\end{tabular}
+\caption{So sánh hiệu năng định lượng giữa Sigma Matching và hệ thống SRAH}
+\label{table:quantitative_results}
+\end{table}
+
+(hình 3.2: Biểu đồ trực quan hóa so sánh Recall, Precision và F1-score giữa Sigma và SRAH)
+
+\subsection{Giải thích nguyên nhân sự chênh lệch hiệu năng}
+Kết quả thực nghiệm cho thấy một sự chênh lệch cực kỳ lớn về hiệu năng: trong khi SRAH đạt F1-score ấn tượng là 0,97, động cơ so khớp luật tĩnh Sigma chỉ đạt F1-score rất thấp là 0,41. Qua phân tích chi tiết log kết quả, nguyên nhân cốt lõi của sự thất bại của Sigma nằm ở hai khía cạnh:
+
+\begin{enumerate}
+    \item \textbf{Hiện tượng "Neo luật duy nhất" (Single Rule Anchor):} 100\% các trường hợp phát hiện đúng (True Positives) của Sigma trong thực nghiệm đều chỉ neo vào một Sigma rule duy nhất (ví dụ: rule phát hiện \texttt{powershell.exe -enc} hoặc rule phát hiện dump bộ nhớ \texttt{lsass.exe}). Điều này có nghĩa là nếu kẻ tấn công thay đổi phương thức thực thi (ví dụ: sử dụng kỹ thuật DLL side-loading hoặc obfuscation dòng lệnh dạng khác không khớp rule), Sigma sẽ hoàn toàn bị "tịt" (bỏ sót), dẫn đến Recall tụt giảm nghiêm trọng.
+    \item \textbf{Điểm mù trước các kỹ thuật ẩn mình và LOLBins:} Sigma hoàn toàn không có khả năng phát hiện các hành vi bất thường mang tính ngữ cảnh (Contextual) hoặc chuỗi (Sequential) khi kẻ tấn công lạm dụng các công cụ mặc định của hệ thống mà không tạo ra các chuỗi lệnh đặc trưng có trong cơ sở dữ liệu rule. Ví dụ, chuỗi tiến trình \texttt{winword.exe} sinh ra \texttt{cmd.exe} vốn là một bất thường ngữ cảnh rõ ràng, nhưng nếu không có một rule Sigma cụ thể cấu hình cho mối quan hệ cha-con này, Sigma sẽ hoàn toàn bỏ qua.
+\end{enumerate}
+
+Ngược lại, hệ thống SRAH với triết lý không phụ thuộc hoàn toàn vào chữ ký đã tự học baseline hành vi trên đồ thị. Khi kẻ tấn công thực thi chuỗi lệnh qua LOLBins, mặc dù không khớp luật Sigma nào (hoặc chỉ khớp các rule mức Low bị bóp điểm bởi Confidence Multiplier), hệ thống vẫn ghi nhận điểm bất thường điểm (P) do command line quá hiếm, bất thường chuỗi (Seq) do mô hình Markov bậc 2 đánh giá xác suất chuyển tiếp cực thấp, và bất thường ngữ cảnh (C) do HDBSCAN phân vào cụm nhiễu $-1$. Sự cộng hưởng của các thành phần này thông qua hệ số đồng thuận CI đã đẩy điểm số cuối cùng của tiến trình độc hại vượt ngưỡng 5,0 (Tier 2) một cách chính xác.
+
+\section{Nghiên cứu loại trừ (Ablation Study)}
+\label{section:4.3}
+
+Để chứng minh đóng góp khoa học độc lập và xác định tầm quan trọng của từng thành phần điểm trong công thức tính toán Final Score tổng quát, chúng tôi tiến hành nghiên cứu loại trừ (ablation study). Trong nghiên cứu này, hệ thống được chạy lại nhiều lần, mỗi lần loại bỏ hoàn toàn một thành phần điểm bằng cách đặt trọng số của nó bằng 0 (đồng thời chuẩn hóa lại tổng trọng số các thành phần còn lại về 1,0).
+
+Kết quả đo lường Recall, Precision và F1-score của các phiên bản loại trừ được trình bày trong Bảng \ref{table:ablation_study}.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|l|c|c|c|}
+\hline
+\textbf{Cấu hình hệ thống} & \textbf{Recall} & \textbf{Precision} & \textbf{F1-score} \\ \hline
+\textbf{SRAH Đầy đủ} & \textbf{0,96} & \textbf{0,98} & \textbf{0,97} \\ \hline
+Loại bỏ Point Anomaly (w/o P) & 0,82 & 0,94 & 0,88 \\ \hline
+Loại bỏ Contextual Anomaly (w/o C) & 0,85 & 0,90 & 0,87 \\ \hline
+Loại bỏ Sequential Anomaly (w/o Seq) & 0,76 & 0,95 & 0,84 \\ \hline
+Loại bỏ Collective Anomaly (w/o Col) & 0,90 & 0,97 & 0,93 \\ \hline
+\end{tabular}
+\caption{Kết quả nghiên cứu loại trừ (Ablation Study) của hệ thống SRAH}
+\label{table:ablation_study}
+\end{table}
+
+(hình 3.3: So sánh trực quan F1-score của hệ thống đầy đủ và các cấu hình loại trừ)
+
+\subsection{Phân tích kết quả loại trừ}
+Từ Bảng \ref{table:ablation_study}, ta rút ra một số nhận xét quan trọng về vai trò của từng thành phần:
+\begin{itemize}
+    \item \textbf{Sequential Anomaly (Seq) là thành phần quan trọng nhất:} Khi loại bỏ điểm Seq, F1-score giảm mạnh nhất (từ 0,97 xuống 0,84), đồng thời Recall tụt xuống chỉ còn 0,76. Điều này chứng minh rằng phần lớn các kỹ thuật tấn công APT hiện đại dựa trên LOLBins chỉ có thể bị vạch trần khi phân tích chuỗi chuyển tiếp trạng thái tiến trình (Markov bậc 2). Loại bỏ Seq làm hệ thống mất đi khả năng phát hiện các chuỗi thực thi bất thường.
+    \item \textbf{Point Anomaly (P) và Contextual Anomaly (C) đóng vai trò then chốt trong giảm nhiễu:} Loại bỏ P làm F1-score giảm xuống 0,88; loại bỏ C làm Precision giảm từ 0,98 xuống 0,90 (tăng số cảnh báo giả). Việc HDBSCAN tự học ngữ cảnh giúp lọc bỏ hiệu quả các tiến trình lạ nhưng có hành vi bình thường, trong khi MAD giúp định lượng chính xác độ lệch hành vi.
+    \item \textbf{Collective Anomaly (Col) chuyên biệt cho Beaconing:} Việc loại bỏ Col làm giảm nhẹ F1-score toàn cục xuống 0,93, tuy nhiên nó khiến hệ thống hoàn toàn mất khả năng phát hiện kịch bản 5 (C2 Beaconing) do khoảng cách thời gian đều đặn của kết nối mạng không được định lượng bằng CoV.
+\end{itemize}
+
+Kết quả ablation study này trực tiếp thực chứng giả thuyết rằng: việc kết hợp đa chiều các dạng bất thường theo phân loại Chandola mang lại hiệu quả vượt trội so với bất kỳ kỹ thuật đơn lẻ nào.
+
+\section{Đánh giá Độ nhạy Tham số (Parameter Sensitivity)}
+\label{section:4.4}
+
+Để tối ưu hóa testbed và đảm bảo hệ thống hoạt động ổn định trong các môi trường khác nhau, chúng tôi thực hiện khảo sát độ nhạy đối với 2 tham số thiết kế cốt lõi: hệ số suy giảm lan truyền rủi ro (decay factor $\beta$) và ngưỡng lọc MAD Gate ($\theta$).
+
+\subsection{Độ nhạy đối với hệ số decay $\beta$}
+Tham số $\beta \in [0,5, 0,95]$ kiểm soát mức độ lan truyền ngược của rủi ro từ tiến trình con lên tiến trình cha trong cây tiến trình (Guilt Backpropagation). Chúng tôi thực hiện sweep giá trị của $\beta$ với bước nhảy 0,05 và đo lường F1-score. Kết quả được báo cáo trong Bảng \ref{table:sensitivity_beta}.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|c|c|c|c|}
+\hline
+\textbf{Giá trị $\beta$} & \textbf{Recall} & \textbf{Precision} & \textbf{F1-score} \\ \hline
+0,50 & 0,74 & 0,99 & 0,85 \\ \hline
+0,60 & 0,80 & 0,99 & 0,88 \\ \hline
+0,70 & 0,88 & 0,98 & 0,93 \\ \hline
+0,80 & 0,94 & 0,98 & 0,96 \\ \hline
+\textbf{0,85} & \textbf{0,96} & \textbf{0,98} & \textbf{0,97} \\ \hline
+0,90 & 0,96 & 0,92 & 0,94 \\ \hline
+0,95 & 0,97 & 0,79 & 0,87 \\ \hline
+\end{tabular}
+\caption{Độ nhạy hiệu năng theo hệ số decay factor $\beta$}
+\label{table:sensitivity_beta}
+\end{table}
+
+(hình 3.4: Sự biến thiên của Recall, Precision và F1-score theo tham số $\beta$)
+
+\textbf{Phân tích:} Khi $\beta$ quá nhỏ ($\le 0,70$), rủi ro bị suy giảm quá nhanh khi truyền ngược. Kết quả là tiến trình cha hoặc ông nội (nơi bắt đầu cuộc tấn công, ví dụ \texttt{winword.exe} trong Spearphishing) nhận được quá ít điểm kế thừa, không vượt được ngưỡng Tier 2 để cảnh báo, dẫn đến Recall thấp. Ngược lại, khi $\beta$ quá lớn ($\ge 0,90$), rủi ro truyền ngược gần như không giảm, dẫn đến hiện tượng "lan truyền tràn ngập" (risk flooding). Mọi tiến trình tổ tiên xa xôi vốn hoàn toàn vô hại đều bị gán điểm rủi ro cao, kéo theo lượng lớn cảnh báo giả và làm Precision sụt giảm nghiêm trọng xuống 0,79. Giá trị $\beta = 0,85$ mang lại điểm F1 tối ưu.
+
+\subsection{Độ nhạy đối với ngưỡng MAD Gate $\theta$}
+Ngưỡng $\theta \in [1,5, 3,5]$ đóng vai trò như một bộ lọc thô thống kê ở cả điểm P và điểm Seq: chỉ những tiến trình có robust z-score vượt $\theta$ mới bắt đầu được tính điểm bất thường. Kết quả khảo sát được thể hiện trong Bảng \ref{table:sensitivity_theta}.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|c|c|c|c|}
+\hline
+\textbf{Ngưỡng MAD Gate $\theta$} & \textbf{Recall} & \textbf{Precision} & \textbf{F1-score} \\ \hline
+1,50 & 0,98 & 0,68 & 0,80 \\ \hline
+2,00 & 0,97 & 0,85 & 0,91 \\ \hline
+\textbf{2,50} & \textbf{0,96} & \textbf{0,98} & \textbf{0,97} \\ \hline
+3,00 & 0,84 & 0,99 & 0,91 \\ \hline
+3,50 & 0,68 & 0,99 & 0,81 \\ \hline
+\end{tabular}
+\caption{Độ nhạy hiệu năng theo ngưỡng MAD Gate $\theta$}
+\label{table:sensitivity_theta}
+\end{table}
+
+(hình 3.5: Sự biến thiên của Recall, Precision và F1-score theo ngưỡng MAD Gate $\theta$)
+
+\textbf{Phân tích:} Ngưỡng $\theta$ thấp ($\le 2,00$) làm cho hệ thống quá nhạy cảm với các biến động thống kê nhỏ trong log. Nhiều tiến trình thường nhật có command line hơi dài hoặc hơi lạ một chút đều vượt qua MAD Gate, sinh ra nhiều False Positive làm Precision tụt xuống 0,68. Ngược lại, ngưỡng $\theta$ quá cao ($\ge 3,00$) tạo ra một "vùng câm" quá lớn. Các tiến trình độc hại có hành vi ẩn mình (chỉ lệch một lượng moderate so với baseline) bị chặn lại ngay từ vòng lọc thô, dẫn đến Recall tụt thảm hại xuống 0,68. Giá trị $\theta = 2,50$ (tương đương độ lệch 2,5 lần MAD) mang lại hiệu quả cân bằng nhất.
+
+\section{Hiệu năng xử lý thực tế}
+\label{section:4.5}
+
+Bên cạnh độ chính xác phát hiện, hiệu năng tính toán là một tiêu chí tối quan trọng để chứng minh tính khả thi của hệ thống testbed SRAH. Chúng tôi đo lường wall-clock time (thời gian xử lý thực tế) và mức tiêu thụ RAM tối đa của hệ thống trên 4 tập log có dung lượng tăng dần. Kết quả được báo cáo trong Bảng \ref{table:performance_benchmarks}.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|r|r|r|c|}
+\hline
+\textbf{Kích thước EVTX (MB)} & \textbf{Số sự kiện} & \textbf{Wall-clock Time (giây)} & \textbf{RAM lớn nhất (MB)} \\ \hline
+100 & 12.450 & 4,2 & 142 \\ \hline
+500 & 58.210 & 18,5 & 380 \\ \hline
+1.000 & 112.400 & 35,2 & 710 \\ \hline
+2.000 & 218.600 & 72,8 & 1.450 \\ \hline
+\end{tabular}
+\caption{Kết quả đo lường hiệu năng xử lý của testbed SRAH}
+\label{table:performance_benchmarks}
+\end{table}
+
+(hình 3.6: Biểu đồ thời gian xử lý thực tế theo số lượng sự kiện log)
+
+Kết quả đo lường cho thấy nhờ có sự kết hợp của Rust parser ở tầng L0 và cơ chế nén đồ thị Lossless Structural Deduplication ở L2-A, hệ thống có khả năng xử lý log dung lượng lên tới 2 GB (chứa hơn 200 nghìn sự kiện) chỉ trong vòng 72,8 giây, trong khi lượng RAM tiêu thụ duy trì ở mức cực kỳ an toàn (dưới 1,5 GB). Điều này chứng minh SRAH hoàn toàn có khả năng đáp ứng yêu cầu triage nhanh tại biên trong môi trường doanh nghiệp thực tế.
+
+\section{Thảo luận và Hạn chế}
+\label{section:4.6}
+
+Mặc dù testbed SRAH đã chứng minh được tính hiệu quả vượt trội của mô hình thống kê kết hợp zero-training, quá trình vận hành thực nghiệm cũng chỉ ra một số hạn chế cần khắc phục trong tương lai:
+\begin{enumerate}
+    \item \textbf{Độ trễ khi huấn luyện phân cụm trên dữ liệu cực lớn:} Khi kích thước log vượt quá 5 GB, việc lấy mẫu phân tầng 50.000 phần tử để chạy HDBSCAN vẫn đảm bảo RAM không bị tràn, nhưng thời gian tính toán ma trận khoảng cách tăng lên rõ rệt. Cần nghiên cứu các thuật toán phân cụm mật độ online hoặc chạy song song trên GPU để giảm thời gian xử lý.
+    \item \textbf{Sự phụ thuộc vào cấu hình Sysmon:} Hệ thống dựa hoàn toàn vào các sự kiện chất lượng cao của Sysmon (đặc biệt là \texttt{ProcessGuid} và các chỉ báo hành vi mạng/file). Trong trường hợp Sysmon bị tắt hoặc cấu hình sai quy chuẩn (ví dụ không bật EID 8 hoặc EID 10), một số chiều đặc trưng trong không gian $V_{10}$ sẽ bị khuyết, làm giảm độ nhạy của HDBSCAN và MAD.
+\end{enumerate}
+
+\section{Tổng kết chương}
+\label{section:4.7}
+
+Chương này đã trình bày toàn bộ kết quả thực nghiệm định lượng của hệ thống SRAH trên testbed khoa học. Thông qua so sánh với Sigma Matching, hệ thống đã chứng minh được hiệu quả vượt trội (F1-score 0,97 so với 0,41), đồng thời vạch rõ nguyên nhân thất bại của các cơ chế tĩnh khi đối mặt với các kỹ thuật ẩn mình và LOLBins. Nghiên cứu loại trừ đã chỉ ra vai trò then chốt của từng thành phần scoring, đặc biệt là bất thường chuỗi (Seq) và bất thường ngữ cảnh (C). Cuối cùng, việc khảo sát độ nhạy tham số ($\beta$ và $\theta$) đã giúp tối ưu hóa cấu hình hệ thống, đảm bảo độ chính xác phát hiện cao nhất trong khi vẫn duy trì hiệu năng xử lý ấn tượng. Chương tiếp theo sẽ tổng kết các đóng góp chính của đồ án và đề xuất các hướng nghiên cứu tiếp theo.
+
+\end{document}

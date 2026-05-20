@@ -145,7 +145,7 @@ Khác với cây tiến trình (\textit{process tree}) truyền thống, đồ t
 
 \section{Phân loại bất thường theo mô hình Chandola}
 \label{subsection:2.3}
-Theo Chandola et al. (2009), bất thường được chia thành ba loại chính:
+Theo nghiên cứu tổng quan của Chandola và các cộng sự (2009) \cite{chandola2009anomaly}, bất thường được chia thành ba loại chính:
 
 \begin{itemize}
     \item Point Anomalies: một thực thể đơn lẻ có hành vi bất thường, ví dụ command line chứa chuỗi mã hóa base64.
@@ -299,7 +299,7 @@ Với không gian $V_{10}$ đã định nghĩa, bài toán tiếp theo là xác 
 
 Phương pháp phân cụm phổ biến nhất là K-Means, song nó đặt ra hai yêu cầu không thỏa mãn được trong bối cảnh này. Thứ nhất, K-Means yêu cầu biết trước $K$ — số nhóm hành vi tự nhiên trong một môi trường Windows không thể biết trước mà không phân tích. Thứ hai, K-Means giả định các cụm có dạng hình cầu và kích thước xấp xỉ bằng nhau, trong khi thực tế, một nhóm như ``tiến trình hệ thống nền'' có thể chứa hàng nghìn tiến trình còn nhóm ``công cụ quản trị'' chỉ vài chục — mật độ chênh lệch nhiều bậc.
 
-\textbf{HDBSCAN} (\textit{Hierarchical Density-Based Spatial Clustering of Applications with Noise}) giải quyết cả hai vấn đề. Thuật toán xác định các vùng mật độ cao trong không gian $V_{10}$ mà không cần biết $K$ trước, và tự động đánh nhãn các điểm không thuộc vùng mật độ ổn định nào là \textit{noise} với nhãn cụm $-1$. Tập $-1$ này — không phải nhiễu đo lường mà là các tiến trình có hành vi quá đặc thù để hình thành nhóm — chính là tập nghi vấn tự nhiên nhất: nếu một tiến trình không giống bất kỳ nhóm hành vi nào đã biết, nó đáng được điều tra.
+\textbf{HDBSCAN} (\textit{Hierarchical Density-Based Spatial Clustering of Applications with Noise}) giải quyết cả hai vấn đề. Nhờ khả năng phân nhóm dựa trên mật độ dữ liệu biến thiên, HDBSCAN đặc biệt hiệu quả trong việc tìm kiếm các cấu trúc cụm có hình dạng và mật độ khác nhau trong dữ liệu log \cite{logctbl2025}. Thuật toán xác định các vùng mật độ cao trong không gian $V_{10}$ mà không cần biết $K$ trước, và tự động đánh nhãn các điểm không thuộc vùng mật độ ổn định nào là \textit{noise} với nhãn cụm $-1$. Tập $-1$ này — không phải nhiễu đo lường mà là các tiến trình có hành vi quá đặc thù để hình thành nhóm — chính là tập nghi vấn tự nhiên nhất: nếu một tiến trình không giống bất kỳ nhóm hành vi nào đã biết, nó đáng được điều tra.
 
 Một ràng buộc cứng được áp đặt: tuyệt đối không gộp cụm $-1$ vào cụm nào, và không đưa bất kỳ tiến trình nào từ cụm có mật độ vào $-1$. Vi phạm ràng buộc đầu tiên pha loãng tập nghi vấn; vi phạm thứ hai làm ô nhiễm các profile hành vi bình thường bằng các tiến trình đáng ngờ.
 
@@ -341,7 +341,7 @@ Bất thường chuỗi (\textit{Sequential Anomaly}) là dạng bất thường
 
 Hệ thống biểu diễn chuỗi lineage của mỗi tiến trình — từ tổ tiên gốc đến chính tiến trình đó — như một chuỗi quan sát $n_1 \to n_2 \to \cdots \to n_N$. Bài toán là: chuỗi chuyển tiếp này bất thường đến mức nào so với tất cả chuỗi đã quan sát trong cùng log?
 
-Mô hình Markov bậc 1 ước lượng xác suất $P(n_{i+1} \mid n_i)$ — xác suất tiến trình tiếp theo chỉ phụ thuộc vào tiến trình hiện tại. Điều này đủ để phát hiện một số trường hợp, nhưng không phân biệt được: \texttt{cmd.exe} sinh bởi \texttt{svchost.exe} (bình thường — dịch vụ Windows) và \texttt{cmd.exe} sinh bởi \texttt{svchost.exe} vốn được sinh bởi \texttt{WINWORD.EXE} (bất thường — macro malware). Cả hai trường hợp đều cho cùng xác suất bậc 1 $P(\texttt{cmd} \mid \texttt{svchost})$.
+Mô hình Markov bậc 1 ước lượng xác suất $P(n_{i+1} \mid n_i)$ — xác suất tiến trình tiếp theo chỉ phụ thuộc vào tiến trình hiện tại, vốn được ứng dụng rộng rãi trong các nghiên cứu phát hiện chuỗi lệnh bất thường \cite{tian2008}. Điều này đủ để phát hiện một số trường hợp, nhưng không phân biệt được: \texttt{cmd.exe} sinh bởi \texttt{svchost.exe} (bình thường — dịch vụ Windows) và \texttt{cmd.exe} sinh bởi \texttt{svchost.exe} vốn được sinh bởi \texttt{WINWORD.EXE} (bất thường — macro malware). Cả hai trường hợp đều cho cùng xác suất bậc 1 $P(\texttt{cmd} \mid \texttt{svchost})$.
 
 Mô hình Markov bậc 2 khắc phục bằng cách mô hình hóa $P(n_{i+2} \mid n_i, n_{i+1})$ — xác suất phụ thuộc vào hai bước trước. Với ví dụ trên: $P(\texttt{cmd} \mid \texttt{WINWORD}, \texttt{svchost})$ là xác suất rất thấp trong log bình thường, trong khi $P(\texttt{cmd} \mid \texttt{services}, \texttt{svchost})$ cao hơn nhiều. Bậc 2 nắm bắt đủ ngữ cảnh để phân biệt hai trường hợp này mà không đòi hỏi quá nhiều dữ liệu để ước lượng (bậc 3 trở lên gặp vấn đề data sparsity nghiêm trọng trong không gian $K^3$ trạng thái).
 
@@ -385,7 +385,7 @@ Xét chuỗi khoảng cách thời gian $\Delta t_i = t_{i+1} - t_i$. Phương s
     CoV = \frac{\sigma_{\Delta t}}{\mu_{\Delta t}} \tag{1.21}
 \end{equation}
 
-CoV bằng 0 khi tất cả khoảng cách hoàn toàn bằng nhau (đều đặn tuyệt đối); CoV lớn khi khoảng cách biến thiên mạnh (hành vi con người, tải ngẫu nhiên). Vì là tỷ số, CoV không thay đổi khi nhân toàn bộ chuỗi $\Delta t_i$ với một hằng số — tức khi thay đổi đơn vị thời gian hay chu kỳ beacon. Đây là tính chất \textit{scale-invariance} cho phép dùng cùng một ngưỡng phát hiện cho mọi chu kỳ.
+CoV bằng 0 khi tất cả khoảng cách hoàn toàn bằng nhau (đều đặn tuyệt đối); CoV lớn khi khoảng cách biến thiên mạnh (hành vi con người, tải ngẫu nhiên). Vì là tỷ số, CoV không thay đổi khi nhân toàn bộ chuỗi $\Delta t_i$ với một hằng số — tức khi thay đổi đơn vị thời gian hay chu kỳ beacon. Đây là tính chất \textit{scale-invariance} cho phép dùng cùng một ngưỡng phát hiện cho mọi chu kỳ, tương tự cách tiếp cận của các hệ thống phát hiện beaconing mạng chuyên dụng như BAYWATCH \cite{baywatch2016}.
 
 Điểm Col được tính theo công thức ánh xạ CoV về $[0, 10]$, trong đó CoV thấp (đều đặn) cho điểm cao:
 \begin{equation}
@@ -447,10 +447,38 @@ Sau khi tính xong điểm cho toàn bộ node, một bước lan truyền rủi
 
 Sử dụng $\max$ thay vì cộng đảm bảo tính đơn điệu: điểm của node cha chỉ tăng, không bao giờ giảm vì con an toàn. Hệ số $\beta \in (0, 1)$ là \textit{decay factor} tạo ra ``attenuation theo cấp độ'': tiến trình cha nhận điểm bằng $\beta$ lần điểm con; ông nội nhận $\beta^2$; cụ nhận $\beta^3$. Điều này phản ánh nguyên lý trách nhiệm suy giảm theo khoảng cách trong cây: tiến trình sinh trực tiếp tiến trình độc hại chịu trách nhiệm cao nhất; tiến trình nhiều cấp phía trên chịu trách nhiệm thấp hơn. Mọi node có điểm được nâng qua bước này được gắn cờ \texttt{INHERITED\_RISK} trong output, cho phép analyst phân biệt ``tiến trình bản thân bất thường'' với ``tiến trình bình thường nhưng sinh ra con độc hại''.
 
-\section{Tổng kết chương}
-\label{section:2.6}
+\section{Các nghiên cứu liên quan và phân tích khoảng trống công nghệ}
+\label{section:Related_works_and_gap}
 
-Chương này đã xây dựng toàn bộ nền tảng lý thuyết và mô hình toán học cho hệ thống triage log đề xuất. Điểm xuất phát là bài toán phân tích log Windows không có dữ liệu baseline bên ngoài; từ đó, hệ thống được thiết kế từ dưới lên với năm thành phần scoring giải quyết năm dạng bất thường khác nhau theo phân loại của Chandola et al.: Point Anomaly (P) dùng MAD và IPAS, Contextual Anomaly (C) dùng HDBSCAN và one-sided z-score, Sequential Anomaly (Seq) dùng Markov bậc 2 và cross-entropy, Collective Anomaly (Col) dùng CoV, và Known-threat signal (S) dùng Sigma với Max Override. Tất cả được tổng hợp qua Corroboration Index — cơ chế phản ánh nguyên lý convergence of evidence — và lan truyền ngược qua cây tiến trình để tái dựng toàn bộ attack chain. Chương tiếp theo sẽ hiện thực hóa kiến trúc này thành hệ thống hoàn chỉnh và trình bày các quyết định thiết kế cụ thể.
+\subsection{Các nghiên cứu liên quan}
+Trong những năm gần đây, bài toán phát hiện hành vi độc hại trên hệ điều hành Windows dựa trên phân tích nhật ký sự kiện đã thu hút được sự quan tâm lớn từ cả cộng đồng nghiên cứu học thuật lẫn các chuyên gia bảo mật thực tế. Các phương pháp tiếp cận chủ yếu được chia thành hai nhóm chính: tiếp cận dựa trên học máy/học sâu (machine learning/deep learning) và tiếp cận dựa trên thống kê/quy tắc hành vi.
+
+Đối với nhóm tiếp cận dựa trên học sâu, tiêu biểu là các nghiên cứu của Smiliotopoulos và các cộng sự (2023) \cite{smiliotopoulos2023} và mô hình lai iCNN-LSTM (2025) \cite{icnnlstm2025}. Nghiên cứu của Smiliotopoulos (2023) \cite{smiliotopoulos2023} đã áp dụng các mạng nơ-ron sâu để phân tích chuỗi log Sysmon, học các biểu diễn vector ngữ nghĩa từ các tham số dòng lệnh nhằm phát hiện các hành vi bất thường. Tương tự, mô hình iCNN-LSTM (2025) \cite{icnnlstm2025} kết hợp mạng nơ-ron tích chập (CNN) để trích xuất đặc trưng không gian và mạng bộ nhớ ngắn dài (LSTM) để nắm bắt các đặc trưng tuần tự thời gian của các tiến trình Windows. Mặc dù các mô hình này đạt được độ chính xác rất cao trên các tập dữ liệu thử nghiệm tĩnh, chúng gặp phải những rào cản lớn khi triển khai trong môi trường thực tế:
+\begin{itemize}
+    \item \textbf{Yêu cầu dữ liệu huấn luyện sạch lớn:} Các mô hình học sâu đòi hỏi một lượng lớn dữ liệu log "sạch" (không chứa mã độc) để học baseline bình thường, điều này rất khó đảm bảo trong các hệ thống đang hoạt động nơi kẻ tấn công có thể đã xâm nhập từ trước.
+    \item \textbf{Khả năng giải thích kém (Black-box):} Điểm số cảnh báo do mạng nơ-ron đưa ra là kết quả của hàng triệu phép tính ma trận phi tuyến tính, không thể phân rã thành các hành vi cụ thể, gây khó khăn cho việc phân tích và điều tra của analyst trong SOC.
+    \item \textbf{Chi phí tính toán cao:} Việc huấn luyện lại và suy luận thời gian thực trên lượng log khổng lồ đòi hỏi tài nguyên phần cứng lớn (GPU), không phù hợp cho việc phân tích triage nhanh tại biên.
+\end{itemize}
+
+Để khắc phục các nhược điểm trên, các nghiên cứu dựa trên thống kê hành vi và zero-training đã được đề xuất. Tiêu biểu là công trình của Husselman (2024) \cite{husselman2024}, nghiên cứu việc phát hiện bất thường trên endpoint Windows thông qua mô hình hóa hành vi không giám sát mà không cần huấn luyện trước. Trong khía cạnh phân cụm hành vi tiến trình, nghiên cứu LogCTBL (2025) \cite{logctbl2025} đã sử dụng thuật toán phân cụm mật độ HDBSCAN để nhóm các mẫu log hệ thống dựa trên các đặc trưng hành vi và phân tích mẫu thời gian. Đối với phát hiện bất thường chuỗi tiến trình, Tian và các cộng sự (2008) \cite{tian2008} đã chứng minh tính hiệu quả của việc sử dụng mô hình Markov để tính xác suất chuyển tiếp giữa các tiến trình hệ thống nhằm phát hiện các attack chain. Trong khi đó, hệ thống BAYWATCH (2016) \cite{baywatch2016} đã đề xuất sử dụng hệ số biến thiên (Coefficient of Variation — CoV) để phát hiện hành vi kết nối mạng định kỳ (beaconing) của mã độc một cách hiệu quả và độc lập với tần suất kết nối.
+
+\subsection{Phân tích khoảng trống công nghệ (Gap Analysis)}
+Mặc dù mỗi nghiên cứu riêng lẻ nêu trên đã chứng minh được tính hiệu quả khoa học trong việc giải quyết một khía cạnh cụ thể của bài toán phát hiện mối đe dọa, vẫn tồn tại một khoảng trống công nghệ lớn chưa được lấp đầy:
+\begin{quote}
+    \textit{Chưa có nghiên cứu nào tích hợp đầy đủ phân loại bất thường ba nhánh của Varun Chandola (Point Anomaly, Contextual Anomaly, và Collective Anomaly) lên dữ liệu nhật ký sự kiện Windows Sysmon bằng một giải pháp thống kê kết hợp zero-training toàn diện.}
+\end{quote}
+
+Các giải pháp hiện tại thường chỉ tập trung vào một loại bất thường duy nhất (ví dụ: chỉ phát hiện bất thường điểm dựa trên entropy, hoặc chỉ phát hiện chuỗi dựa trên Markov), dẫn đến việc dễ dàng bị bypass bởi các kỹ thuật tấn công đa dạng. Đồng thời, việc thiếu một cơ chế kết hợp phi tuyến tính các nguồn tín hiệu độc lập dẫn đến việc hệ thống hoặc bị tràn ngập bởi cảnh báo giả (False Positives), hoặc bỏ sót các tín hiệu rủi ro moderate của các cuộc tấn công tinh vi (vùng chết toán học).
+
+\subsection{Định vị SRAH như một Testbed thực nghiệm}
+Nhằm lấp đầy khoảng trống công nghệ này và kiểm chứng định lượng giới hạn của các phương pháp thống kê hành vi, hệ thống SRAH (Statistical Anomaly \& Dynamic Guilt Backpropagation) được xây dựng đóng vai trò như một môi trường thử nghiệm khoa học (scientific testbed). SRAH không chỉ đơn thuần là một công cụ phát hiện, mà là một công cụ đo lường và thực chứng, cho phép chúng ta vận hành toàn bộ phân loại của Chandola trên dữ liệu thực tế, thực hiện các đo lường ablation để làm rõ vai trò của từng thành phần toán học đối với hiệu quả phát hiện tổng thể.
+
+\section{Tổng kết chương}
+\label{section:2.7}
+
+Chương này đã xây dựng toàn bộ nền tảng lý thuyết và mô hình toán học cho hệ thống triage log đề xuất. Điểm xuất phát là bài toán phân tích log Windows không có dữ liệu baseline bên ngoài; từ đó, hệ thống được thiết kế từ dưới lên với năm thành phần scoring giải quyết năm dạng bất thường khác nhau theo phân loại của Chandola et al.: Point Anomaly (P) dùng MAD và IPAS, Contextual Anomaly (C) dùng HDBSCAN và one-sided z-score, Sequential Anomaly (Seq) dùng Markov bậc 2 và cross-entropy, Collective Anomaly (Col) dùng CoV, và Known-threat signal (S) dùng Sigma với Max Override. Tất cả được tổng hợp qua Corroboration Index — cơ chế phản ánh nguyên lý convergence of evidence — và lan truyền ngược qua cây tiến trình để tái dựng toàn bộ attack chain.
+
+Đặc biệt, chương này đã tiến hành phân tích các nghiên cứu liên quan, so sánh phương pháp thống kê zero-training với các hướng tiếp cận học sâu (Smiliotopoulos 2023, iCNN-LSTM 2025), vạch rõ khoảng trống công nghệ hiện tại và định vị hệ thống SRAH như một testbed nghiên cứu khoa học phục vụ cho việc thực chứng lý thuyết. Chương tiếp theo sẽ hiện thực hóa kiến trúc này thành hệ thống hoàn chỉnh và trình bày các quyết định thiết kế cụ thể của testbed này.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

@@ -78,7 +78,7 @@
 \setlength{\headheight}{18pt}
 \addtolength{\topmargin}{-8pt}
 
-\def \TITLE{ĐỒ ÁN TỐT NGHIỆP}
+\def \TITLE{Giới hạn của phát hiện bất thường thống kê trên Windows Endpoint: Phân tích thực nghiệm qua kiến trúc hybrid}
 \def \AUTHOR{NGUYỄN VĂN ABC}
 
 % ===================================================
@@ -169,8 +169,8 @@
 % =========================== BODY ===============
 \begin{document}
 % \newgeometry{top=2cm, bottom=2cm, left=2cm, right=2cm}
-\subfile{Bia} % Phần bìa
-\subfile{Bia_lot} % Phần bìa
+\subfile{Bia.tex} % Phần bìa
+\subfile{Bia_lot.tex} % Phần bìa
 % \restoregeometry
 
 % ===================================================
@@ -269,47 +269,38 @@
 %\fancyhead[LE]{\rightmark}
 \fancyfoot[RE, LO]{\thepage}
 
-\chapter*{GIỚI THIỆU ĐỀ TÀI}
+\chapter*{MỞ ĐẦU}
 \label{chapter:Introduction}
 \addcontentsline{toc}{chapter}{Mở đầu}
-\subfile{Chuong/1_Gioi_thieu} % Phần mở đầu
+\subfile{Chuong/1_Mo_dau.tex} % Phần mở đầu
 
 
 \newpage
 %\pagestyle{fancy} % Áp dụng header và footer
-\chapter{CƠ SỞ LÝ THUYẾT VÀ CÔNG NGHỆ LIÊN QUAN}
-\label{chapter:Related_works}
-\subfile{Chuong/2_Khao_sat}
+\chapter{KIẾN THỨC CƠ SỞ}
+\label{chapter:Background}
+\subfile{Chuong/2_Kien_thuc_co_so.tex}
 
 
 \newpage
 %\pagestyle{fancy} % Áp dụng header và footer
-\chapter{THIẾT KẾ VÀ TRIỂN KHAI HỆ THỐNG}
-\label{chapter:Methodology}
-\subfile{Chuong/3_Cong_nghe}
-
-%\newpage
-%\pagestyle{fancy} % Áp dụng header và footer
-%\chapter{PHÂN TÍCH THIẾT KẾ, TRIỂN KHAI VÀ ĐÁNH GIÁ HỆ THỐNG}
-%\label{chapter:Experiment}
-%\subfile{Chuong/4_Ket_qua_thuc_nghiem}
+\chapter{THIẾT KẾ HỆ THỐNG}
+\label{chapter:System_Design}
+\subfile{Chuong/3_Thiet_ke_he_thong.tex}
 
 \newpage
 %\pagestyle{fancy} % Áp dụng header và footer
-%\chapter{CÁC GIẢI PHÁP VÀ ĐÓNG GÓP NỔI BẬT}
-%\label{chapter:SolutionAndContribution}
-%\subfile{Chuong/5_Giai_phap_dong_gop}
-%\newpage
-%\pagestyle{fancy} % Áp dụng header và footer
-%\chapter{KẾT LUẬN VÀ HƯỚNG PHÁT TRIỂN} %Kết luận và hướng phát triển}
-%\label{chapter:conclusion}
-%\subfile{Chuong/6_Ket_luan}
+\chapter{THỰC NGHIỆM VÀ ĐÁNH GIÁ}
+\label{chapter:Evaluation}
+\subfile{Chuong/4_Thuc_nghiem_va_danh_gia.tex}
 
-%\newpage
+\newpage
 %\pagestyle{fancy} % Áp dụng header và footer
-%\chapter*{MỘT SỐ LƯU Ý VỀ TÀI LIỆU THAM KHẢO} %Kết luận và hướng phát triển}
-%\label{chapter:reference}
-%\subfile{Chuong/7_Luu_y_tai_lieu_tham_khao}
+\chapter*{KẾT LUẬN VÀ HƯỚNG PHÁT TRIỂN}
+\label{chapter:Conclusion}
+\addcontentsline{toc}{chapter}{Kết luận}
+\subfile{Chuong/5_Ket_luan.tex}
+
 
 
 % ===================================================

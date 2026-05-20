@@ -44,15 +44,23 @@ Phạm vi của đề tài được giới hạn ở việc phân tích log sự
 
 Đề tài kỳ vọng đóng góp một cách tiếp cận mới trong bài toán triage log Windows, trong đó việc giảm nhiễu dữ liệu được thực hiện mà không làm mất đi các bằng chứng quan trọng. Đồng thời, hệ thống đề xuất một cơ chế tự học baseline từ dữ liệu đầu vào (on-the-fly self-learning), kết hợp với các phương pháp thống kê và mô hình hóa hành vi nhằm phát hiện bất thường một cách toàn diện. Ngoài ra, việc tích hợp cơ chế định lượng rủi ro có thể giải thích (explainable risk scoring), cùng với phương pháp lan truyền rủi ro trong đồ thị tiến trình (risk propagation), giúp nâng cao khả năng phát hiện và hỗ trợ hiệu quả cho quá trình điều tra.
 
+\section*{Định vị hệ thống SRAH như một môi trường thử nghiệm (Testbed)}
+\addcontentsline{toc}{section}{Định vị hệ thống SRAH như một môi trường thử nghiệm (Testbed)}
+
+Một điểm cần đặc biệt lưu ý là hệ thống SRAH (Statistical Anomaly \& Dynamic Guilt Backpropagation) được đề xuất trong đồ án này không hướng tới việc xây dựng một sản phẩm phần mềm thương mại hoàn chỉnh hay một hệ thống phòng thủ hoạt động độc lập trong môi trường sản xuất (production system). Thay vào đó, SRAH được thiết kế và định vị như một môi trường thử nghiệm khoa học (scientific testbed) và là một công cụ thực chứng (instrumentation tool).
+
+Mục đích chính của SRAH là cung cấp một nền tảng thực nghiệm để triển khai và đo lường một cách định lượng giới hạn của các phương pháp phát hiện bất thường dựa trên thống kê không giám sát (unsupervised statistical anomaly detection) trên nhật ký sự kiện Windows. Việc định vị này cho phép chúng ta cô lập các biến số hành vi, thực hiện các nghiên cứu loại trừ (ablation studies) để đánh giá độ nhạy và hiệu quả đóng góp của từng thành phần toán học (Point, Contextual, Collective, Sequential Anomalies) đối với từng lớp tấn công cụ thể. Do đó, các kết quả thực nghiệm đạt được sẽ phản ánh một cách khách quan tiềm năng và giới hạn thực tế của các lý thuyết toán học trong lĩnh vực điều tra số và ứng phó sự cố (DFIR), thay vì chỉ đánh giá khả năng tối ưu hóa kỹ thuật của một sản phẩm thương mại.
+
 \section*{Bố cục đồ án}
 \addcontentsline{toc}{section}{Bố cục đồ án}
 
-Phần còn lại của đồ án được tổ chức như sau.
+Phần còn lại của đồ án được tổ chức như sau:
 
 \begin{itemize}
-    \item \textbf{Chương 1:} Trình bày các kiến thức cơ sở và nền tảng lý thuyết liên quan đến phát hiện bất thường (anomaly detection) và phân tích nhật ký (log analysis), bao gồm toàn bộ cơ sở toán học của các thành phần scoring.
-    \item \textbf{Chương 2:} Mô tả chi tiết thiết kế và triển khai hệ thống theo kiến trúc pipeline 6 tầng đề xuất, bao gồm việc xác định các tham số cụ thể dựa trên cơ sở lý thuyết và thực nghiệm.
-    \item \textbf{Chương 3:} Tập trung vào thực nghiệm và đánh giá, bao gồm so sánh với các công cụ hiện có và phân tích kết quả đạt được, từ đó rút ra kết luận.
+    \item \textbf{Chương 1: Kiến thức cơ sở} Trình bày các kiến thức nền tảng và cơ sở lý thuyết liên quan đến phát hiện bất thường (anomaly detection) và phân tích nhật ký (log analysis), bao gồm toàn bộ cơ sở toán học của các thành phần scoring, các công trình nghiên cứu liên quan và phân tích khoảng trống nghiên cứu.
+    \item \textbf{Chương 2: Thiết kế hệ thống} Mô tả chi tiết kiến trúc và các tầng xử lý của hệ thống SRAH từ Layer 0 đến Layer 4, bao gồm việc lựa chọn công nghệ PyO3 và thiết lập các tham số cụ thể dựa trên cơ sở lý thuyết và thực nghiệm.
+    \item \textbf{Chương 3: Thực nghiệm và đánh giá} Tập trung vào thiết kế thực nghiệm, mô tả dữ liệu kiểm thử, trình bày và phân tích chi tiết kết quả thử nghiệm định lượng của hệ thống SRAH cùng các nghiên cứu loại trừ (ablation study), đánh giá độ nhạy tham số và thảo luận.
+    \item \textbf{Kết luận và hướng phát triển} Tổng kết các kết quả đạt được của đồ án, chỉ ra những hạn chế hiện tại và đề xuất các hướng nghiên cứu tiếp theo nhằm hoàn thiện giải pháp.
 \end{itemize}
 
 \end{document}
