@@ -1,32 +1,39 @@
 \documentclass[../main.tex]{subfiles}
 \begin{document}
 
-Phần này tổng kết các kết quả đạt được của đồ án, rút ra các kết luận khoa học cốt lõi từ quá trình nghiên cứu và thực nghiệm hệ thống SRAH, đồng thời đề xuất các hướng phát triển trong tương lai để hoàn thiện giải pháp.
+Chương này tổng kết lại toàn bộ nội dung nghiên cứu của đồ án, chỉ ra những hạn chế hiện tại và phác thảo các hướng đi tiếp theo để phát triển giải pháp.
 
-\section*{Kết luận}
-\addcontentsline{toc}{section}{Kết luận}
+\section{Kết luận}
+\label{section:conclusion.1}
 
-Trải qua quá trình nghiên cứu lý thuyết, thiết kế kiến trúc và vận hành thực nghiệm hệ thống SRAH (Statistical Anomaly \& Dynamic Guilt Backpropagation) như một môi trường thử nghiệm (testbed), đồ án đã hoàn thành đầy đủ các mục tiêu đề ra và thu được các kết quả cụ thể sau:
+Nghiên cứu này đã cung cấp những bằng chứng thực nghiệm có hệ thống và khách quan về giới hạn chịu đựng lý thuyết cũng như thực tiễn của các phương pháp phát hiện bất thường thống kê không giám sát trên Windows Endpoint. Thông qua quá trình thiết kế, triển khai và đánh giá hệ thống SRAH trên môi trường testbed khoa học, chúng tôi rút ra các kết luận cốt lõi sau:
 
-\begin{enumerate}
-    \item \textbf{Xây dựng thành công mô hình toán học và scoring đa chiều:} Đồ án đã hiện thực hóa thành công phân loại bất thường của Varun Chandola lên dữ liệu nhật ký sự kiện Windows Sysmon. Việc kết hợp năm thành phần độc lập (bất thường điểm $P$, bất thường ngữ cảnh $C$, tín hiệu từ Sigma $S$, bất thường chuỗi $Seq$, và bất thường tập thể $Col$) thông qua hệ số đồng thuận Corroboration Index (CI) đã giúp lượng hóa chính xác rủi ro của từng tiến trình dưới dạng điểm số có thể giải thích được (XAI).
-    \item \textbf{Thiết lập môi trường thử nghiệm khoa học (Testbed):} SRAH đã được vận hành hiệu quả như một công cụ thực chứng. Qua thực nghiệm định lượng, đồ án đã chứng minh được tính hiệu quả của phương pháp thống kê không giám sát kết hợp zero-training trong bài toán triage log Windows. Kết quả SRAH đạt F1-score 0,97 so với F1-score 0,41 của cơ chế so khớp Sigma tĩnh là minh chứng rõ rệt cho khả năng phát hiện các hành vi ẩn mình và kỹ thuật lạm dụng công cụ hợp pháp (LOLBins) của hệ thống đề xuất.
-    \item \textbf{Tối ưu hiệu năng thông qua kiến trúc lai (Rust + Python):} Quyết định thiết kế sử dụng Rust parse nhị phân ở Layer 0 kết hợp PyO3 zero-copy memory transfer và thuật toán Lossless Structural Deduplication ở Layer 2-A đã giải quyết triệt để nút thắt cổ chai về I/O. Thực nghiệm cho thấy hệ thống có khả năng xử lý log quy mô lớn (2 GB, hơn 200.000 sự kiện) chỉ trong 72,8 giây với mức tiêu thụ RAM cực kỳ an toàn (dưới 1,5 GB).
-    \item \textbf{Đóng góp về mặt phương pháp pháp y số (DFIR):} Thuật toán lan truyền rủi ro ngược trong cây tiến trình (Guilt Backpropagation) với decay factor $\beta = 0,85$ và cơ chế Smart Collapse đã giúp tái dựng hoàn hảo chuỗi tấn công (kill chain), hỗ trợ đắc lực cho các chuyên gia điều tra trong việc nhanh chóng định vị điểm xâm nhập ban đầu (initial access) mà không bị tràn ngập bởi lượng lớn cảnh báo giả.
-\end{enumerate}
+\begin{itemize}
+    \item \textbf{Hiệu năng vượt trội trên các kịch bản thông thường:} Phương pháp thống kê không giám sát đạt hiệu năng rất cao (F1-score > 0,96) trên các kịch bản tấn công thông thường, các mã độc tự động và các kỹ thuật lạm dụng công cụ hợp pháp (LOLBins). Điều này khẳng định tính khả thi của phương pháp trong vai trò lớp lọc nhanh (fast filtering) ở biên.
+    \item \textbf{Vai trò chủ đạo của tín hiệu chuỗi (Sequential Anomaly):} Tín hiệu bất thường chuỗi (Markov chain) là thành phần đóng góp chính cho hầu hết các phát hiện thành công ngoài nhóm APT. Việc phân tích chuỗi chuyển tiếp trạng thái tiến trình đóng vai trò quyết định trong việc vạch trần các hành vi lạm dụng LOLBins.
+    \item \textbf{Giới hạn cố hữu trước tấn công APT:} Đối mặt với tập dữ liệu tấn công có chủ đích APT-29, toàn bộ các tín hiệu thống kê hành vi hoàn toàn bị vô hiệu hóa. Hệ thống hybrid lúc này chỉ còn biết neo vào lớp luật tĩnh Sigma để đưa ra cảnh báo. Đây là bằng chứng thực nghiệm rõ ràng nhất cho giới hạn cố hữu của hướng tiếp cận dựa trên bất thường (anomaly-based detection) khi phải đối mặt với các tác nhân tấn công có chủ đích sử dụng kỹ thuật Living-off-the-Land tinh vi.
+\end{itemize}
 
-Bên cạnh những kết quả đạt được, đồ án cũng nhìn nhận một số hạn chế còn tồn tại của hệ thống hiện tại, bao gồm: sự phụ thuộc chặt chẽ vào tính toàn vẹn và chất lượng cấu hình của log Sysmon; và chi phí tính toán ma trận khoảng cách của thuật toán HDBSCAN khi quy mô log vượt ngưỡng cực đại (trên 5 GB) dù đã áp dụng cơ chế sampling.
+Những phát hiện định lượng trong đồ án này không chỉ làm rõ sự đánh đổi giữa Recall và Precision (qua hai chế độ Standard và Hunting), mà còn đưa ra các khuyến nghị thiết thực cho việc thiết kế kiến trúc phát hiện hai tầng trong thực tế nhằm tối ưu hóa hoạt động của các trung tâm giám sát an ninh (SOC).
 
-\section*{Hướng phát triển trong tương lai}
-\addcontentsline{toc}{section}{Hướng phát triển trong tương lai}
+\section{Hạn chế của nghiên cứu}
+\label{section:conclusion.2}
 
-Để khắc phục các hạn chế nêu trên và nâng cao hơn nữa khả năng ứng dụng thực tế của nghiên cứu, các hướng công việc tiếp theo sẽ tập trung vào các nội dung sau:
+Mặc dù đã đạt được những kết quả thực nghiệm quan trọng, nghiên cứu vẫn tồn tại một số hạn chế nhất định:
+\begin{itemize}
+    \item \textbf{Tính đại diện của kiến trúc SRAH:} Hệ thống SRAH chỉ là một cách hiện thực hóa cụ thể của phân loại bất thường Chandola trên log sự kiện Windows. Do đó, các kết luận định lượng cụ thể thu được trong nghiên cứu này có thể không hoàn toàn áp dụng cho mọi kiến trúc hybrid khác trong thực tế.
+    \item \textbf{Mức độ phân tích đóng góp tín hiệu:} Việc phân tích đóng góp của các tín hiệu mới dừng lại ở mức định lượng tỷ lệ đóng góp đơn lẻ (\textit{primary\_signal}), chưa đi sâu vào phân tích và mô hình hóa các tương tác phi tuyến phức tạp giữa các detector khác nhau khi chúng đồng thời kích hoạt.
+    \item \textbf{Kích thước mẫu độc hại nhỏ:} Tập dữ liệu APT-29 sử dụng trong thực nghiệm có kích thước mẫu độc hại tương đối nhỏ (chỉ chứa 29 tiến trình độc hại trong tổng thể hàng chục ngàn tiến trình lành tính), điều này có thể ảnh hưởng đến tính tổng quát hóa của một số kết luận thống kê.
+\end{itemize}
 
-\begin{enumerate}
-    \item \textbf{Song song hóa và tối ưu hóa thuật toán phân cụm:} Nghiên cứu tích hợp các thư viện HDBSCAN tăng tốc bằng GPU hoặc áp dụng các biến thể phân cụm mật độ phân tán (như Mini-Batch HDBSCAN) để cải thiện tốc độ xây dựng baseline hành vi động trên các tập log cực lớn ở quy mô doanh nghiệp (Big Data).
-    \item \textbf{Mở rộng nguồn log tích hợp:} Phát triển thêm các adapter thu nhận dữ liệu ở Layer 0 để hỗ trợ không chỉ Sysmon mà còn các nguồn log an ninh khác như Windows Security Event Log (ví dụ EID 4624 liên quan đến đăng nhập, EID 7045 liên quan đến cài đặt service mới) và log của các giải pháp EDR (Endpoint Detection and Response) bên thứ ba.
-    \item \textbf{Cơ chế tự động hóa cập nhật tri thức (Active Learning):} Tích hợp vòng phản hồi từ chuyên gia điều tra số (human-in-the-loop). Khi analyst gắn nhãn một cảnh báo là False Positive, hệ thống sẽ tự động cập nhật ma trận trọng số $\vec{w}_{sus}$ hoặc lưu cấu hình gộp cụm để tự điều chỉnh độ nhạy cho các lần phân tích tiếp theo.
-    \item \textbf{Thử nghiệm ablation chuyên sâu trên các lớp mã độc mới:} Tiếp tục sử dụng SRAH làm testbed để đánh giá độ nhạy đối với các biến thể mã độc không file (fileless malware) và các kỹ thuật tránh né nâng cao (defense evasion) nhằm kiểm chứng giới hạn chịu đựng lý thuyết của các mô hình toán học đề xuất.
-\end{enumerate}
+\section{Hướng phát triển}
+\label{section:conclusion.3}
+
+Để giải quyết các hạn chế nêu trên và tiếp tục phát triển nghiên cứu, các hướng công việc trong tương lai sẽ tập trung vào các nội dung sau:
+\begin{itemize}
+    \item \textbf{Mở rộng thực nghiệm trên các tập dữ liệu APT khác:} Tiến hành đánh giá hiệu năng của hệ thống trên nhiều tập dữ liệu mô phỏng APT khác như APT-3, APT-41 để kiểm chứng tính bền vững của các kết luận về giới hạn của phương pháp thống kê.
+    \item \textbf{Xây dựng cơ chế baseline động trên từng host:} Nghiên cứu phát triển các thuật toán học máy tự thích ứng để xây dựng baseline hành vi động đặc thù cho từng máy trạm cụ thể (host-specific baseline), nhằm giảm thiểu các cảnh báo giả xuất phát từ các hoạt động quản trị hệ thống đặc thù.
+    \item \textbf{Tích hợp đa dạng các detector bổ trợ:} Thử nghiệm tích hợp thêm các phương pháp phát hiện bất thường khác (như đo lường entropy dòng lệnh nâng cao, hoặc các mô hình autoencoder học sâu) vào không gian đặc trưng để kiểm chứng tính toàn diện và khả năng bổ khuyết của phân loại bất thường Chandola.
+\end{itemize}
 
 \end{document}
