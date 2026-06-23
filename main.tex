@@ -7,6 +7,9 @@
 \usepackage[top=2cm, bottom=2cm, left=3.5cm, right=2.5cm]{geometry}
 
 \usepackage{graphicx} % Cho phép chèn hỉnh ảnh
+\usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
 \usepackage{fancybox} % Tạo khung box
 \usepackage{indentfirst} % Thụt đầu dòng ở dòng đầu tiên trong đoạn
 \usepackage{amsthm} % Cho phép thêm các môi trường định nghĩa
@@ -26,6 +29,7 @@
 \usepackage[ruled,vlined]{algorithm2e}  % Hỗ trợ viết các giải thuật
 \usepackage{capt-of} % Cho phép sử dụng caption lớn đối với landscape page
 \usepackage{multirow} % Merge cells
+\usepackage{booktabs} % Hỗ trợ vẽ bảng với các đường kẻ chuyên nghiệp (toprule, midrule, bottomrule)
 \usepackage{fancyhdr} % Cho phép tùy biến header và footer
 % \usepackage[natbib,backend=biber,style=ieee]{biblatex} % Giúp chèn tài liệu tham khảo
 \usepackage{appendix}
@@ -36,6 +40,8 @@
 \usepackage{float}
 \usepackage{subcaption}
 \usepackage{xurl}
+\usepackage[section]{placeins}
+\raggedbottom
 
 \usepackage[nonumberlist, nopostdot, nogroupskip, acronym]{glossaries}
 \usepackage{glossary-superragged}
@@ -48,12 +54,14 @@
 
 \usepackage{blindtext}
 \usepackage{outlines}
+\usepackage{xcolor}
+\newcommand{\todo}[1]{\textcolor{red}{\textbf{[TODO: #1]}}}
 
 
 % ===================================================
 
 \renewcommand{\bibname}{Danh_sach_tai_lieu_tham_khao} 
-\usepackage[backend=bibtex,style=ieee]{biblatex}  %backend=biber is 'better'
+\usepackage[backend=biber,style=ieee]{biblatex}  %backend=biber is 'better'
 
 \renewcommand\appendixname{PHỤ LỤC}
 \renewcommand\appendixpagename{PHỤ LỤC}
@@ -79,7 +87,7 @@
 \addtolength{\topmargin}{-8pt}
 
 \def \TITLE{ĐỒ ÁN TỐT NGHIỆP}
-\def \AUTHOR{NGUYỄN VĂN ABC}
+\def \AUTHOR{HOÀNG ANH TUẤN}
 
 % ===================================================
 \titleformat{\chapter}[hang]{\centering\bfseries}{CHƯƠNG \thechapter.\ }{0pt}{}[]
@@ -145,7 +153,7 @@
 	
 \usepackage[all]{hypcap} % Cho phép tham chiếu chính xác đến hình ảnh và bảng biểu
 
-\graphicspath{{figures/}{../figures/}} % Thư mục chứa các hình ảnh
+\graphicspath{{figures/}{../figures/}{Hinhve/}{../Hinhve/}} % Thư mục chứa các hình ảnh
 
 \counterwithin{figure}{chapter} % Đánh số hình ảnh kèm theo chapter. Ví dụ: Hình 1.1, 1.2,..
 
@@ -169,7 +177,6 @@
 % =========================== BODY ===============
 \begin{document}
 % \newgeometry{top=2cm, bottom=2cm, left=2cm, right=2cm}
-\subfile{Bia} % Phần bìa
 \subfile{Bia_lot} % Phần bìa
 % \restoregeometry
 
@@ -187,9 +194,9 @@
 \pagenumbering{gobble}
 \subfile{Chuong/0_3_Tom_tat_noi_dung.tex}
 
-\newpage
-\pagenumbering{gobble}
-\subfile{Chuong/0_4_Tom_tat_noi_dung_English.tex}
+% \newpage
+% \pagenumbering{gobble}
+% \subfile{Chuong/0_4_Tom_tat_noi_dung_English.tex}
 
 % ===================================================
 % \pagestyle{empty} % Header và footer rỗng
@@ -225,7 +232,7 @@
 \addtocontents{toc}{\protect\thispagestyle{empty}}
 \tableofcontents 
 \thispagestyle{empty}
-\cleardoublepage
+
 
 % \pagenumbering{roman}
 %Tạo danh mục hình vẽ.
@@ -269,41 +276,37 @@
 %\fancyhead[LE]{\rightmark}
 \fancyfoot[RE, LO]{\thepage}
 
-\chapter*{GIỚI THIỆU ĐỀ TÀI}
+\chapter*{MỞ ĐẦU}
 \label{chapter:Introduction}
 \addcontentsline{toc}{chapter}{Mở đầu}
-\subfile{Chuong/1_Gioi_thieu} % Phần mở đầu
+\subfile{Chuong/Mo_dau} % Phần mở đầu
 
 
 \newpage
 %\pagestyle{fancy} % Áp dụng header và footer
-\chapter{CƠ SỞ LÝ THUYẾT VÀ CÔNG NGHỆ LIÊN QUAN}
+\chapter{CƠ SỞ LÝ THUYẾT}
 \label{chapter:Related_works}
-\subfile{Chuong/2_Khao_sat}
+\subfile{Chuong/Chuong_1_Co_so_ly_thuyet}
 
 
 \newpage
 %\pagestyle{fancy} % Áp dụng header và footer
-\chapter{THIẾT KẾ VÀ TRIỂN KHAI HỆ THỐNG}
+\chapter{THIẾT KẾ KHUNG ĐO LƯỜNG VÀ KIẾN TRÚC}
 \label{chapter:Methodology}
-\subfile{Chuong/3_Cong_nghe}
-
-%\newpage
-%\pagestyle{fancy} % Áp dụng header và footer
-%\chapter{PHÂN TÍCH THIẾT KẾ, TRIỂN KHAI VÀ ĐÁNH GIÁ HỆ THỐNG}
-%\label{chapter:Experiment}
-%\subfile{Chuong/4_Ket_qua_thuc_nghiem}
+\subfile{Chuong/Chuong_2_Thiet_ke_he_thong}
 
 \newpage
 %\pagestyle{fancy} % Áp dụng header và footer
-%\chapter{CÁC GIẢI PHÁP VÀ ĐÓNG GÓP NỔI BẬT}
-%\label{chapter:SolutionAndContribution}
-%\subfile{Chuong/5_Giai_phap_dong_gop}
-%\newpage
+\chapter{THỰC NGHIỆM VÀ PHÂN TÍCH KẾT QUẢ}
+\label{chapter:Experiment}
+\subfile{Chuong/Chuong_3_Thuc_nghiem_va_danh_gia}
+
+\newpage
 %\pagestyle{fancy} % Áp dụng header và footer
-%\chapter{KẾT LUẬN VÀ HƯỚNG PHÁT TRIỂN} %Kết luận và hướng phát triển}
-%\label{chapter:conclusion}
-%\subfile{Chuong/6_Ket_luan}
+\chapter*{KẾT LUẬN VÀ HƯỚNG PHÁT TRIỂN}
+\label{chapter:conclusion}
+\addcontentsline{toc}{chapter}{Kết luận và hướng phát triển}
+\subfile{Chuong/Chuong_5_Ket_luan}
 
 %\newpage
 %\pagestyle{fancy} % Áp dụng header và footer
@@ -318,21 +321,5 @@
 \printbibliography
 \phantomsection\addcontentsline{toc}{chapter}{TÀI LIỆU THAM KHẢO}
 
-\appendixpage
-\appendices
-\addappheadtotoc
-
-% \chapter*{PHỤ LỤC} %Kết luận và hướng phát triển}
-
-%\mainmatter
-\titleformat{\chapter}[hang]{\centering\bfseries}{ \thechapter.\ }{0pt}{}[]
-\titlespacing*{\chapter}{0pt}{-20pt}{20pt}
-
-\titlecontents{chapter}
-    [0.0cm]             % left margin
-    {\bfseries\vspace{0.3cm}}                  % above code
-    {{\bfseries{\scshape} \thecontentslabel.\ }} % numbered format
-    {}         % unnumbered format
-    {\titlerule*[0.3pc]{.}\contentspage}         % filler-page-format, e.g dots
-
 \end{document}
+

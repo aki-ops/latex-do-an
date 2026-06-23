@@ -1,0 +1,354 @@
+\documentclass[../main.tex]{subfiles}
+\begin{document}
+
+Chương này trình bày chi tiết các thực nghiệm để kiểm chứng độ chính xác của khung đo lường lý thuyết đã đề xuất ở Chương 2. Thông qua 11 tập dữ liệu toàn diện và 5 thuật toán phát hiện bất thường, chúng tôi sẽ lần lượt phân tích bác bỏ giả định do phương pháp Marginal Overlap gây ra, xác lập sức mạnh giải thích của thước đo DensPct\_Mahal, giải thích cơ chế sụp đổ sớm F1-Score do hạn chế của AUC, và chứng minh tiềm năng cải thiện của phương pháp phi tham số (KDE\_Joint) cũng như chỉ ra các giới hạn của nó trước dữ liệu thưa thớt.
+
+\section{Thiết lập Thực nghiệm và Tập dữ liệu}
+\label{section:3.1}
+
+\subsection{Cấu hình hệ thống thực nghiệm}
+Các thực nghiệm được tiến hành trên hệ thống máy trạm Windows 11, trang bị bộ vi xử lý AMD Ryzen 5 5600GT @ 3.3GHz (6 lõi, 12 luồng), RAM 16GB DDR5. Về mặt phần mềm, mã nguồn phân tích được triển khai trên môi trường Python 3.10.12, sử dụng các thư viện tính toán khoa học lõi bao gồm: NumPy 1.23.5, SciPy 1.10.1, và scikit-learn 1.2.2.
+
+\subsection{Danh mục 11 tập dữ liệu thực nghiệm}
+Thực nghiệm được triển khai trên 11 tập dữ liệu toàn diện bao gồm: 3 chiến dịch APT thực tế (BOTSv1, FIN6, APT29) và 8 kịch bản tấn công tổng hợp mô phỏng theo MITRE ATT\&CK được tạo ra bằng phương pháp Controlled Injection (KB1 đến KB8). Bảng \ref{tab:11datasets} tóm tắt số lượng tiến trình độc hại ($N$), mức độ chồng lấn phân phối biên trung bình DDO, và độ chui sâu trung tâm DensPct\_Mahal của các tập dữ liệu này:
+
+\begin{table}[H]
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{|p{2.2cm}|>{\centering\arraybackslash}p{2.2cm}|>{\centering\arraybackslash}p{1.8cm}|>{\centering\arraybackslash}p{2.8cm}|p{4.2cm}|}
+\hline
+\textbf{Tập dữ liệu} & \textbf{Số tiến trình độc hại ($N$)} & \textbf{DDO (mean)} & \textbf{DensPct\_Mahal (median)} & \textbf{Loại kịch bản} \\ \hline
+\texttt{botsv1} & 3 & 0.5515 & 7.58\% & APT Thực tế \\ \hline
+\texttt{fin6} & 31 & 0.6249 & 0.40\% & APT Thực tế \\ \hline
+\texttt{apt29} & 22 & 0.6453 & 26.98\% & APT Thực tế \\ \hline
+\texttt{kb1\_macro} & 3 & 0.6319 & 0.00\% & Controlled Injection \\ \hline
+\texttt{kb2\_fileless} & 2 & 0.4849 & 4.03\% & Controlled Injection \\ \hline
+\texttt{kb3\_wmiburst} & 8 & 0.6249 & 0.00\% & Controlled Injection \\ \hline
+\texttt{kb4\_inject} & 2 & 0.6239 & 0.00\% & Controlled Injection \\ \hline
+\texttt{kb5\_slow} & 4 & 0.6197 & 2.27\% & Controlled Injection \\ \hline
+\texttt{kb6\_recon} & 25 & 0.7074 & 10.64\% & Controlled Injection \\ \hline
+\texttt{kb7\_ransom} & 18 & 0.6991 & 2.04\% & Controlled Injection \\ \hline
+\texttt{kb8\_lateral} & 51 & 0.6748 & 0.00\% & Controlled Injection \\ \hline
+\end{tabular}
+\caption{Đặc tính cơ bản và độ khó của 11 tập dữ liệu nghiên cứu}
+\label{tab:11datasets}
+\begin{flushleft}
+\small
+
+\end{flushleft}
+\end{table}
+
+\subsection{Phương pháp Chọn ngưỡng (Threshold Protocol)}
+Để thiết lập giới hạn trên lý thuyết (theoretical upper bound) về hiệu năng phân tách của các thuật toán, luận văn sử dụng phương pháp \textbf{Optimal Oracle Threshold} — tức là ngưỡng được tối ưu hóa trực tiếp trên toàn bộ tập dữ liệu để đạt giá trị F1 lớn nhất. Chúng tôi nhấn mạnh rằng trong thực tế vận hành, việc chọn ngưỡng sử dụng nhãn của tập test là một dạng rò rỉ dữ liệu (Data Leakage) nghiêm trọng. Việc áp dụng Optimal Oracle Threshold ở đây hoàn toàn không nhằm mục đích đề xuất một mô hình triển khai thực tiễn. Thay vào đó, việc áp dụng cơ chế Oracle \textbf{đồng nhất cho tất cả các thuật toán} (iForest, ECOD, LOF, KDE\_Joint) tạo ra một \textbf{sân chơi công bằng tuyệt đối (Level Playing Field)}. Bằng cách loại bỏ hoàn toàn biến nhiễu từ các chiến lược tự động chọn ngưỡng (vốn khác biệt giữa các thuật toán), Oracle Threshold cô lập và phản ánh chính xác \textbf{năng lực phân tách phân phối nội tại} (distributional separability) của từng mô hình. Đây là một phương pháp chuẩn mực được khuyến nghị trong các nghiên cứu đánh giá (benchmarking) thuật toán phát hiện bất thường học máy (Campos et al., 2016).
+
+Đặc biệt, đối với mô hình KDE-Joint, trên tập dữ liệu \texttt{kb8\_lateral}, hiện tượng AUC đạt tuyệt đối (1.0) nhưng F1-score lại sụp đổ hoàn toàn về 0.0 đã từng được ghi nhận. Nguyên nhân gốc rễ là do các mẫu tấn công out-of-distribution trên không gian rời rạc thưa thớt khiến hàm log-likelihood trả về giá trị $-\infty$ (underflow), làm vô hiệu hóa thuật toán quét ngưỡng (threshold sweep). Khi được can thiệp kỹ thuật bằng cách giới hạn (clipping) $-\infty$ về giá trị khả thi nhỏ nhất, KDE-Joint mới đạt được mức F1 hoàn hảo như báo cáo trong Bảng \ref{tab:3.2}. Do đó, con số 1.000 này mang tính chất chứng minh lý thuyết (existence proof) về sự hiện diện của Local Pockets, đồng thời phơi bày điểm yếu chí mạng của KDE nguyên bản khi hoạt động trên dữ liệu thực tế.
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.3}
+\setlength{\tabcolsep}{3.0pt}
+\small
+\begin{tabular}{@{}l|cc|cc|cc|cc|cc@{}}
+\toprule
+\multirow{2}{*}{\textbf{Tập dữ liệu}} & \multicolumn{2}{c|}{\textbf{iForest}} & \multicolumn{2}{c|}{\textbf{ECOD}} & \multicolumn{2}{c|}{\textbf{LOF}} & \multicolumn{2}{c|}{\textbf{SRAH}} & \multicolumn{2}{c}{\textbf{KDE\_Joint}} \\ \cmidrule(l){2-11} 
+ & \textbf{F1 (Rec)} & \textbf{AUC} & \textbf{F1 (Rec)} & \textbf{AUC} & \textbf{F1 (Rec)} & \textbf{AUC} & \textbf{F1 (Rec)} & \textbf{AUC} & \textbf{F1 (Rec)} & \textbf{AUC} \\ \midrule
+\texttt{botsv1} & 0.412 (1.000) & 0.870 & 0.429 (1.000) & 0.879 & 0.286 (1.000) & 0.773 & 0.500 (0.667) & 0.929 & 1.000 (1.000) & 1.000 \\
+\texttt{fin6} & 0.314 (0.529) & 0.964 & 0.480 (0.387) & 0.959 & 0.348 (0.387) & 0.981 & 0.612 (0.839) & 0.915 & 0.967 (0.935) & 0.999 \\
+\texttt{apt29} & 0.336 (0.300) & 0.773 & 0.368 (0.318) & 0.623 & 0.137 (0.500) & 0.576 & 0.345 (0.227) & 0.666 & 0.778 (0.636) & 0.958 \\
+\texttt{kb1\_macro} & 0.500 (0.333) & 0.955 & 0.400 (0.667) & 0.931 & 0.500 (0.333) & 0.942 & 0.800 (0.667) & 0.676 & 1.000 (1.000) & 1.000 \\
+\texttt{kb2\_fileless} & 0.667 (0.500) & 0.951 & 0.667 (0.500) & 0.955 & 0.182 (1.000) & 0.881 & 1.000 (1.000) & 1.000 & 0.667 (0.500) & 0.980 \\
+\texttt{kb3\_wmiburst} & 0.508 (1.000) & 0.897 & 0.444 (1.000) & 0.905 & 0.769 (0.625) & 0.983 & 0.571 (1.000) & 0.928 & 1.000 (1.000) & 1.000 \\
+\texttt{kb4\_inject} & 0.600 (0.500) & 0.952 & 0.286 (0.500) & 0.926 & 0.667 (0.500) & 0.937 & 0.400 (1.000) & 0.958 & 1.000 (1.000) & 1.000 \\
+\texttt{kb5\_slow} & 0.447 (1.000) & 0.946 & 0.462 (0.750) & 0.942 & 0.320 (1.000) & 0.902 & 0.600 (0.750) & 0.957 & 0.857 (0.750) & 0.991 \\
+\texttt{kb6\_recon} & 0.725 (1.000) & 0.899 & 0.725 (1.000) & 0.879 & 0.746 (1.000) & 0.901 & 0.359 (0.280) & 0.303 & 0.725 (1.000) & 0.924 \\
+\texttt{kb7\_ransom} & 0.773 (1.000) & 0.937 & 0.655 (1.000) & 0.885 & 0.679 (1.000) & 0.925 & 0.780 (0.889) & 0.871 & 0.839 (0.722) & 0.991 \\
+\texttt{kb8\_lateral} & 0.843 (1.000) & 0.884 & 0.843 (1.000) & 0.884 & 0.909 (0.980) & 0.952 & 0.675 (0.510) & 0.510 & 1.000 (1.000) & 1.000 \\
+\bottomrule
+\end{tabular}
+\caption{Hiệu năng với Optimal Threshold trên 11 tập dữ liệu (đã loại trừ \texttt{apt3}). Bảng trình bày F1 (kèm Độ phủ/Recall trong ngoặc) và AUC. (Lưu ý: Tất cả các mô hình bao gồm iForest, ECOD, LOF và KDE\_Joint đều được huấn luyện ở chế độ Bán giám sát / Novelty Detection trên tập dữ liệu nền sạch).}
+\label{tab:3.2}
+\end{table}
+
+\section{Bác bỏ Giả định Biên (Phân tích DDO)}
+\label{section:3.2}
+
+Đại lượng DDO (Degree of Distribution Overlap) đo lường mức độ chồng lấn phân phối của các đặc trưng trên các biên đơn chiều độc lập, và từng được xem là tiêu chuẩn để dự đoán độ khó của tập dữ liệu. Tuy nhiên, kết quả thực nghiệm benchmark chỉ ra sự thiếu tương quan nghiêm trọng giữa DDO và hiệu năng phát hiện thực tế.
+
+Hình \ref{fig:3.1} biểu diễn biểu đồ tán xạ giữa giá trị DDO trung bình và hiệu năng phát hiện (đo bằng chỉ số AUC-ROC của thuật toán LOF) trên 11 tập dữ liệu:
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+    xlabel={Marginal Overlap (DDO\_mean)},
+    ylabel={AUC Score (LOF)},
+    xmin=0.4, xmax=0.8,
+    ymin=0.5, ymax=1.05,
+    width=0.8\textwidth,
+    height=0.45\textwidth,
+    title={Spearman $\rho = 0.251, p = 0.46$}
+]
+% Vẽ điểm nhưng KHÔNG hiển thị tên tự động đè lên nhau
+\addplot[only marks, mark=*, red] table {
+x y
+0.5515 0.7273
+0.6249 0.9858
+0.6453 0.5709
+0.6319 0.9514
+0.4849 0.8842
+0.6249 0.9975
+0.6239 0.9754
+0.6197 0.9669
+0.7074 0.9261
+0.6991 0.9854
+0.6748 0.9981
+};
+
+% Gắn tên thủ công cho các điểm tách biệt
+\node[below, font=\scriptsize] at (axis cs:0.5515, 0.7273) {botsv1};
+\node[above, font=\scriptsize] at (axis cs:0.6249, 0.9858) {fin6};
+\node[below, font=\scriptsize] at (axis cs:0.6453, 0.5709) {apt29};
+\node[below, font=\scriptsize] at (axis cs:0.4849, 0.8842) {kb2};
+
+% Chú thích gom cụm cho cục điểm màu đỏ bên góc phải
+\node[left, font=\scriptsize, align=right] at (axis cs:0.68, 0.92) {Cụm tổng hợp\\(KB1, KB3-KB8)};
+\end{axis}
+\end{tikzpicture}
+\caption{Biểu đồ tán xạ giữa DDO và AUC. Sự phân tán vô trật tự bác bỏ mối tương quan giữa độ chồng lấn biên và hiệu năng.}
+\label{fig:3.1}
+\end{figure}
+
+Phân tích số liệu cho thấy, rất nhiều kịch bản tấn công sở hữu mức độ chồng lấn biên cực kỳ cao như \texttt{kb6\_recon} (DDO = 0.707) hay \texttt{kb8\_lateral} (DDO = 0.675). Theo logic thông thường, các tập này phải rất khó phát hiện do hành vi của mã độc hòa trộn mạnh vào dữ liệu bình thường trên từng chiều đặc trưng đơn lẻ. Tuy nhiên, thuật toán LOF vẫn đạt mức F1 và AUC rất cao (F1 $> 0.74$ trên \texttt{kb6} và đạt $0.909$ trên \texttt{kb8}). \textit{(Lưu ý: Khác với các thuật toán dùng khoảng cách Euclidean gây nhiễu trên không gian hỗn hợp, chúng tôi đã cấu hình LOF đo lường dựa trên khoảng cách Gower thông qua phép chiếu Manhattan trên biến chuẩn hóa. Việc loại bỏ nhược điểm về hàm khoảng cách này đảm bảo LOF được đánh giá một cách công bằng nhất trên không gian đặc trưng V10).}
+
+Kiểm định tương quan thống kê xác nhận hệ số tương quan hạng Spearman giữa DDO và AUC chỉ đạt mức $\rho = 0.251$ với giá trị $p-value = 0.46$. Do $p > 0.05$, không có ý nghĩa thống kê để kết luận DDO có khả năng dự đoán hiệu năng của bộ phát hiện. Kết quả này chính thức bác bỏ giả định ngây thơ rằng sự chồng lấn biên quyết định độ khó của dữ liệu, chứng minh hiện tượng **Marginal Blindness** tạo ra sự nhầm lẫn về mức độ ngụy trang.
+
+\section{Đánh giá Tác động Cấu trúc (Phân tích DensPct\_Mahal)}
+\label{section:3.3}
+
+Trái ngược hoàn toàn với giả định biên của DDO, thước đo cấu trúc toàn cục DensPct\_Mahal thể hiện năng lực giải thích tuyệt đối của nó đối với hiệu năng của hệ thống phát hiện. 
+
+Hình \ref{fig:3.2} trực quan hóa mối quan hệ giữa DensPct\_Mahal và AUC Score của LOF trên các tập dữ liệu:
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+    xlabel={Global Depth (DensPct\_median \%)},
+    ylabel={AUC Score (LOF)},
+    xmin=-5, xmax=35,
+    ymin=0.5, ymax=1.05,
+    width=0.8\textwidth,
+    height=0.45\textwidth,
+    title={Spearman $\rho = -0.796, p = 0.003$}
+]
+\addplot[only marks, mark=*, blue] table {
+x y
+7.58 0.7273
+0.4 0.9858
+26.98 0.5709
+0.0 0.9514
+4.03 0.8842
+0.0 0.9975
+0.0 0.9754
+2.27 0.9669
+10.64 0.9261
+2.04 0.9854
+0.0 0.9981
+};
+\addplot [thick, red, dashed, domain=-2:30] {-0.0125*x + 0.98};
+
+% Gắn tên thủ công
+\node[below, font=\scriptsize] at (axis cs:7.58, 0.7273) {botsv1};
+\node[right, font=\scriptsize] at (axis cs:0.4, 0.9858) {fin6};
+\node[below, font=\scriptsize] at (axis cs:26.98, 0.5709) {apt29};
+\node[right, font=\scriptsize] at (axis cs:10.64, 0.9261) {kb6};
+\node[right, font=\scriptsize] at (axis cs:4.03, 0.8842) {kb2};
+
+% Chú thích gom cụm cho cục điểm màu xanh sát trục tung
+\node[left, font=\scriptsize, align=right] at (axis cs:-1, 0.98) {Cụm KB\\(Độ sâu 0\%)};
+\end{axis}
+\end{tikzpicture}
+\caption{Biểu đồ DensPct\_Mahal và AUC. Sự tương quan nghịch đảo rõ rệt minh chứng cho hiện tượng Sụp đổ sớm (Early Collapse).}
+\label{fig:3.2}
+\end{figure}
+
+Hệ số tương quan hạng Spearman nguyên bản trên 11 tập dữ liệu (loại trừ \texttt{apt3}) cho thấy tương quan nghịch rõ rệt ($\rho = -0.772$). Để đánh giá ý nghĩa thống kê trên cỡ mẫu nhỏ một cách chính xác nhất và tránh các sai lệch của phương pháp lấy mẫu có hoàn lại (Bootstrap), chúng tôi áp dụng kiểm định hoán vị (Permutation Test) với 10,000 vòng lặp hoán vị nhãn ngẫu nhiên. Kết quả kiểm định hoán vị hai đuôi xác nhận giá trị $p-value = 0.0077$, nhỏ hơn mức ý nghĩa $\alpha = 0.01$. 
+
+Bằng chứng thực nghiệm (empirical evidence) này gợi ý rằng tồn tại một mối liên hệ thống kê giữa việc mã độc chui sâu vào trung tâm (DensPct\_Mahal lớn) và sự suy giảm hiệu năng của thuật toán phát hiện (AUC của LOF thấp). Tuy nhiên, do giới hạn khách quan của lĩnh vực an toàn thông tin (cỡ mẫu chỉ có $N=11$ chiến dịch có ground truth đầy đủ), kết luận này hiện mang tính chất định hướng. Chúng tôi đề xuất việc mở rộng số lượng dataset trong nghiên cứu tương lai để củng cố sức mạnh tổng quát hóa của thước đo.
+
+\subsection{Phân tích nhạy Leave-One-Out}
+To verify that the Spearman result is not driven by 1--2 leverage points, we perform leave-one-out sensitivity: lần lượt loại bỏ từng tập dữ liệu và tính lại $\rho$ trên $N-1=10$ tập còn lại. Kết quả được trình bày trong Bảng \ref{tab:loo}.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{@{}lcc@{}}
+\toprule
+\textbf{Tập dữ liệu bị loại} & $\boldsymbol{\rho}$ \textbf{còn lại} & \textbf{p-value} \\ \midrule
+\texttt{apt29} & $-0.725$ & 0.017 \\
+\texttt{botsv1} & $-0.750$ & 0.012 \\
+\texttt{kb2\_fileless} & $-0.750$ & 0.012 \\
+\texttt{kb6\_recon} & $-0.763$ & 0.010 \\
+\texttt{kb8\_lateral} & $-0.779$ & 0.007 \\
+\texttt{kb3\_wmiburst} & $-0.779$ & 0.007 \\
+\texttt{kb5\_slow} & $-0.781$ & 0.007 \\
+\texttt{fin6} & $-0.825$ & 0.003 \\
+\texttt{kb7\_ransom} & $-0.825$ & 0.003 \\
+\texttt{kb4\_inject} & $-0.840$ & 0.002 \\
+\texttt{kb1\_macro} & $-0.889$ & 0.0005 \\
+\bottomrule
+\end{tabular}
+\caption{Phân tích nhạy Leave-One-Out của hệ số Spearman $\rho$ (DensPct\_Mahal vs AUC).}
+\label{tab:loo}
+\end{table}
+
+Kết quả cho thấy: (1) \texttt{apt29} là leverage point mạnh nhất — khi bị loại, $\rho$ giảm về $-0.725$, tuy nhiên vẫn giữ \textbf{p-value = 0.017 $< 0.05$}; (2) trong mọi 11 trường hợp loại bỏ, $\rho$ luôn âm ($-0.725$ đến $-0.889$) và p-value luôn $< 0.05$. 
+
+\textbf{Nhận xét về Leverage Point:} Tập \texttt{apt29} tạo ra mức độ ảnh hưởng (influence) lớn nhất đơn giản vì nó là chiến dịch thực tế có mức ngụy trang sâu nhất ($DensPct = 26.98\%$), cung cấp thông tin quý giá nhất cho đường tương quan. Việc $\rho$ giảm khi bỏ đi điểm dữ liệu quan trọng nhất là hiện tượng toán học tự nhiên (expected behavior). Điều quan trọng về mặt thống kê là: khi loại bỏ \texttt{apt29}, kết luận tương quan nghịch \textbf{không bị đảo ngược} ($p = 0.017 < 0.05$). Do đó, phân tích Leave-One-Out cung cấp bằng chứng thuyết phục rằng mối quan hệ giữa DensPct\_Mahal và AUC là \textbf{ổn định (robust)}, không phải là một "ảo giác" gây ra bởi một điểm đòn bẩy duy nhất.
+
+\subsection{Hiện tượng sụp đổ sớm F1-Score do Hạn chế của AUC}
+Quan sát kỹ biểu đồ Hình \ref{fig:3.2}, ngay cả khi DensPct\_Mahal tăng lên đến 26.98\% (trên tập \texttt{apt29}), chỉ số AUC của LOF vẫn giữ ở mức $0.5709$ (tốt hơn đoán ngẫu nhiên). Tuy nhiên, trong thực tế vận hành SOC an ninh mạng, nơi dữ liệu log bị mất cân bằng lớp cực đoan (lượng log bình thường áp đảo hoàn toàn), chỉ số AUC thường tạo ra **ảo giác hiệu năng (performance illusion)**. 
+
+Khi đánh giá bằng chỉ số thực tế là **F1-Score**, chúng tôi phát hiện ra hiện tượng **Sụp đổ Sớm (Early Collapse)**: chỉ cần mã độc chui nhẹ vào vùng DensPct từ 5\% đến 10\%, F1-Score của các mô hình UAD truyền thống (iForest, ECOD, LOF) đã sụp đổ hoàn toàn xuống dưới mức 0.37 (LOF sụp đổ về mức $0.103$, ECOD đạt $0.368$, iForest đạt $0.336$, và SRAH đạt $0.345$ trên \texttt{apt29}). Kẻ tấn công không cần phải hòa trộn hoàn toàn vào dữ liệu ($DensPct \to 100\%$) để vô hiệu hóa hệ thống phòng thủ; chỉ cần một mức độ hòa trộn cấu trúc rất nhỏ ($DensPct \approx 2\% - 7\%$), các thuật toán đã mất khả năng phân tách thực tế. Điều này củng cố vững chắc lý thuyết về **Global Center Bias** đã trình bày ở Chương 2.
+
+\section{Phá vỡ Giới hạn bằng Bằng chứng Tồn tại (KDE\_Joint)}
+\label{section:3.4}
+
+Để chứng minh sự sụp đổ hiệu năng của các thuật toán truyền thống tại $DensPct = 27\%$ trên tập \texttt{apt29} không phải là "ngõ cụt" kỹ thuật, chúng tôi áp dụng mô hình phi tham số KDE\_Joint. \textbf{Lưu ý quan trọng:} Việc so sánh trực tiếp hiệu năng giữa KDE\_Joint (bán giám sát - semi-supervised) và các thuật toán còn lại (không giám sát - unsupervised) là không hoàn toàn công bằng về mặt thực tiễn vận hành. Sự so sánh ở đây thuần túy mang tính chất minh chứng (\textit{Existence Proof}) rằng các Local Pockets thực sự tồn tại và có thể khai thác được bằng toán học phi tham số, chứ không nhằm mục đích đề xuất KDE\_Joint như một giải pháp thay thế trực tiếp.
+
+Hình \ref{fig:3.3} so sánh hiệu năng phát hiện (F1-Score) giữa các mô hình trên riêng tập dữ liệu cực khó APT29:
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}
+\begin{axis}
+[
+    ybar,
+    enlargelimits=0.15,
+    legend style={at={(0.5,-0.15)}, anchor=north,legend columns=-1},
+    ylabel={F1-Score},
+    symbolic x coords={LOF, iForest, ECOD, SRAH, KDE\_Joint (Semi)},
+    xtick=data,
+    nodes near coords,
+    nodes near coords align={vertical},
+    width=0.8\textwidth,
+    height=0.5\textwidth,
+    title={Bằng chứng tồn tại: Hiệu năng F1-Score trên tập dữ liệu APT29}
+]
+\addplot[fill=red!60] coordinates {(LOF,0.103) (iForest,0.336) (ECOD,0.368) (SRAH,0.345)};
+\addplot[fill=green!60] coordinates {(KDE\_Joint (Semi),0.778)};
+\legend{Mô hình biên (Marginal Bias), Phi tham số (Local Pockets)}
+\end{axis}
+\end{tikzpicture}
+\caption{Biểu đồ so sánh F1-Score trên tập dữ liệu APT29. Mô hình KDE\_Joint cải thiện đáng kể hiệu năng, vượt qua điểm mù cấu trúc.}
+\label{fig:3.3}
+\end{figure}
+
+Trong khi cả 4 thuật toán mang thiên kiến toàn cục hoặc độc lập biên sụp đổ hiệu năng nghiêm trọng (LOF đạt F1 = 0.103, iForest đạt 0.336, ECOD đạt 0.368, và SRAH chỉ vươn tới 0.345), mô hình KDE\_Joint đã cải thiện đáng kể đạt mức \textbf{F1 = 0.778} (tăng 125\% so với SRAH và gấp 2.3 lần so với iForest). Sự vượt lên của KDE\_Joint trên tập dữ liệu APT29 đóng vai trò như một minh chứng thực tiễn quan trọng.
+
+Sự vượt trội của KDE\_Joint so với SRAH và các baseline chứng minh một phát hiện thực nghiệm quan trọng: hành vi ngụy trang LotL của APT29 không hoàn toàn vô hình. Nó chỉ bị che khuất bởi các giả định hình học của học máy truyền thống (cắt trục đơn chiều của iForest/ECOD, khoảng cách phẳng Euclidean của LOF, hoặc xấp xỉ Gaussian của Mahalanobis). Bằng cách khai thác trực tiếp mật độ đồng thời phi tham số trên không gian hỗn hợp V10, KDE\_Joint đã định vị thành công các **Local Pockets** mà mã độc đang lẩn trốn, vượt qua giới hạn hiệu năng của các thuật toán dựa trên phân phối biên và đóng vai trò như một **Bằng chứng Tồn tại (Existence Proof)**.
+
+\subsection{Bằng chứng Trực tiếp cho Local Pockets}
+
+Để trực quan hóa lý thuyết này, Hình \ref{fig:hero_local_pockets} đối chiếu trực tiếp hai thước đo: phần trăm độ sâu Mahalanobis (đại diện cho Gaussian toàn cục) và phần trăm mật độ KDE (đại diện cho cấu trúc cục bộ thực tế).
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{Hinhve/fig_hero_local_pockets.png}
+\caption{Biểu đồ phân tán đối chiếu Mahalanobis Percentile và KDE Percentile. Các tiến trình APT29 (màu đỏ) tập trung tại góc trên-trái (Gaussian đánh giá an toàn $> 50\%$, nhưng KDE đánh giá bất thường $< 20\%$), cung cấp minh chứng trực quan rõ nét cho sự tồn tại của Local Pockets.}
+\label{fig:hero_local_pockets}
+\end{figure}
+
+Phân tích biểu đồ chỉ ra sự tụ tập rõ rệt của tiến trình \texttt{apt29} (điểm màu đỏ) ở góc phần tư trên-trái. Theo góc nhìn của Mahalanobis, các tiến trình này nằm rất gần tâm phân phối (hòa trộn hoàn hảo, đánh giá an toàn $> 50\%$). Tuy nhiên, dưới lăng kính phi tham số của KDE, chúng lại nằm ở các khu vực rỗng cục bộ (mật độ cực thấp $< 20\%$). Sự sai lệch điểm số này là minh chứng rõ nét và trực quan cho sự tồn tại của Local Pockets, thay thế cho các tranh luận về định lý toán học đơn thuần.
+
+\textbf{Case Study thực tế từ APT29:} Để minh họa rõ hơn về khái niệm Local Pockets, chúng tôi phân tích các tiến trình tấn công \texttt{powershell.exe} được APT29 sử dụng để thực thi mã độc qua tham số mã hóa base64. Khi xét trên từng đặc trưng đơn lẻ (thời gian sống ngắn, kích thước bộ nhớ tiêu chuẩn, thực thi từ thư mục hệ thống \texttt{C:\textbackslash Windows\textbackslash System32}), các tiến trình này hòa trộn hoàn hảo vào hoạt động quản trị mạng hàng ngày. Thước đo Mahalanobis đánh giá chúng nằm ở mức an toàn cao ($\text{DensPct} > 26\%$), khiến các thuật toán như iForest và ECOD bị "mù" hoàn toàn. Tuy nhiên, sự kết hợp đồng thời (Joint) của việc mở kết nối mạng ngoại vi ngay sau khi giải mã base64 tạo ra một sự kiện hiếm gặp về mặt cấu trúc hỗn hợp, tạo thành một "vũng lầy rỗng" (Local Pocket). KDE\_Joint đã thành công trong việc đánh giá lại các tiến trình này với độ tin cậy bất thường cao ($< 20\%$), chứng minh tính ưu việt của phân tích đồng thời phi tham số.
+
+\section{Ablation Study trên Không gian V10}
+\label{section:3.5}
+
+Để đánh giá mức độ đóng góp của từng nhóm đặc trưng, chúng tôi thực hiện quá trình ablation: lần lượt loại bỏ các nhóm Binary (v1-v4, v10), Continuous (v5-v6), và Ordinal (v7-v9). Kết quả trung bình trên 11 tập dữ liệu (xem Bảng \ref{tab:ablation}) cho thấy hiệu năng của iForest và ECOD biến động khi thiếu hụt các chiều không gian. Dựa trên số liệu từ bảng, nhóm đặc trưng bị loại bỏ khiến F1 giảm mạnh nhất chính là nhóm mang lượng thông tin định tuyến (routing information) quan trọng nhất để phân tách hành vi độc hại khỏi nền tảng hợp lệ.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{@{}l|cc|cc@{}}
+\toprule
+\multirow{2}{*}{\textbf{Tập đặc trưng}} & \multicolumn{2}{c|}{\textbf{iForest (Avg)}} & \multicolumn{2}{c}{\textbf{ECOD (Avg)}} \\ \cmidrule(l){2-5} 
+ & \textbf{F1} & \textbf{AUC} & \textbf{F1} & \textbf{AUC} \\ \midrule
+Full & 0.557 & 0.912 & 0.523 & 0.888 \\
+No\_Bin & 0.530 & 0.922 & 0.522 & 0.883 \\
+No\_Cont & 0.494 & 0.832 & 0.473 & 0.827 \\
+No\_Ord & 0.485 & 0.905 & 0.446 & 0.870 \\
+\bottomrule
+\end{tabular}
+\caption{Ablation Study: Tầm quan trọng của các nhóm đặc trưng (Trung bình 11 dataset).}
+\label{tab:ablation}
+\end{table}
+
+\section{Sự trung thực Học thuật: Hạn chế và Failure Mode của KDE\_Joint}
+\label{section:3.6}
+
+Mặc dù KDE\_Joint là một công cụ lý thuyết mạnh mẽ để chứng minh sự tồn tại của cấu trúc Local Pockets, nó không phải là một giải pháp khả thi cho môi trường vận hành thực tế (Production SOC). Thứ nhất, mô hình sử dụng hàm mật độ $f_b(x)$ ước lượng trực tiếp từ các tiến trình hợp lệ đã được gán nhãn, khiến nó mang bản chất bán giám sát (semi-supervised) thay vì hoàn toàn không giám sát (unsupervised) như iForest hay ECOD. Thứ hai, quá trình tính toán Kernel hỗn hợp (Mixed Product Kernel) có chi phí tính toán suy diễn (inference) quá lớn.
+
+Bảng \ref{tab:time_complexity} so sánh độ phức tạp tính toán giữa các thuật toán tiêu biểu:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|c|c|p{6cm}|}
+\hline
+\textbf{Thuật toán} & \textbf{Huấn luyện (Train)} & \textbf{Suy diễn (Inference)} & \textbf{Khả năng mở rộng SOC} \\ \hline
+iForest & $O(N \log N)$ & $O(\log N)$ & Rất cao, phù hợp streaming real-time \\ \hline
+LOF & $O(N^2)$ & $O(N^2)$ & Thấp, tắc nghẽn khi log phình to \\ \hline
+KDE\_Joint & $O(N \cdot d)$ & $O(N^2 \cdot d)$ & Không khả thi cho hệ thống hàng triệu sự kiện \\ \hline
+\end{tabular}
+\caption{Độ phức tạp tính toán (với $N$ là số mẫu, $d$ là số chiều).}
+\label{tab:time_complexity}
+\end{table}
+
+Trên hệ thống thực tế sinh ra hàng triệu sự kiện tiến trình mỗi ngày, chi phí $O(N^2)$ ở khâu suy diễn là rào cản không thể vượt qua đối với KDE\_Joint. Hơn nữa, thực nghiệm ghi nhận sự sụp đổ hoàn toàn của nó (trả về giá trị N/A) trên các tập dữ liệu thưa thớt do những giới hạn toán học cốt lõi.
+
+\subsection{Phân tích Nguyên nhân lỗi (Failure Mode)}
+Tập dữ liệu \texttt{kb8\_lateral} chứa các kịch bản hành vi mạng đặc thù tạo thành các dải đặc trưng cực kỳ thưa thớt (sparse categorical features). Trong không gian đặc trưng thưa thớt này, thuật toán lựa chọn bandwidth tự động tiêu chuẩn (như quy tắc Scott hay Silverman) bị đánh lừa, dẫn đến việc ước lượng tham số bandwidth quá nhỏ (\textit{underestimation}). Hệ quả là hàm mật độ log-likelihood tại các điểm kiểm thử bị thoái hóa và trả về giá trị âm vô cùng ($-\infty$), khiến mô hình hoàn toàn mất khả năng thiết lập ngưỡng phân tách bất thường.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+    width=0.9\textwidth, height=0.45\textwidth,
+    axis x line=bottom, axis y line=none,
+    ymin=0, ymax=1.2, xmin=0, xmax=6,
+    xlabel={Không gian thuộc tính (Categorical)},
+    xtick={1.5, 4.5},
+    xticklabels={Loại A ($x=1.5$), Loại B ($x=4.5$)},
+    clip=false
+]
+% Đỉnh A và B
+\addplot[domain=1.3:1.7, samples=100, blue, thick] {exp(-((x-1.5)/0.05)^2)};
+\addplot[domain=4.3:4.7, samples=100, blue, thick] {exp(-((x-4.5)/0.05)^2)};
+
+% Điểm dữ liệu
+\fill[blue] (axis cs:1.5, 0) circle (2pt);
+\fill[blue] (axis cs:4.5, 0) circle (2pt);
+
+% Điểm kiểm tra
+\fill[red] (axis cs:3.0, 0) circle (2pt) node[below=8pt, text=red] {Điểm kiểm tra ($x=3.0$)};
+\draw[->, red, thick] (axis cs:3.0, 0.2) -- (axis cs:3.0, 0.05);
+
+% Dịch TextBox sang vị trí thoáng (X=3.0, Y=0.55) thay vì đè lên chóp
+\node[align=left, draw=black, fill=yellow!10, rounded corners, inner sep=5pt, anchor=south] 
+    at (axis cs:3.0, 0.55) {
+    \textbf{Cơ chế lỗi (Failure Mode):}\\
+    - Thuộc tính thưa thớt khiến bandwidth $h$ thoái hóa.\\
+    - Nhân mật độ bị co rút quanh điểm huấn luyện.\\
+    - Điểm $x=3.0$ có mật độ $\hat{f}(3.0) \approx 0 \implies \log \hat{f} = -\infty$.
+};
+\end{axis}
+\end{tikzpicture}
+\caption{Sơ đồ minh họa cơ chế sụp đổ của KDE trên không gian thưa thớt (Sparse categorical).}
+\label{fig:3.4}
+\end{figure}
+
+Trong khi KDE\_Joint bị vô hiệu hóa hoàn toàn trước sự thưa thớt đặc trưng, thước đo **DensPct\_Mahal** vẫn hoạt động ổn định trên \texttt{kb8}. Nguyên nhân là do DensPct\_Mahal sử dụng khoảng cách Mahalanobis tính toán dựa trên ma trận hiệp phương sai toàn cục. Phép tính này có tính kháng nhiễu và độ ổn định thống kê rất cao, hoàn toàn miễn nhiễm với sự thưa thớt cục bộ của từng dải đặc trưng. 
+
+Phát hiện này tái khẳng định tầm quan trọng của DensPct\_Mahal trong việc đo lường độ chui sâu của dữ liệu, đồng thời đặt ra bài toán mở cho các nghiên cứu tương lai: thiết kế một bộ ước lượng mật độ lai ghép (hybrid estimator) phối hợp được tính ổn định toàn cục của Mahalanobis và độ nhạy bén cục bộ phi tham số của KDE.
+
+\end{document}

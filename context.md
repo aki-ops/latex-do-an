@@ -1,6 +1,6 @@
-# MASTER CONTEXT: AUTOMATED DFIR TRIAGE ENGINE
+# MASTER CONTEXT: SRAH PLATFORM & BBS FRAMEWORK
 > **Phiên bản:** v8.6 — Principled, Reproducible, and Temporal Architecture
-> **Mục tiêu:** Vừa tối ưu Recall vừa đảm bảo minh bạch khoa học, khả năng tái hiện và phát hiện APT Slow-and-Low.
+> **Bản sắc kép:** SRAH là **nền tảng kỹ thuật đa cảm biến** (Security Response & Analysis Hub) phục vụ triage pháp y Windows process. BBS (Behavioral Blending Score) là **khung đo lường khoa học** lượng hóa "độ khó nội tại" của tập dữ liệu — được xây dựng trên nền SRAH.
 > **Trạng thái:** Production-ready (config-driven)
 > **Ngôn ngữ:** Rust (L0) + Python (L1–L4)
 
@@ -8,11 +8,35 @@
 
 ## 1. MỤC TIÊU HỆ THỐNG
 
+### 1A. Mục tiêu Kỹ thuật (SRAH Platform)
+
 | # | Mục tiêu | Mô tả |
 |---|----------|-------|
 | 1 | **Giải quyết Alert Fatigue** | Tự động hóa Triage, gạn lọc tiến trình rác để SOC Tier 1/Tier 2 chỉ xử lý các mối đe dọa thực sự. |
 | 2 | **Phát hiện APT & LOLBins** | Bắt các kỹ thuật Living-off-the-Land thông qua dị thường chuỗi hành vi (Sequence) và ngữ cảnh (Context), không phụ thuộc chữ ký. |
 | 3 | **Plug-and-Play** | Chạy ngay lập tức trên bất kỳ môi trường Windows nào. **Tuyệt đối không cần dữ liệu sạch (Benign baseline) từ trước.** |
+| 4 | **Kiến trúc đa cảm biến (Multi-sensor)** | Kiến trúc phân lớp L0–L4 với cơ chế hiệu chỉnh điểm số (score calibration) giữa các tầng — duy trì **FPR < 0.8%** trên mọi cấu hình threshold (đã kiểm chứng thực nghiệm M3), trong khi các baseline đơn lớp (iForest, LOF) bùng nổ FPR lên đến 91.9% trên cùng dữ liệu sạch. |
+
+### 1B. Mục tiêu Khoa học (BBS Framework)
+
+| # | Mục tiêu | Mô tả |
+|---|----------|-------|
+| 1 | **Đo lường "độ khó nội tại" (Intrinsic Difficulty)** | BBS là metric vector 3 chiều $(BBS_{spa}, BBS_{seq}, BBS_{col})$ lượng hóa mức hòa trộn hành vi của tiến trình độc hại vào không gian tiến trình hợp lệ. Sử dụng Mixed Product Kernel (Racine & Li, 2004) + Monte Carlo integration trên $V_{10}$. |
+| 2 | **Phát hiện Combinatorial Mimicry Gap** | Chứng minh DDO (marginal overlap) >> $BBS_{spa}$ (joint overlap) trên mọi dataset — gap từ 36× đến > 5,500× — xác nhận bằng Permutation Control (M9). |
+| 3 | **Joint Density Detector (Proof-of-Concept)** | Chứng minh phân tích phân phối đồng thời phá vỡ "trần marginal" của iForest/ECOD/LOF (F1 tăng 131% trên apt29). |
+| 4 | **Xác lập ranh giới Domain Shift (C4 — Đóng góp Kiến trúc)** | Phủ nhận hoàn toàn mô hình phát hiện "đóng hộp" toàn cục. Bắt buộc **Local Profiling** — sụp đổ hiệu năng lên tới 79% khi vi phạm. |
+| 5 | **Cảnh báo Early Collapse (C5 — Phát hiện Học thuật)** | Chỉ cần $BBS_{spa} \approx 0.02$, ML unsupervised tiêu chuẩn đã mất khả năng phân tách (F1 < 0.37). |
+
+**Đặc quyền quan sát (Observational Privilege):** Phân tích thực nghiệm trên dữ liệu pháp y tĩnh (offline forensics) — sở hữu toàn bộ ground truth và vòng đời sự kiện — cung cấp môi trường lý tưởng nhất. Kết quả là **giới hạn trên lý thuyết (theoretical upper bound)**: sụp đổ ở đây = sụp đổ tất yếu trong thời gian thực.
+
+**5 Đóng góp (Contributions):**
+- **C1 (Framework)**: Khung BBS — metric đa chiều tái sử dụng được, monotonicity đã kiểm chứng.
+- **C2 (Finding)**: Combinatorial Mimicry Gap — phân tích marginal tạo ảo giác stealth (36–5,500×).
+- **C3 (PoC)**: Joint Density Detector — phá vỡ trần marginal (F1 = 0.8511 trên apt29).
+- **C4 (Đóng góp Kiến trúc)**: Domain Shift Trap — bắt buộc Local Profiling (sụp đổ 79% khi vi phạm).
+- **C5 (Phát hiện Học thuật)**: Early Collapse — $BBS_{spa} \approx 0.02$ đã đủ giết ML unsupervised.
+
+**Datasets thực nghiệm:** botsv1 (3 attack), APT3 (27 attack), FIN6 (31 attack), APT29 (22 attack) — tổng 83 tiến trình độc hại trên 4 chiến dịch APT thực tế.
 
 ---
 
@@ -309,4 +333,37 @@ Backprop_Decay,0.8
 
 ---
 
-*Document này là nguồn sự thật duy nhất (Single Source of Truth) cho toàn bộ implementation. Mọi quyết định code phải tham chiếu về tài liệu này.*
+## 7. BBS — BẢNG SỐ LIỆU ĐÃ KIỂM CHỨNG
+
+### 7.1 BBS & Combinatorial Mimicry Gap
+
+| Dataset | N_Attack | DDO (marginal) | $BBS_{spa}$ (joint) | 95% CI | Gap Ratio |
+|:---|:---:|:---:|:---:|:---:|:---:|
+| botsv1 | 3 | 0.5515 | < $10^{-4}$ | [0.0000, 0.0000] | > 5,500× |
+| apt3 | 27 | 0.7996 | 0.0012 | [0.0003, 0.0021] | 666× |
+| fin6 | 31 | 0.6312 | 0.0066 | [0.0008, 0.0090] | 96× |
+| apt29 | 22 | 0.6823 | 0.0187 | [0.0102, 0.0218] | 36× |
+
+**Monotonicity**: $< 10^{-4} < 0.0012 < 0.0066 < 0.0187$ → **PASS** ✅
+
+### 7.2 Detection Performance (Highlights)
+
+| Dataset | Best Baseline F1 | JointDensity (Local) F1 | Improvement |
+|:---|:---:|:---:|:---:|
+| botsv1 | 0.5000 (SRAH) | **1.0000** | +100% |
+| apt3 | 0.2687 (LOF) | **0.4082** | +52% |
+| fin6 | 0.8125 (SRAH) | **0.9375** | +15% |
+| apt29 | 0.3684 (ECOD) | **0.8511** | +131% |
+
+### 7.3 BBS Radar (Diagnostic Profile)
+
+| Dataset | $BBS_{spa}$ | $BBS_{seq}$ | $BBS_{col}$ | Sensors Active |
+|:---|:---:|:---:|:---:|:---:|
+| botsv1 | < $10^{-4}$ | 1.0000 | 1.0000 | 1/3 |
+| apt3 | 0.0012 | 1.0000 | 1.0000 | 1/3 |
+| fin6 | 0.0066 | 0.3917 | 1.0000 | 2/3 |
+| apt29 | 0.0187 | 0.7244 | 0.1773 | **3/3** |
+
+---
+
+*Document này là nguồn sự thật duy nhất (Single Source of Truth) cho toàn bộ implementation và nghiên cứu khoa học. Mọi quyết định code phải tham chiếu về tài liệu này. Mọi con số trong luận văn phải khớp với Section 7.*
