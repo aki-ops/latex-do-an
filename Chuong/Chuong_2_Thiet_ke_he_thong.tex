@@ -297,11 +297,12 @@ Sơ đồ Activity Map mô tả luồng chạy thực tế của dữ liệu xuy
 \draw[->, thick] (parse) -- (split);
 \draw[->, thick] (split) -- (check);
 
-\draw[->, thick] (check.west) -| node[above, font=\scriptsize, near start, xshift=-0.2cm] {Có} (local.north);
-\draw[->, thick] (check.east) -| node[above, font=\scriptsize, near start, xshift=0.2cm] {Không} (univ.north);
+\draw[->, thick] (check.west) -- node[above, font=\scriptsize] {Có} (check.west -| local.north) -- (local.north);
+\draw[->, thick] (check.east) -- node[above, font=\scriptsize] {Không} (check.east -| univ.north) -- (univ.north);
 
-\draw[->, thick] (local.south) -- +(0,-0.4) -| (merge.north);
-\draw[->, thick] (univ.south) -- +(0,-0.4) -| (merge.north);
+\draw[thick] (local.south) |- ([yshift=0.5cm]merge.north);
+\draw[thick] (univ.south) |- ([yshift=0.5cm]merge.north);
+\draw[->, thick] ([yshift=0.5cm]merge.north) -- (merge.north);
 
 \draw[->, thick] (merge) -- (aggregate);
 \draw[->, thick] (aggregate) -- (report);
@@ -357,11 +358,13 @@ Mục tiêu cốt lõi của giai đoạn này là tìm ra "khoảng trống ng�
 \node[data, draw=red!80, fill=red!10] (out) at (0, -9.8) {Độ khó Tập dữ liệu ($BBS_{min}$)};
 
 % Arrows
-\draw[arrow] (in) -| node[above left, font=\scriptsize] {Dồi dào} (bw_benign);
-\draw[arrow] (in) -| node[above right, font=\scriptsize] {Khan hiếm} (bw_attack);
+\draw[thick, gray!80!black] (in.south) -- (0, -0.8);
+\draw[arrow] (0, -0.8) -| node[above, pos=0.25, font=\scriptsize] {Dồi dào} (bw_benign.north);
+\draw[arrow] (0, -0.8) -| node[above, pos=0.25, font=\scriptsize] {Khan hiếm} (bw_attack.north);
 
-\draw[arrow] (bw_benign) |- (mc_gen);
-\draw[arrow] (bw_attack) |- (mc_gen);
+\draw[thick, gray!80!black] (bw_benign.south) |- (0, -3.0);
+\draw[thick, gray!80!black] (bw_attack.south) |- (0, -3.0);
+\draw[arrow] (0, -3.0) -- (mc_gen.north);
 
 \draw[arrow] (mc_gen) -- (kde);
 \draw[arrow] (kde) -- (integrate);
