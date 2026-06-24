@@ -1,0 +1,1003 @@
+TRƯỜNG ĐẠI HỌC BÁCH KHOA HÀ NỘI
+ĐỒ ÁN TỐT NGHIỆP
+Thiết kế hệ thống 
+tự động điều chỉnh
+nhiệt độ
+ trong 
+thiết bị sấy hoa quả
+NGUYỄN VĂN A
+nguyenvanabc@
+sis.
+hust.edu.vn
+Ngành Kỹ thuật điện
+Chuyên ngành
+ Hệ thống điện
+Giảng viên hướng dẫn:
+1871716
+112395
+ 
+   
+Chữ ký của GVHD
+0
+0
+ 
+   
+Chữ ký của GVHD
+2223135
+172720
+0
+0
+PGS. 
+TS. 
+Phạm Văn ABC
+Bộ môn
+:
+Abc abc abc abc abc abc abc abc abc
+ 
+Viện
+:
+Abcb
+ 
+dbdbd
+HÀ NỘI, 6/2018
+ĐỀ TÀI TỐT NGHIỆP
+Biểu mẫu của Đề tài
+/khóa luận
+ tốt nghiệp theo qui định của viện, tuy nhiên cần đảm bảo giáo viên giao đề tài ký và ghi rõ họ và tên
+.
+Trường hợp có 2 giáo viên hướng dẫn thì sẽ cùng ký tên.
+ 
+2880995
+5224005
+Giáo viên hướng dẫn
+K
+ý
+ và ghi rõ họ tên
+0
+0
+Giáo viên hướng dẫn
+K
+ý
+ và ghi rõ họ tên
+Lời cảm ơn
+Đây là mục tùy chọn, nên viết phần cảm ơn ngắn gọn
+, tránh dùng các từ sáo rỗng
+, 
+giới hạn trong khoảng 1
+0
+0
+-150
+ 
+từ
+.
+ 
+Tóm tắt nội dung đồ án
+Tóm tắt nội dung của đồ án tốt nghiệp trong khoảng tối đa 
+30
+0 chữ.
+ 
+Phần tóm tắt cần 
+nêu được các ý
+:
+ vấn đề cần thực hiện
+;
+ phương pháp thực hiện
+;
+ công cụ 
+sử dụng (
+phần mềm, phần cứng
+…
+)
+; k
+ết quả của 
+đồ án 
+có phù hợp với các vấn đề đã đặt ra hay không
+;
+ 
+tính thực tế của đ
+ồ án
+, 
+định hướng phát triển mở rộng 
+của đồ án (nếu có)
+; các kiến thức và kỹ năng mà sinh viên đã đạt được
+.
+2881621
+4499752
+Sinh viên thực hiện
+K
+ý
+ và ghi rõ họ tên
+0
+0
+Sinh viên thực hiện
+K
+ý
+ và ghi rõ họ tên
+MỤC LỤC
+ TOC \o "1-3" \h \z \u 
+CHƯƠNG 1. CÁC QUI ĐỊNH CHUNG
+ PAGEREF _Toc21499666 \h 
+1
+1.1
+Giới thiệu chung
+ PAGEREF _Toc21499667 \h 
+1
+1.2
+Sử dụng các định dạng văn bản theo qui định
+ PAGEREF _Toc21499668 \h 
+1
+1.2.1
+Qui định về căn lề văn bản
+ PAGEREF _Toc21499669 \h 
+1
+1.2.1
+Tạo lề cho văn bản in 2 mặt
+ PAGEREF _Toc21499670 \h 
+3
+1.2.2
+Tạo chương mới
+ PAGEREF _Toc21499671 \h 
+3
+1.2.3
+Tạo tiêu đề các cấp
+ PAGEREF _Toc21499672 \h 
+3
+1.2.4
+Định dạng phần nội dung các chương, mục
+ PAGEREF _Toc21499673 \h 
+4
+1.2.5
+Hình vẽ - Đồ thị
+ PAGEREF _Toc21499674 \h 
+4
+1.2.6
+Bảng biểu
+ PAGEREF _Toc21499675 \h 
+6
+1.2.7
+Phương trình
+ PAGEREF _Toc21499676 \h 
+8
+1.3
+Tạo tham chiếu chéo giữa các đoạn văn bản
+ PAGEREF _Toc21499677 \h 
+11
+1.4
+Tạo danh mục tài liệu tham khảo
+ PAGEREF _Toc21499678 \h 
+11
+1.5
+Cập nhật lại các chú thích và tham chiếu
+ PAGEREF _Toc21499679 \h 
+15
+1.6
+Tạo danh mục hình vẽ
+ PAGEREF _Toc21499680 \h 
+15
+1.7
+Tạo danh mục bảng biểu
+ PAGEREF _Toc21499681 \h 
+16
+1.8
+Tạo trang mục lục
+ PAGEREF _Toc21499682 \h 
+16
+1.9
+Qui cách đóng quyển
+ PAGEREF _Toc21499683 \h 
+17
+CHƯƠNG 2. SỬ DỤNG CÁC BIỂU ĐỒ
+ PAGEREF _Toc21499684 \h 
+19
+2.1
+Giới thiệu về biểu diễn bằng đồ thị
+ PAGEREF _Toc21499685 \h 
+19
+2.2
+Đồ thị kiểu bánh
+ PAGEREF _Toc21499686 \h 
+19
+2.3
+Đồ thị kiểu thanh ngang
+ PAGEREF _Toc21499687 \h 
+20
+2.4
+Đồ thị kiểu cột đứng
+ PAGEREF _Toc21499688 \h 
+20
+2.5
+Đồ thị kiểu đường
+ PAGEREF _Toc21499689 \h 
+21
+2.6
+Đồ thị kiểu diện tích
+ PAGEREF _Toc21499690 \h 
+21
+CHƯƠNG 3. KẾT LUẬN
+ PAGEREF _Toc21499691 \h 
+23
+3.1
+Kết luận
+ PAGEREF _Toc21499692 \h 
+23
+3.2
+Hướng phát triển của đồ án trong tương lai
+ PAGEREF _Toc21499693 \h 
+23
+TÀI LIỆU THAM KHẢO
+ PAGEREF _Toc21499694 \h 
+24
+PHỤ LỤC
+ PAGEREF _Toc21499695 \h 
+25
+DANH MỤC HÌNH VẼ
+ TOC \h \z \c "Hình" 
+Hình 2.1 Đồ thị kiểu bánh
+ PAGEREF _Toc20580104 \h 
+20
+Hình 2.2 Đồ thị kiểu thanh ngang
+ PAGEREF _Toc20580105 \h 
+20
+Hình 2.3 Đồ thị kiểu cột đứng
+ PAGEREF _Toc20580106 \h 
+21
+Hình 2.4 Đồ thị kiểu đường
+ PAGEREF _Toc20580107 \h 
+21
+Hình 2.5 Đồ thị kiểu diện tích
+ PAGEREF _Toc20580108 \h 
+22
+DANH MỤC HÌNH VẼ
+ TOC \h \z \c "Bảng" 
+Bảng 1.1 Thống kê các thiết bị và giá thành
+ PAGEREF _Toc20580109 \h 
+8
+CÁC QUI ĐỊNH CHUNG
+Giới thiệu chung
+Đồ án/khóa luận tốt nghiệp (sau đây gọi tắt là ĐATN) được qui định về qui cách trình bày, sinh viên cần đảm bảo đúng qui cách này trước khi in và nộp quyển. Cấu trúc chung của đồ án khi đóng quyển gồm các phần thứ tự như sau:
+Bìa 
+trước của 
+ĐATN
+: 
+mục chuyên ngành có thể ghi hoặc không ghi
+; với khóa luận tốt nghiệp sẽ thay chữ "Đồ án tốt nghiệp" thành "Khóa luận tốt nghiệp"
+Đề tài tốt nghiệp 
+(phải 
+có chữ ký 
+của giáo viên hướng dẫn
+)
+P
+hần “Lời cảm ơn” và “Tóm tắt đồ án”
+ (trình bày trong 1 trang
+ và sinh viên cần ký tên
+, ghi rõ họ tên
+ tại 
+trang này
+)
+Mục lục
+Danh mục hình vẽ
+Danh mục bảng biểu
+Các chương thuộc nội dung đồ án
+Phụ lục (nếu có)
+Tài liệu tham khảo
+Bìa cuối đồ án
+.
+Đây là bản hướng dẫn đồng thời 
+cũng là mẫu sử dụng khi viết đồ án. 
+Người dùng có thể copy và dán nội dung cần thiết vào các mục trong mẫu này để giữ được định dạng (format) của văn bản.
+Sử dụng các định dạng văn bản theo qui định
+Qui định về căn lề văn bản
+Nội dung phần chữ chọn căn đều hai bên:
+Căn lề phía trên, dưới, trái, phải 
+của văn bản 
+như sau:
+Cỡ giấy: chọn cỡ A4 trong 
+tab “
+Paper
+”
+.
+Tạo lề cho văn bản in 2 mặt
+Với văn bản 
+yêu cầu 
+in hai mặt 
+cần điều chỉnh phần Page Layout như sau:
+Chọn Pagelayout 
+ Margins 
+ Custom Magins 
+ chọn mục Multiple pages 
+ chọn Mirror margins
+ 
+ chọn OK.
+Do trang đầu tiên là mẫu bìa của đồ án, nên khi in chế độ hai mặt có thể cần chèn (insert)
+ 1 trang trắng sau trang bìa để đảm bảo trang “Lời cảm ơn” sẽ là trang lẻ.
+Hiện tại mẫu này đang mặc định ở chế độ in một mặt.
+Tạo chương mới
+Các chương đều 
+phải 
+bắt đầu từ một trang mới
+ bằng cách bấm tổ hợp phím “Ctrl+Enter” tại vị trí muốn chuyển sang chương mới.
+Đánh máy tiêu đề chương và chọn “CHUONG” từ thanh công cụ:
+Khi đó tên chương sẽ được tự động đánh số và định dạng (tự động thêm CHƯƠNG 1, CHƯƠNG 2…). Tên chương dùng chữ viết hoa (UPPERCASE).
+Tạo tiêu đề các cấp
+Sử dụng tối đa 3 cấp tiêu đề (ví dụ: 1 hoặc 1.1 hoặc 1.1.1), nếu vẫn muốn tạo thêm các mức khác thì dùng a, b, c… hoặc a), b), c)…hoặc các gạch đầu dòng.
+Để tạo tiêu đề 
+với 
+cấp mong muốn: đánh tiêu đề cần tạo, chọn bằng cách bôi đen và chọn “Cap 1” hoặc “Cap 2” hoặc “Cap 3” 
+tương ứng 
+từ thanh công cụ. Khi đó tiêu đề sẽ được tự động đánh số và định dạng.
+Định dạng 
+phần 
+nội dung các 
+chương, mục
+Người sử dụng đánh máy nội dung cần trình bày, sau đó chọn toàn bộ đoạn văn bản đó 
+ bấm chọn Normal trên thanh công cụ. Khi đó phần văn bản vừa tạo sẽ được định dạng đúng theo format yêu cầu của 
+phần nội dung 
+đồ án tốt nghiệp
+.
+Lưu ý: người sử dụng không thay đổi đặc tính của các kiểu style (Normal, Cap 1, Cap 2, Cap 3…) đã được tạo sẵn.
+Hình vẽ
+ - Đ
+ồ thị
+Hình vẽ hoặc đồ thị (gọi tắt là hình vẽ) 
+có hiệu quả cao khi 
+sử dụng để minh họa cho các nội dung cần tóm lược, do vậy nên được sử dụng để tránh việc đưa các thông tin quá dài.
+Hình vẽ có kích thước chiều rộng không quá 75% của chiều rộng nội dung 
+phần 
+chữ, căn lề giữ
+a (trừ các trường hợp đặc biệt có thể rộng hơn
+ hoặc sử dụng trang ngang kiểu Landscapse 
+).
+Chú thích của hình vẽ đặt dưới hình, căn lề giữ
+a, thứ tự hình vẽ theo 
+số 
+thứ tự của chương tương ứng.
+ 
+Để tạo chú thích cho hình vẽ
+ thực hiện như sau:
+B
+ấm chọn hình vẽ và bấm phải chuột chọn Insert Caption
+C
+họn New Label 
+ đánh chữ “
+Hình
+” 
+ chọn OK
+Sau đó bấm Numbering để tạo định dạng thứ tự cho các chú thích (Hình 1.1, Hình 1.2…
+) 
+ tích chọn “Include chapter number” 
+ chọn Heading 1 
+ chọn “period”
+Sau đó đánh nội dung chú thích vào sau chữ Hình….
+Với các hình vẽ tiếp theo không cần thực hiện lại các bước trên, chỉ cần chọn hình vẽ 
+ bấm phải chuột 
+ Chọn Insert Caption 
+ bấm Label và chọn Hình 
+ OK.
+Bảng biểu
+Tương tự như hình vẽ, bảng biểu nên có chiều rộng không quá 75% chiều rộng phần chữ của nội dung. Tiêu đề bảng biểu đặt phía trên bảng với các
+h
+ tạo định dạng tương tự.
+ Bảng biểu nên bố trí để nằm trọn vẹn trong một trang, tránh việc cùng một bảng bị ngắt sang trang khác.
+C
+họn 
+toàn bộ 
+bảng biểu và bấm phải chuột chọn Insert Caption
+Chọn New Label 
+ đánh chữ “
+Bảng
+” 
+ chọn OK
+Tại ô Position: chọn Above selected item
+Bấm Numbering để tạo định dạng thứ tự cho các chú thích (Hình 1.1, Hình 1.2…) 
+ tích chọn “Include chapter number” 
+ chọn Heading 1 
+ chọn “period”
+Sau đó đánh nội dung chú thích vào sau chữ Bảng….
+Bảng 
+ STYLEREF 1 \s 
+1
+.
+ SEQ Bảng \* ARABIC \s 1 
+1
+ 
+Thống kê các thiết bị và giá thành
+TT
+Hạng mục
+Số lượng
+Đơn giá
+Thành tiền
+1
+Đèn bàn
+10
+10
+100
+2
+Quạt trần
+10
+100
+1000
+3
+Quạt bàn
+10
+50
+500
+4
+Bàn học
+10
+120
+1200
+5
+Ghế văn phòng
+10
+70
+700
+Với các bảng biểu tiếp theo không cần thực hiện lại các bước trên, chỉ cần chọn hình vẽ 
+ bấm phải chuột 
+ Chọn Insert Caption 
+ bấm Label và chọn Bảng 
+ OK.
+Phương trình
+Để tạo đánh số tự động cho các phương trình thực hiện như sau:
+Chèn một bảng gồm 
+{
+1 dòng 
+&
+ 3 cột
+}
+ tại vị trí muốn có phương trình
+;
+Chỉnh chiều rộng cột 1 khoảng 15% của bảng
+, c
+hỉnh chiều rộng cột 3 khoảng 15-20% của bảng
+; c
+òn lại sẽ là cột 2 (khoảng 70% của bảng)
+Cột 1 (15%)
+Cột 2 (~
+65-70
+%)
+Cột 3 (15-20%)
+Bấm chuột vào ô của cột 2 
+ chọn Insert trên thanh công cụ 
+ Chọn Equation 
+ chọn Insert New Equation.
+Khi đó sẽ có bảng như sau:
+Bấm vào “Type equation here” 
+ sau đó chọn căn lề trái trên thanh công cụ, mục đích để các chữ trong cột 2 sẽ căn lề trái.
+Chọn toàn bộ bảng 
+ 
+Bấm p
+hải chuột chọn Insert Caption 
+ New Label và tạo nhãn mới có chữ “PT” (tương tự như khi tạo chú thích với Hình và Bảng ở mục 
+ REF _Ref532562619 \r \h 
+1.2.5
+ và 
+ REF _Ref532562633 \r \h 
+1.2.6
+) 
+ sẽ 
+tạo ra 
+chú thích 
+với cấu trúc 
+ví dụ như “PT 1.1”
+Cắt và 
+dán 
+toàn bộ phần chú thích “PT 1.1” và
+o
+ cột 3, sẽ có bảng như sau:
+PT 
+ STYLEREF 1 \s 
+1
+.
+ SEQ PT \* ARABIC \s 1 
+1
+Chọn toàn bộ bảng 
+ chọn nút mở rộng của All Border trên thanh công cụ 
+ chọn No Border
+Kết quả sẽ là một bảng không có đường biên dùng để soạn phương trình:
+Chọn lại toàn bộ bảng này và chọn Insert trên thanh công cụ 
+ chọn Equation 
+ “Save Selection to Equation Gallery…” 
+Khi đó sẽ hiện ra hộp thoại yêu cầu nhập tên của mẫu phương trình vừa tạo, người dùng có thể đánh chữ 
+tạo tên là 
+“Phuong trinh” để dễ nhớ và bấm OK.
+Như vậy trong thư viện của Equation đã có một mẫu 
+soạn thảo 
+phương trình với số 
+thứ tự của phương trình 
+tự động
+ thay đổi
+.
+Đánh máy phương trình cần tạo vào bảng vừa tạo
+ tại vị trí "Type equation here"
+Để tạo phương trình tại các vị trí mong muốn khác:
+Bấm Insert 
+ Equation 
+ kéo thanh trượt xuống dưới và chọn Phuong trình (theo tên vừa đặt)
+Khi đó sẽ hiện ra bảng không có đường biên để người dùng 
+soạn 
+phương trình
+ tiếp theo
+, số thứ tự của phương trình sẽ tự động tăng. Đánh máy phương trình vào ô “Type equation here”
+Type equation here.
+PT 
+ STYLEREF 1 \s 
+1
+.
+ SEQ PT \* ARABIC \s 1 
+2
+Thực hiện tương tự cho các phương trình khác.
+Tạo tham chiếu 
+chéo giữa các đoạn văn bản
+Khi viết đồ án nếu cần tham chiếu tới một mục khác hoặc hình vẽ hoặc bảng biểu hoặc phương trình…thì có thể thực hiện tự động. Tham khảo ví dụ sau:
+“
+G
+iá trị trung bình của các 
+kết quả
+ thí nghiệm đã 
+được 
+mô tả ở 
+bảng
+……..
+; 
+các 
+đánh giá ở mục
+….
+ 
+hoàn toàn 
+phù hợp 
+với kết quả
+ được thể hiện ở 
+hình
+…..
+” 
+Ở ví dụ này cần tham chiếu đến 
+đầu 
+mục, bảng, 
+hình vẽ sẽ thực hiện như sau:
+ 
+Bấm chuột vào chỗ cần chèn tham chiếu 
+ chọn Reference 
+ chọn Cross-reference 
+ hiện bảng thoại 
+ chọn mục tương ứng của Reference type:
+Tham chiếu tới 
+chương, mục 
+ chọn 
+"
+Heading
+"
+ 
+ với mục “Insert reference to” chọn loại tương ứng
+ là “
+Paragraph number
+”
+ 
+ chọn đầu mục tương ứng trong "For which numberred item:" 
+ OK
+Tham chiếu tới hình vẽ
+, bảng biểu
+: chọn 
+mục "Reference type" tương
+ 
+ứng với kiểu tham chiếu và thực hiện tương tự như tham chiếu đầu mục.
+Tạo danh mục tài liệu tham khảo
+Lưu ý: t
+ài liệu tham khảo là các tài liệu được trích dẫn trong đồ án, 
+không phải là các tài liệu đã đọc
+.
+ Cách thức trích dẫn và tạo danh mục tài liệu tham khảo theo các bước sau:
+Bước 1: 
+nhập thông tin chi tiết của từng 
+tài liệu 
+tham khảo
+.
+Bước 2: trích dẫn tài liệu tại các mục cần thiết.
+Bước 3: tạo danh mục tài liệu tham khảo
+Bước 1: 
+nhập thông tin chi tiết của từng tài liệu tham khảo
+Chọn "Reference" trên thanh công cụ 
+ "Manager Sources" 
+ hiện hộp thoại "Source Manager" 
+ chọn "New" để tạo chỉ mục cho tài liệu mới
+Thực hiện tương tự các bước trên khi có nhiều tài liệu tham khảo, kết quả sẽ là một cơ sở dữ liệu của các tài liệu dự tính dùng để tham khảo
+ như ví dụ sau:
+Bước 2: trích dẫn tài liệu tham khảo trong nội dung đồ án
+Đặt chuột tại vị trí cần chèn tài liệu tham khảo 
+ 
+Chọn "Reference" trên thanh công cụ 
+ 
+chọn kiểu trích dẫn tài liệu trong mục Style là IEEE 
+ sau đó chọn "Insert Citation"  
+ chọn tài liệu mong muốn.
+Kết quả:
+Tóm tắt nội dung của đồ án tốt nghiệp
+ 
+Tóm tắt nội dung của đồ án tốt nghiệp
+ 
+Tóm tắt nội dung của đồ án tốt nghiệp
+ 
+ CITATION Trầ04 \l 1033 
+[1]
+ 
+Tóm tắt nội dung của đồ án tốt nghiệp
+ 
+Tóm tắt nội dung của đồ án tốt nghiệp
+ 
+Tóm tắt nội dung của đồ án tốt 
+nghiệp 
+ CITATION Abe95 \l 1033 
+[2]
+ 
+Tóm tắt nội dung của đồ án tốt nghiệp
+.
+Bước 3: tạo danh mục tài liệu tham khảo của đồ án
+Chuyển tới 
+trang muốn tạo danh mục "TÀI LIỆU THAM KHẢO"
+ 
+và 
+thực hiện theo hướng dẫn
+ sau:
+Tạo trang TÀI LIỆU THAM KHẢO
+Đặt chuột tại ví trí đầu trang 
+ chọn tab Reference
+Chọn Style kiểu "IEEE"
+Bấm vào Bibliography 
+  "Work Cited".
+Trong trường hợp 
+phần số thứ tự của các tài liệu tham khảo bị lệch dòng so với 
+phần chữ như sau:
+Khi đó bấm chuột vào chữ bất kỳ trong danh mục tài liệu tham khảo đang có 
+ bấm phải chuột và chọn "Paragraph":
+Cửa sổ Paragraph sẽ hiện ra 
+ chọn Special trong mục Indentation 
+ bấm mũi tên xuống và chọn "(none)" 
+ chọn OK.
+Khi đó toàn bộ các số thứ tự sẽ được căn thẳng hàng với phần chữ của tài liệu tham khảo.
+C
+ập nhật lại các chú thích và tham chiếu
+Trong quá trình soạn thảo đồ án người viết có thể thêm/bớt các đầu mục, xóa các đoạn văn không cần thiết, thêm trang, bớt trang… khi đó cần phải cập nhật lại danh mục các tham chiếu chéo. Các bước cập nhật tham chiếu chéo thực hiện như sau:
+Bước 1: bấm vào chỗ bất kỳ trong văn bản và bấm đồng thời Clt-A để lựa chọn toàn bộ văn bản (hoặc từ tab Home chọn Select rồi chọn Select All).
+Bước 2: bấm phải chuột tại chỗ bất kỳ của văn bản đã được lựa chọn
+ sau đó
+ chọn 
+"
+Update Field
+"
+ 
+hoặc bấm phím 
+F9.
+Bước 3: chọn Update entire table và bấm OK
+.
+Có thể sử dụng tùy chọn "Update page number only" nếu quá trình soạn thảo chỉ làm thay đổi số 
+thứ tự các 
+trang
+.
+Tạo danh mục hình vẽ
+Tạo một trang trắng tại vị trí muốn đặt "Danh mục hình vẽ", bấm chọn vị trí đầu trang
+ và thực hiện các thao tác sau:
+C
+họn tab "References" 
+ bấm chọn "Table of Figures"
+:
+Chọn "Hình" trong mục "Caption label" và bấm OK
+Danh mục các hình vẽ sẽ được tạo tại trang mong muốn.
+Để cập nhật lại đánh số trang, tên hình vẽ…thực hiện như sau:
+Đưa chuột vào vị trí danh mục hình vẽ
+Bấm phải chuột và chọn "Update Field" sau đó tùy chọn chỉ cập nhật số trang hoặc cập nhật cả trang và cả tên, thứ tự hình vẽ.
+Tạo danh mục bảng biểu
+Tạo một trang trắng tại vị trí muốn đặt "Danh mục bảng biểu ", bấm chọn vị trí đầu trang và thực hiện tương tự như mục 
+ REF _Ref20512708 \r \h 
+1.6
+; tuy nhiên sẽ chọn mục 
+"
+Bảng
+" trong mục "Caption label" và bấm OK
+.
+Danh mục các 
+bảng biểu 
+sẽ được tạo tại trang mong muốn.
+ Việc cập nhật lại tên bảng biểu, số trang…tương tự như với danh mục hình vẽ
+.
+Tạo trang mục lục
+Tạo một trang trắng tại vị trí muốn đặt "Mục lục ", bấm chọn vị trí đầu trang và thực hiện các thao tác sau:
+Chọn tab "References" 
+ bấm chọn "Table of Contents":
+Chọn kiểu "Automatic Table 1".
+Mục lục sẽ được tạo tại trang mong muốn.
+Việc cập nhật lại mục lục thực hiện tương tự như với danh mục hình vẽ.
+Qui cách đóng quyển
+Phần bìa trước chế bản theo qui định
+; bìa trước và bìa sau là giấy liền khổ. Sử dụng keo 
+nhiệt để 
+dán 
+gáy 
+khi đóng quyển thay vì sử dụng băng dính và dập ghim.
+Phần gáy ĐATN cần ghi các thông tin tóm tắt sau:
+Kỳ làm ĐATN - Ngành đào tạo - Họ và tên sinh viên - Mã số sinh viên
+Ví dụ:
+2019.1 
+-
+ VẬT LÝ KỸ THUẬT - NGUYỄN VĂN A 
+-
+ 20141234
+Qui cách ghi chữ phần gáy như hình sau:
+SỬ DỤNG CÁC BIỂU ĐỒ
+Giới thiệu về biểu diễn bằng đồ thị
+Trong rất nhiều lĩnh vực cần phải trình bày, giới thiệu các thông tin liên quan tới con số, thống kê hay các dữ liệu khác. Các dữ liệu đo đạc, tính toán thường được thu thập dưới dạng bảng biểu; tuy nhiên bảng biểu chỉ thích hợp khi trình bày các số lượng nhỏ các số liệu, đồng thời không cung cấp các đánh giá trực quan về xu hướng của dữ liệu thu được. 
+Đồ thị có khả năng cung cấp hình ảnh 
+trực quan, dễ hiể
+u giúp người đọc nhanh chóng nắm bắt được ý tưởng muốn nhấn mạnh, muốn trình bày. Người trình bày cần lựa chọn đúng loại đồ thị và không nên sử dụng các đồ thị quá màu mè
+; lựa chọn tên đồ thị ngắn gọn, dễ hiểu. Các loại đồ thị thường gặp là:
+Kiểu bánh (Pie charts)
+Kiểu thanh ngang & dọc (kiểu cột) (Horizontal & Vertical bar charts)
+Kiểu đường & Kiểu phân bố (Line charts & Scatter diagrams)
+Kiểu diện tích (Area charts)
+7399655
+98425
+         
+          
+       
+Phần tiếp theo sẽ khuyến cáo về phạm vi sử dụng của từng loại đồ thị này.
+Đồ thị kiểu bánh
+Phạm vi sử dụng
+:
+Dùng để biểu thị tỷ lệ phần trăm (%)
+Biểu diễn mối liên hệ tương quan tỷ lệ
+Không nên dùng quá nhiều miếng (tối đa 6 miếng)
+ trong một đồ thị
+Khi muốn nhấn mạnh một đại lượng
+:
+Để d
+iễn tả phần quan trọng: 
+đặt phần quan trọng này ở phía 
+trên, bên phải, tính từ vị trí 1 giờ
+Khi cần nhấn mạnh: có thể kéo phần 
+nhô 
+này ra
+ khỏi đồ thị
+ (
+ REF _Ref20514706 \h 
+Hình 
+2
+.
+1
+ nhấn mạnh về tỷ trọng phần trăm của ngô là nhỏ nhất)
+Hình 
+ STYLEREF 1 \s 
+2
+.
+ SEQ Hình \* ARABIC \s 1 
+1
+ 
+Đồ thị kiểu bánh
+Đồ thị 
+kiểu 
+thanh ngang
+Phạm vi sử dụng
+:
+Khi muốn so sánh độ lớn hoặc kích thước
+Không nên dùng quá 
+5 thanh
+ trong một đồ thị
+Khi muốn nhấn mạnh một đại lượng
+:
+S
+ử dụng vị trí các thanh hợp lý để diễn tả ý muốn nhấn mạnh
+; không nên đặt các thanh ngẫu nhiên vì có thể gây phân tán suy nghĩ và 
+không diễn tả được ý
+.
+Dùng các màu khác biệt nhiều để diễn tả đại lượng quan trọng
+.
+So sánh 02 đồ thị trong 
+ REF _Ref20515043 \h 
+Hình 
+2
+.
+2
+ sẽ thấy đồ thị bên trái biểu diễn được ý tưởng muốn nhấn mạnh.
+Hình 
+ STYLEREF 1 \s 
+2
+.
+ SEQ Hình \* ARABIC \s 1 
+2
+ Đồ thị kiểu 
+thanh ngang
+Đồ thị 
+kiểu cột đứng
+Phạm vi sử dụng
+:
+Khi muốn 
+diễn tả sự thay đổi theo thời gian
+Không nên dùng quá 
+5 
+cột trong một đồ thị
+Khi muốn nhấn mạnh một đại lượng
+:
+Khi trình bày n
+ên giản lược đồ thị
+, 
+bỏ những dữ liệu không cần thiết
+Xem xét dùng đồ thị con
+ để d
+iễn tả sự đóng góp của các thành phần vào sự thay đổi theo thời gian
+Tô màu, gạch chéo
+ hoặc 
+dùng mũi tên để diễn tả những điểm đặc biệt
+ 
+       
+Hình 
+ STYLEREF 1 \s 
+2
+.
+ SEQ Hình \* ARABIC \s 1 
+3
+ Đồ thị kiểu 
+cột đứng
+Đồ thị kiểu đường
+Phạm vi sử dụng
+:
+Biểu diễn xu hướng biến đổi của dữ liệu
+Có tác dụng s
+o sánh nhiều dữ liệu theo thời gian
+Không nên dùng quá 
+3 đường dữ liệu trong một đồ thị
+Khi muốn nhấn mạnh một đại lượng
+:
+Dùng đường nét đậm
+Đồ thị có nhiều đường: dùng nét đậm và màu nổi bật
+Hình 
+ STYLEREF 1 \s 
+2
+.
+ SEQ Hình \* ARABIC \s 1 
+4
+ Đồ thị kiểu đường
+Đồ thị kiểu diện tích
+Phạm vi sử dụng
+: phù hợp để biểu diễn so sánh sự thay đổi về số lượng theo thời gian
+Các lưu ý:
+Phần đáy đồ thị nên dành cho đại lượng 
+có giá trị 
+lớn nhất
+ (
+ REF _Ref20515925 \h 
+Hình 
+2
+.
+5
+ 
+nhân mạnh mục tư vấn đóng góp 
+tăng trưởng mạnh nhất so với các 
+mục khác)
+Dùng màu đậm nhất cho phần diện tích đáy
+; màu đậm sẽ có tác dụng tạo hiệu ứng 
+như “neo” đồ thị, 
+người đọc sẽ nhìn thấy và cảm thấy 
+chắc chắn, hợp mắt
+Các 
+tên chú thích 
+nên để nằm ngang cho dễ đọc
+Đồ thị kiểu này cần nhiều thời gian để quan sát, do vậy nếu sử dụng cho poster thì cần dành nhiều thời gian cho độc giả tìm hiểu.
+Hình 
+ STYLEREF 1 \s 
+2
+.
+ SEQ Hình \* ARABIC \s 1 
+5
+ Đồ thị kiểu 
+diện tích
+KẾT LUẬN
+Kết luận
+Nội dung phần kết luận này tùy thuộc vào từng đồ án. Lưu ý trong phần kết luận không 
+nên 
+có bất cứ phương trình, biểu đồ hay bảng biểu nào. Cần trình bày rõ nội dung đồ án tốt nghiệp đã đáp ứng đầy đủ các yêu cầu của đề bài hay chưa. Trình bày về ý nghĩa của các kết quả thu được, các đánh giá nhận xét về tính khả thi, tính chính xác của kết quả
+, tính thực tế của đồ án
+…
+Cần lưu ý hạn chế sử dụng các tính từ, trạng từ mạnh trong khi miêu tả kết quả đạt được, cần đảm bảo tính trung thực
+ 
+của các kết luận.
+Trình bày các kiến thức mà sinh viên đã đạt được sau khi thực hiện đồ án tốt nghiệp. Đồng thời trình bày về các kỹ năng đã học được (kỹ năng tự tìm kiếm tài liệu, tổng hợp thông tin, kỹ năng chế bản, kỹ năng trình bày, viết báo….)
+.
+Hướng phát triển của đồ án trong tương lai
+Nêu tóm 
+tắt 
+hướng mở rộng của đề tài trong tương lai nếu có. Đây là mục tùy chọn vì phụ thuộc vào loại đề tài
+.
+TÀI LIỆU THAM KHẢO
+ BIBLIOGRAPHY 
+[1] 
+Trần Bách, Lưới điện và hệ thống điện, Nhà xuất bản Khoa học Kỹ thuật, 2004. 
+[2] 
+Abe Masayuki, “A Practical Approach to Accurate Fault Location on Extra High Voltage Teed Feeders,” 
+IEEE Transaction on Power Delivery, 
+pp. 159-168, 1995. 
+[3] 
+Microsoft, "Add citations in a Word document," 2017.
+PHỤ LỤC
+Chi tiết 
+số liệu
+ 
+thí nghiệm
+T
+rình phụ lục tại đây (nếu có). 
+T
+rình phụ lục tại đây (nếu có).
+ 
+T
+rình phụ lục tại đây (nếu có).
+ 
+T
+rình phụ lục tại đây (nếu có).
+ 
+T
+rình phụ lục tại đây (nếu có).
+ 
+T
+rình phụ lục tại đây (nếu có).
+ 
+T
+rình phụ lục tại đây (nếu có).
+ 
+T
+rình phụ lục tại đây (nếu có).
+ 
+T
+rình phụ lục tại đây (nếu có).
+ 
+T
+rình phụ lục tại đây (nếu có).
+ 
+T
+rình phụ lục tại đây (nếu có).
+ 
+T
+rình phụ lục tại đây (nếu có).
+Chi tiết các bước tính toán
+T
+rình phụ lục tại đây (nếu có). 
+T
+rình phụ lục tại đây (nếu có).
+ 
+T
+rình phụ lục tại đây (nếu có).
+ 
+T
+rình phụ lục tại đây (nếu có).
+ 
+T
+rình phụ lục tại đây (nếu có).
+ 
+T
+rình phụ lục tại đây (nếu có).
+ 
+T
+rình phụ lục tại đây (nếu có).
+ 
+T
+rình phụ lục tại đây (nếu có).
+ 
+T
+rình phụ lục tại đây (nếu có).
+ 
+T
+rình phụ lục tại đây (nếu có).
+ 
+T
+rình phụ lục tại đây (nếu có).
+ 
+T
+rình phụ lục tại đây (nếu có).
+Chi tiết 
+sơ đồ 
+mô phỏng
+T
+rình phụ lục tại đây (nếu có). 
+T
+rình phụ lục tại đây (nếu có).
+ 
+T
+rình phụ lục tại đây (nếu có).
+ 
+T
+rìn
