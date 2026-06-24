@@ -210,10 +210,10 @@ Kiến trúc tổng thể của hệ thống đo lường được chia thành 4
     arrow/.style={->, >=stealth, thick, blue!80}
 ]
     % Nodes
-    \node[stage_box] (stage1) {Giai đoạn 1:\\Tiền xử lý};
-    \node[stage_box, right of=stage1, xshift=2cm] (stage2) {Giai đoạn 2:\\Trích xuất $V_{10}$};
-    \node[stage_box, right of=stage2, xshift=2cm] (stage3) {Giai đoạn 3:\\Tính toán cấu trúc};
-    \node[stage_box, right of=stage3, xshift=2cm] (stage4) {Giai đoạn 4:\\Đánh giá (Scoring)};
+    \node[stage_box] (stage1) {Giai đoạn 1:\\Xây dựng đồ thị};
+    \node[stage_box, right of=stage1, xshift=2cm] (stage2) {Giai đoạn 2:\\Trích xuất không gian};
+    \node[stage_box, right of=stage2, xshift=2cm] (stage3) {Giai đoạn 3:\\Ước lượng mật độ};
+    \node[stage_box, right of=stage3, xshift=2cm] (stage4) {Giai đoạn 4:\\Tổng hợp chỉ số};
 
     % Arrows
     \draw[arrow] (stage1) -- (stage2);
@@ -225,34 +225,34 @@ Kiến trúc tổng thể của hệ thống đo lường được chia thành 4
 \end{figure}
 
 \begin{enumerate}
-    \item \textbf{Giai đoạn 1: Tiền xử lý và Chuẩn hóa (Data Ingestion \& Normalization)}
+    \item \textbf{Giai đoạn 1: Tiền xử lý và Xây dựng đồ thị (Data Ingestion \& Graph Building)}
     \begin{itemize}
-        \item \textit{Input:} Các tệp tin log thô định dạng \texttt{.evtx} sinh ra từ Windows Event Logging và công cụ Sysmon (chứa các chuỗi văn bản phân tán, định dạng đường dẫn không đồng nhất).
-        \item \textit{Luồng thực thi:} Đọc sự kiện song song, chuyển đổi đường dẫn hệ thống về định dạng tuyệt đối (viết thường, mở rộng biến môi trường), và trích xuất trường \texttt{ProcessGuid} để giải quyết lỗi tái sử dụng PID. Các sự kiện rời rạc được liên kết thành cấu trúc đồ thị quan hệ tiến trình có hướng (DAG).
-        \item \textit{Output:} Một đồ thị hệ thống toàn diện, nơi mỗi đỉnh là một tiến trình duy nhất và mỗi cạnh biểu thị quan hệ cha-con hoặc giao tiếp liên tiến trình.
+        \item \textit{Input:} Các tệp tin log thô định dạng \texttt{.evtx} sinh ra từ Windows Event Logging và Sysmon.
+        \item \textit{Luồng thực thi:} Đọc sự kiện song song, chuẩn hóa đường dẫn tuyệt đối, và trích xuất trường \texttt{ProcessGuid}. Các sự kiện rời rạc được liên kết thành cấu trúc đồ thị quan hệ tiến trình có hướng (DAG).
+        \item \textit{Output:} Đồ thị tiến trình hệ thống, phục vụ trích xuất đặc trưng.
     \end{itemize}
-    \item \textbf{Giai đoạn 2: Trích xuất đặc trưng (Feature Extraction)}
+    \item \textbf{Giai đoạn 2: Trích xuất không gian đặc trưng đa chiều (Feature Extraction)}
     \begin{itemize}
         \item \textit{Input:} Đồ thị quan hệ tiến trình từ Giai đoạn 1.
-        \item \textit{Luồng thực thi:} Áp dụng các quy tắc ánh xạ để trích xuất thông tin tĩnh (tên tiến trình, độ dài dòng lệnh, entropy) và thông tin động (mạng, registry, truy cập tệp) từ các đỉnh đồ thị. Dữ liệu được mã hóa thành các cấu hình kiểu nhị phân, liên tục và có thứ tự.
-        \item \textit{Output:} Ma trận dữ liệu số, trong đó mỗi hàng là vector $V_{10}$ biểu diễn trạng thái đa chiều của một tiến trình.
+        \item \textit{Luồng thực thi:} Trích xuất ba nhóm đặc trưng cốt lõi: Đặc trưng nội tại $V_{10}$ (Spatial), đặc trưng chuỗi thời gian thông qua Negative Log-Likelihood (Sequential), và ma trận hiệp phương sai của đồ thị nhánh (Collective).
+        \item \textit{Output:} Các cấu trúc dữ liệu số hóa đầy đủ để biểu diễn trạng thái của tiến trình.
     \end{itemize}
-    \item \textbf{Giai đoạn 3: Tính toán chỉ số cấu trúc (Metric Computation)}
+    \item \textbf{Giai đoạn 3: Ước lượng mật độ và khoảng cách (Density \& Distance Computation)}
     \begin{itemize}
-        \item \textit{Input:} Ma trận vector $V_{10}$ của tập dữ liệu huấn luyện (nền lành tính) và tập dữ liệu kiểm thử (chứa các hành vi cần đo lường).
-        \item \textit{Luồng thực thi:} Hệ thống thực hiện ước lượng phân phối lề để tính toán chỉ số độc lập DDO. Đồng thời, tính toán vector trung bình $\mu$ và ma trận hiệp phương sai $\Sigma$ trên tập huấn luyện để ước lượng điểm DensPct\_Mahal cho tập kiểm thử. Đối với đánh giá nâng cao, bộ ước lượng KDE\_Joint được khởi chạy bằng tích phân Monte Carlo.
-        \item \textit{Output:} Tập hợp các điểm số định lượng toán học cho từng tập dữ liệu kiểm thử, phản ánh mức độ chồng lấn phân phối biên và độ sâu toàn cục.
+        \item \textit{Input:} Tập dữ liệu đã số hóa và nhãn thực tế (Ground-truth) để phân tách rõ tập mã độc (Attack) và lành tính (Benign).
+        \item \textit{Luồng thực thi:} Áp dụng Mixed Kernel Density Estimation (KDE) cho không gian hỗn hợp $V_{10}$ để tính mật độ không gian. Tính toán sự chồng lấn phân phối biên đơn chiều (DDO) và khoảng cách toàn cục Mahalanobis.
+        \item \textit{Output:} Các giá trị ước lượng phân phối xác suất và độ chồng lấn giữa tập độc hại và tập lành tính.
     \end{itemize}
-    \item \textbf{Giai đoạn 4: Đánh giá và Chấm điểm phân loại (Evaluation \& Scoring)}
+    \item \textbf{Giai đoạn 4: Tổng hợp điểm số hòa trộn BBS (BBS Aggregation)}
     \begin{itemize}
-        \item \textit{Input:} Các điểm số cấu trúc từ Giai đoạn 3 và nhãn thực tế ground-truth (nếu có để đối chiếu).
-        \item \textit{Luồng thực thi:} Dữ liệu được đẩy vào các mô hình phát hiện (iForest, LOF, SRAH). Ngưỡng phân tách (threshold) được thiết lập tối ưu để thu được chỉ số phát hiện.
-        \item \textit{Output:} Báo cáo so sánh toàn diện bao gồm độ khó của dữ liệu (DDO, DensPct) và hiệu năng thực tế của thuật toán (AUC, F1-Score).
+        \item \textit{Input:} Các điểm số phân phối từ Giai đoạn 3.
+        \item \textit{Luồng thực thi:} Hệ thống tổng hợp các chỉ số độc lập từ ba trục: BBS\_spa (Không gian), BBS\_seq (Chuỗi), và BBS\_col (Tập thể). Điểm $BBS_{min}$ được rút ra làm thước đo cuối cùng.
+        \item \textit{Output:} Báo cáo định lượng độ khó (hardness) của tập dữ liệu, trả lời bằng con số toán học cho câu hỏi mã độc đã hòa trộn sâu đến mức độ nào vào nền hệ thống. Toàn bộ quá trình này \textbf{không} thực hiện bất kỳ thao tác phát hiện hay huấn luyện mô hình học máy nào (như iForest, SRAH).
     \end{itemize}
 \end{enumerate}
 
 \subsection{Sơ đồ luồng chạy dữ liệu chi tiết (Activity Map)}
-Trong khi sơ đồ Pipeline mô tả cấu trúc tĩnh, biểu đồ hoạt động (Activity Map) dưới đây mô tả chi tiết luồng chạy của dữ liệu xuyên suốt các thành phần tương tác (Người dùng/Hệ thống, Cốt lõi xử lý, Đầu ra báo cáo):
+Trong khi sơ đồ Pipeline mô tả cấu trúc tĩnh, biểu đồ hoạt động (Activity Map) dưới đây mô tả chi tiết quá trình Khung BBS thực hiện đo lường độ khó của một tập dữ liệu:
 
 \begin{figure}[H]
 \centering
@@ -267,50 +267,52 @@ Trong khi sơ đồ Pipeline mô tả cấu trúc tĩnh, biểu đồ hoạt đ�
 ]
 
 % Background & Swimlanes
-\draw[thick] (0, 0) rectangle (12.5, -15.5);
+\draw[thick] (0, 0) rectangle (12.5, -16);
 \draw[thick] (0, -1) -- (12.5, -1); % Header separator
-\draw[thick] (3.5, 0) -- (3.5, -15.5);
-\draw[thick] (8.5, 0) -- (8.5, -15.5);
+\draw[thick] (3.5, 0) -- (3.5, -16);
+\draw[thick] (8.5, 0) -- (8.5, -16);
 
 % Headers
 \node at (1.75, -0.5) {\textbf{Input: Dữ liệu}};
-\node at (6.0, -0.5) {\textbf{Hệ thống xử lý BBS}};
-\node at (10.5, -0.5) {\textbf{Output: Đánh giá}};
+\node at (6.0, -0.5) {\textbf{Hệ thống Đo lường BBS}};
+\node at (10.5, -0.5) {\textbf{Output: Định lượng}};
 
 % Nodes
 \node[start] (start) at (1.75, -1.8) {};
-\node[act] (sysmon) at (1.75, -3.5) {Ghi nhận sự kiện\\Sysmon (.evtx)};
+\node[act] (sysmon) at (1.75, -3) {Log Sysmon \&\\Nhãn Ground-truth};
 
-\node[act] (parse) at (6, -3.5) {Phân tích cú pháp \&\\Chuẩn hóa log};
-\node[act] (dag) at (6, -5.5) {Xây dựng đồ thị\\tiến trình (DAG)};
-\node[act] (v10) at (6, -7.5) {Trích xuất ma trận\\đặc trưng $V_{10}$};
-\node[act] (compute) at (6, -9.5) {Ước lượng DDO\\\& DensPct};
+\node[act] (parse) at (6, -3) {Xây dựng DAG \&\\Trích xuất đặc trưng};
+\node[act] (split) at (6, -5) {Tách tập Attack\\\& Benign};
+\node[dec] (check) at (6, -7.5) {Số mẫu Local\\Benign > 0?};
 
-\node[act] (metrics) at (10.5, -9.5) {Điểm số cấu trúc\\(DDO, DensPct)};
-\node[dec] (check) at (10.5, -12) {Có nhãn\\Ground Truth?};
-\node[act] (eval) at (10.5, -14.5) {Đánh giá hiệu năng\\(AUC, F1)};
+\node[act] (local) at (4.5, -10) {Đo lường với\\Local Benign};
+\node[act] (univ) at (7.5, -10) {Đo lường với\\Universal Benign};
+\node[act] (merge) at (6, -12) {Tính các thành phần\\(Spa, Seq, Col)};
 
-\node[act] (report) at (6, -14.5) {Xuất báo cáo\\tổng hợp};
+\node[act] (aggregate) at (10.5, -12) {Lấy cực tiểu\\$BBS_{min}$ \& DDO};
+\node[act] (report) at (10.5, -14) {Báo cáo độ khó\\(Dataset Hardness)};
 
-\node[end_outer] (end) at (1.75, -14.5) {};
-\node[end_inner] at (1.75, -14.5) {};
+\node[end_outer] (end) at (10.5, -15.5) {};
+\node[end_inner] at (10.5, -15.5) {};
 
 % Connections
 \draw[->, thick] (start) -- (sysmon);
 \draw[->, thick] (sysmon) -- (parse);
-\draw[->, thick] (parse) -- (dag);
-\draw[->, thick] (dag) -- (v10);
-\draw[->, thick] (v10) -- (compute);
-\draw[->, thick] (compute) -- (metrics);
-\draw[->, thick] (metrics) -- (check);
+\draw[->, thick] (parse) -- (split);
+\draw[->, thick] (split) -- (check);
 
-\draw[->, thick] (check) -- node[right, font=\scriptsize] {Có} (eval);
-\draw[->, thick] (check) -| node[above near start, font=\scriptsize] {Không} (report);
-\draw[->, thick] (eval) -- (report);
+\draw[->, thick] (check) -| node[above near start, font=\scriptsize] {Có} (local);
+\draw[->, thick] (check) -| node[above near start, font=\scriptsize] {Không} (univ);
+
+\draw[->, thick] (local) |- (merge);
+\draw[->, thick] (univ) |- (merge);
+
+\draw[->, thick] (merge) -- (aggregate);
+\draw[->, thick] (aggregate) -- (report);
 \draw[->, thick] (report) -- (end);
 
 \end{tikzpicture}
-\caption{Sơ đồ luồng hoạt động (Activity Map) chi tiết theo dòng sự kiện của hệ thống đo lường BBS}
+\caption{Sơ đồ luồng hoạt động (Activity Map) chi tiết quá trình định lượng độ khó tập dữ liệu của Khung đo lường BBS}
 \label{fig:bbs_activity_map}
 \end{figure}
 
