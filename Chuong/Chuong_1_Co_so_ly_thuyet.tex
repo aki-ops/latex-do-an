@@ -78,8 +78,29 @@ Theo nghiên cứu tổng quan kinh điển của Chandola et al. (2009) \cite{c
 
 Sự phân loại này đóng vai trò quan trọng định hình thiết kế của các hệ thống phát hiện bất thường: để chống lại các cuộc tấn công ngụy trang LotL (vốn tận dụng các công cụ hợp lệ để tạo ra các hành vi bình thường ở mức biên), mô hình bắt buộc phải có khả năng phân tích đa chiều để nhận diện các bất thường ngữ cảnh và bất thường tập thể.
 
-\section{Lý thuyết học máy không giám sát (uad) và ảo giác hiệu năng}
+\section{Chiến thuật Living-off-the-Land (LotL) và khoảng trống ngữ nghĩa}
 \label{section:1.4}
+
+Trong bối cảnh các giải pháp bảo mật Endpoint Detection and Response (EDR) và Antivirus (AV) ngày càng hoàn thiện, các rào cản kỹ thuật để một mã độc truyền thống (File-based Malware) có thể thực thi thành công trên hệ thống Windows đã trở nên vô cùng khắt khe. Các cơ chế như quét mã băm (Hash Signature), phân tích tĩnh cấu trúc tệp (Static Analysis), và kiểm tra chữ ký số (Digital Signature Verification) gần như loại bỏ hoàn toàn khả năng tồn tại của các tệp tin thực thi tùy chỉnh chưa được kiểm chứng.
+
+Để thích ứng với môi trường phòng thủ này, các nhóm tấn công có chủ đích (Advanced Persistent Threat - APT) đã dịch chuyển mạnh mẽ sang chiến thuật \textbf{Living-off-the-Land (LotL)}. LotL là kỹ thuật sử dụng trực tiếp các công cụ quản trị hệ thống hợp lệ, đã được ký số và có sẵn trên hệ điều hành mục tiêu (như \texttt{powershell.exe}, \texttt{wmi.exe}, \texttt{certutil.exe}, \texttt{rundll32.exe}) để thực hiện chuỗi hành vi tấn công \cite{hassan2020tactical}. 
+
+\subsection{Cơ chế vượt qua các lớp phòng thủ truyền thống}
+Bản chất của LotL dựa trên việc lợi dụng các tiến trình "lõi" của Windows, do đó kẻ tấn công tự động kế thừa đặc quyền và sự tin cậy (\textit{Trust}) từ hệ điều hành:
+\begin{itemize}
+    \item \textbf{Kháng phân tích tĩnh:} Vì không có tệp tin độc hại nào được ghi xuống ổ cứng (\textit{Fileless}), các cơ chế quét mã băm và kiểm tra chữ ký số bị vô hiệu hóa hoàn toàn. Tiến trình thực thi mã độc chính là tiến trình hệ thống hợp lệ.
+    \item \textbf{Trà trộn tiến trình (Process Blending):} Kẻ tấn công thường chèn mã độc vào bộ nhớ của một tiến trình đang chạy (Process Injection/Hollowing) hoặc khởi chạy tiến trình hợp lệ với các tham số dòng lệnh được mã hóa (Ví dụ: \texttt{powershell -enc <base64>}). Nhìn từ bên ngoài, hệ thống chỉ thấy một hoạt động quản trị mạng hoặc hệ thống thông thường.
+    \item \textbf{Hòa quyện mạng (Network Blending):} Các kết nối Command and Control (C2) được thiết lập qua các tiến trình hợp pháp vốn có chức năng giao tiếp mạng tự nhiên (như \texttt{svchost.exe} thực hiện cập nhật hệ thống hoặc \texttt{certutil.exe} tải chứng chỉ số).
+\end{itemize}
+
+\subsection{Khoảng trống ngữ nghĩa (Semantic Gap) trong phân tích log}
+Việc chuyển dịch sang LotL tạo ra một rào cản vô cùng lớn đối với hệ thống phân tích nhật ký, được gọi là \textbf{Khoảng trống ngữ nghĩa (Semantic Gap)}. Đây là khoảng cách giữa "hành động cấp thấp" được ghi nhận trong log và "mục tiêu ngữ nghĩa cấp cao" của hành động đó.
+Khi một tiến trình \texttt{powershell.exe} gọi một lệnh kết nối mạng ra bên ngoài, hành động cấp thấp này không mang bản chất độc hại tự thân. Nó hoàn toàn có thể là một script do quản trị viên hệ thống (Sysadmin) thiết lập để tải cấu hình tự động. Hệ thống học máy chỉ nhìn thấy một chuỗi dữ liệu nhị phân hoặc log văn bản, nhưng không thể có được bức tranh toàn cảnh về "ý định" đằng sau câu lệnh.
+
+Khoảng trống ngữ nghĩa này khiến các mô hình học máy bị rối loạn. Thay vì nhận diện các đặc điểm rõ ràng rành mạch của mã độc (như cấu trúc PE bất thường hay thư viện khả nghi), mô hình phải xử lý dữ liệu chứa toàn bộ các thuộc tính của một phần mềm hợp lệ, dẫn đến sự bùng nổ của Tỷ lệ báo động giả (False Positive Rate - FPR) và sự sụp đổ hiệu năng trong môi trường thực tế. Đây chính là tiền đề sống còn đòi hỏi sự ra đời của một khung đo lường khả năng hòa trộn như BBS, giúp định lượng chính xác sự bất lực của mô hình trước các mức độ ngụy trang LotL.
+
+\section{Lý thuyết học máy không giám sát (uad) và ảo giác hiệu năng}
+\label{section:1.5}
 
 Học máy không giám sát (Unsupervised Anomaly Detection - UAD) là phương pháp cốt lõi để phát hiện các mối đe dọa an ninh chưa biết trước (Zero-day) nhờ khả năng xây dựng mô hình hành vi bình thường (\textit{baseline}) mà không cần gán nhãn dữ liệu tấn công. Các thuật toán UAD truyền thống được chia làm hai hướng tiếp cận chính: dựa trên phân tách biên đơn giản hoặc dựa trên khoảng cách không gian.
 
@@ -159,7 +180,7 @@ LOF là thuật toán phát hiện bất thường dựa trên mật độ cục
 \end{itemize}
 
 \section{Mật độ toàn cục vs cấu trúc phi tham số cục bộ}
-\label{section:1.5}
+\label{section:1.6}
 
 Để giải quyết bài toán mã độc ngụy trang LotL, chúng ta cần phân biệt rõ hai góc nhìn toán học: Khoảng cách toàn cục tham số (Mahalanobis) và Ước lượng mật độ phi tham số cục bộ (KDE).
 
@@ -267,7 +288,7 @@ Nhờ bản chất phi tham số, KDE có khả năng định vị chính xác c
 \end{figure}
 
 \section{Các nghiên cứu liên quan}
-\label{section:1.6}
+\label{section:1.7}
 
 Trong thập kỷ qua, các nghiên cứu nền tảng về chiều sâu dữ liệu (statistical data depth) \cite{liu1993quality, zuo2000general} đã chỉ ra rằng các mô hình tham số (parametric models) có rủi ro lớn trong việc ước lượng cấu trúc thực tế do các giả định chặt chẽ về phân phối. Khoảng cách Mahalanobis, vốn là cốt lõi của nhiều thước đo chiều sâu và có thể được ước lượng mạnh mẽ (robust) thông qua các thuật toán như Minimum Covariance Determinant (MCD) \cite{rousseeuw1999fast}, mang lại tính ổn định toàn cục xuất sắc. Tuy nhiên, chúng thường thiếu khả năng định vị các cấu trúc phi tuyến phức tạp tại không gian cục bộ. Mặc dù luận văn có kế thừa lý thuyết này để đề xuất khung đo lường DensPct\_Mahal, nghiên cứu cũng làm rõ rằng DensPct\_Mahal tập trung vào việc áp dụng trực tiếp khái niệm này vào không gian hỗn hợp đặc trưng an toàn thông tin để bộc lộ các yếu điểm cấu trúc.
 
