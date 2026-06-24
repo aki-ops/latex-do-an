@@ -60,7 +60,11 @@
 
 % ===================================================
 
-\renewcommand{\bibname}{Danh_sach_tai_lieu_tham_khao} 
+\renewcommand{\bibname}{TÀI LIỆU THAM KHẢO}
+\renewcommand{\contentsname}{MỤC LỤC}
+\renewcommand{\listfigurename}{DANH MỤC HÌNH VẼ}
+\renewcommand{\listtablename}{DANH MỤC BẢNG BIỂU}
+
 \usepackage[backend=biber,style=ieee]{biblatex}  %backend=biber is 'better'
 
 \renewcommand\appendixname{PHỤ LỤC}
@@ -86,19 +90,18 @@
 \setlength{\headheight}{18pt}
 \addtolength{\topmargin}{-8pt}
 
-\def \TITLE{ĐỒ ÁN TỐT NGHIỆP}
+\def \TITLE{ĐỀ XUẤT KHUNG ĐO LƯỜNG ĐỘ HÒA TRỘN HÀNH VI CỦA TIẾN TRÌNH ĐỘC HẠI TRÊN WINDOWS}
 \def \AUTHOR{HOÀNG ANH TUẤN}
 
 % ===================================================
-\titleformat{\chapter}[hang]{\centering\bfseries}{CHƯƠNG \thechapter.\ }{0pt}{}[]
 
 \titleformat 
     {\chapter} % command
     [hang] % shape
-    {\centering\bfseries} % format
+    {\centering\bfseries\Large} % format
     {CHƯƠNG \thechapter.\ } % label
     {0pt} %sep
-    {} % before
+    {\MakeUppercase} % before
     [] % after
 \titlespacing*{\chapter}{0pt}{-20pt}{20pt}
 
@@ -207,7 +210,7 @@
 \titlecontents{chapter}
     [0.0cm]             % left margin
     {\bfseries\vspace{0.3cm}}                  % above code
-    {{\bfseries{\scshape}
+    {{\bfseries
     CHƯƠNG \thecontentslabel.\ }}
     % numbered format
     {}         % unnumbered format
@@ -252,7 +255,7 @@
 % \phantomsection\addcontentsline{toc}{section}{\numberline {} DANH MỤC BẢNG BIỂU}
 
 \glsaddall 
- \renewcommand*{\glossaryname}{Danh sách thuật ngữ}
+ \renewcommand*{\glossaryname}{DANH SÁCH THUẬT NGỮ}
 \renewcommand*{\acronymname}{DANH MỤC THUẬT NGỮ VÀ TỪ VIẾT TẮT}
 \renewcommand*{\entryname}{Thuật ngữ}
 \renewcommand*{\descriptionname}{Ý nghĩa}
@@ -278,8 +281,8 @@
 
 \chapter*{MỞ ĐẦU}
 \label{chapter:Introduction}
-\addcontentsline{toc}{chapter}{Mở đầu}
-\subfile{Chuong/Mo_dau} % Phần mở đầu
+\addcontentsline{toc}{chapter}{MỞ ĐẦU}
+\subfile{Chuong/Mo_dau_New} % Phần mở đầu
 
 
 \newpage
@@ -291,13 +294,13 @@
 
 \newpage
 %\pagestyle{fancy} % Áp dụng header và footer
-\chapter{THIẾT KẾ KHUNG ĐO LƯỜNG VÀ KIẾN TRÚC}
+\chapter{KHUNG ĐO LƯỜNG BBS}
 \label{chapter:Methodology}
 \subfile{Chuong/Chuong_2_Thiet_ke_he_thong}
 
 \newpage
 %\pagestyle{fancy} % Áp dụng header và footer
-\chapter{THỰC NGHIỆM VÀ PHÂN TÍCH KẾT QUẢ}
+\chapter{THỰC NGHIỆM VÀ ĐÁNH GIÁ}
 \label{chapter:Experiment}
 \subfile{Chuong/Chuong_3_Thuc_nghiem_va_danh_gia}
 
@@ -305,7 +308,7 @@
 %\pagestyle{fancy} % Áp dụng header và footer
 \chapter*{KẾT LUẬN VÀ HƯỚNG PHÁT TRIỂN}
 \label{chapter:conclusion}
-\addcontentsline{toc}{chapter}{Kết luận và hướng phát triển}
+\addcontentsline{toc}{chapter}{KẾT LUẬN VÀ HƯỚNG PHÁT TRIỂN}
 \subfile{Chuong/Chuong_5_Ket_luan}
 
 %\newpage

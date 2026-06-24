@@ -1,0 +1,61 @@
+2. Kỹ thuật tấn công Living-off-the-Land (LotL) và bài toán ngụy trang
+Qui cách đóng quyển
+Đặc tả use case ``Đăng ký làm thẻ mượn''
+Tài liệu tham khảo
+Độ sâu Toàn cục qua Khoảng cách Mahalanobis
+Mô hình Chứng minh Tồn tại: KDE\_Joint
+Sự trung thực Học thuật: Hạn chế và Failure Mode của KDE\_Joint
+Đóng góp 2: Phát hiện và chứng minh Local Pockets
+Ngành học
+Empirical Cumulative Distribution Functions (ECOD)
+Cấu trúc Phi tham số Cục bộ qua KDE
+Bác bỏ Giả định Biên (Phân tích DDO)
+Biểu diễn tiến trình và Chuẩn hóa đặc trưng
+Đóng góp 1: Thước đo độ khó nội tại DensPct\_Mahal
+Phá vỡ Giới hạn bằng Bằng chứng Tồn tại (KDE\_Joint)
+Phép thử ngây thơ: Độ chồng lấn biên DDO
+Thiết kế Không gian Đặc trưng Hành vi V10
+Phân loại bất thường theo mô hình Chandola
+Đánh dấu (bullet) và đánh số (numering)
+Biểu diễn Đồ thị Tiến trình
+Thiết lập Thực nghiệm và Tập dữ liệu
+Vấn đề tái sử dụng PID (PID reuse)
+Nền tảng Windows Event Logging và Nhật ký sự kiện Sysmon
+Hai Đóng góp Học thuật Nổi bật của Luận văn
+Ảnh hưởng của Concept Drift và Cập nhật hệ thống
+Nghịch lý Cấu trúc: Global Bias và Local Pockets
+1. Bối cảnh an toàn thông tin trên endpoint và Sysmon
+Lý thuyết Học máy không giám sát (UAD) và Ảo giác Hiệu năng
+Chuẩn hóa đường dẫn tiến trình
+4. Phát biểu bài toán \& Mục tiêu nghiên cứu
+Kết luận và Đánh giá chung
+Các nghiên cứu liên quan
+Cấu hình hệ thống thực nghiệm
+6. Đóng góp của luận văn
+Nhận xét 2.2 (Threshold Calibration Identity)
+Danh mục 11 tập dữ liệu thực nghiệm
+Phân tích nhạy Leave-One-Out
+Cách thêm bảng
+Đánh giá Tác động Cấu trúc (Phân tích DensPct\_Mahal)
+Tích phân Monte Carlo
+Cách viết phương trình và công thức toán học
+7. Bố cục luận văn
+Giới hạn của đề tài
+Hướng phát triển trong tương lai
+Mật độ Toàn cục vs Cấu trúc Phi tham số Cục bộ
+3. Khoảng trống nghiên cứu và giới hạn hiện tại
+Phân tích Nguyên nhân lỗi (Failure Mode)
+Quy định chung
+Định nghĩa hình thức
+Bằng chứng Trực tiếp cho Local Pockets
+Phương pháp Chọn ngưỡng (Threshold Protocol)
+Mô hình Phát hiện Đa Cảm biến SRAH
+Đặc tả use case ``Thống kê tình hình mượn sách''
+Isolation Forest (iForest)
+Khung đo lường Cốt lõi: Độ sâu Toàn cục (DensPct\_Mahal)
+Phương pháp luận tạo sinh Dữ liệu Tổng hợp (KB Datasets)
+Hiện tượng sụp đổ sớm F1-Score do Hạn chế của AUC
+Ablation Study trên Không gian V10
+Chèn hình ảnh
+5. Đối tượng và phạm vi nghiên cứu
+Local Outlier Factor (LOF)

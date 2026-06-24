@@ -1,60 +1,89 @@
 \documentclass[../main.tex]{subfiles}
 \begin{document}
 
-Chương này trình bày chi tiết về phương pháp luận và cơ sở toán học để định lượng độ khó của dữ liệu mã độc ngụy trang. Trước hết, chúng tôi mô tả mô hình phát hiện đa cảm biến SRAH đóng vai trò là đại diện cho hệ thống phát hiện dựa trên phân phối biên (Marginal). Sau đó, chúng tôi thiết kế không gian đặc trưng V10 và cơ chế Controlled Injection tạo sinh dữ liệu. Trọng tâm của chương là toán học hóa thước đo DDO (phân phối biên) và khung đo lường độ chui sâu toàn cục DensPct\_Mahal (phân phối đồng thời), đi kèm thiết lập Nhận xét về điểm neo hiệu chỉnh ROC (Threshold Calibration Identity), trước khi đề xuất mô hình phi tham số KDE\_Joint để khai thác các cấu trúc rỗng cục bộ (Local Pockets).
+Chương này trình bày chi tiết phương pháp luận cốt lõi của đồ án: thiết kế Khung đo lường Behavioral Blending Score (BBS). Trước tiên, chương khảo sát sự thất bại của các bộ phát hiện truyền thống dưới góc nhìn toán học, từ đó xây dựng các công thức đo lường chính xác mức độ ngụy trang. Tiếp đến, luồng xử lý (pipeline) của hệ thống được thiết kế hoàn chỉnh. Cuối cùng, môi trường thử nghiệm thực tế được định nghĩa thông qua không gian đặc trưng V10, các kịch bản tạo sinh dữ liệu và mô hình SRAH.
 
-\section{Mô hình Phát hiện Đa Cảm biến SRAH}
+\section{Khảo sát thực tế: Lý giải sự thất bại của UAD dưới góc nhìn toán học}
 \label{section:2.1}
 
-Hệ thống SRAH (Security Response \& Analysis Hub) được thiết kế như một **mô hình phát hiện bất thường không giám sát đa lớp (Multi-sensor UAD Detector)** nhằm kết hợp các tín hiệu bất thường biên để nâng cao năng lực phát hiện mã độc ngụy trang. Kiến trúc của SRAH bao gồm các tầng chức năng chính:
+Sự sụp đổ của các mô hình Học máy không giám sát (UAD) trước các cuộc tấn công ngụy trang (LotL) không phải do cấu hình tham số, mà bắt nguồn từ những điểm mù toán học trong cấu trúc thuật toán.
 
-\begin{itemize}
-    \item \textbf{Layer 0 (Ingestion Engine):} Triển khai bằng ngôn ngữ Rust để tối ưu hóa hiệu năng, thực hiện đọc trực tiếp tệp nhị phân sự kiện Windows \texttt{.evtx}, parse song song các trường dữ liệu và truyền trực tiếp vào bộ nhớ RAM qua thư viện Native Binding \textbf{PyO3} nhằm loại bỏ nút thắt cổ chai I/O.
-    \item \textbf{Layer 2 (Graph Builder):} Sử dụng định danh duy nhất \textbf{ProcessGuid} trích xuất từ sự kiện Sysmon Event ID 1 để xây dựng đồ thị quan hệ tiến trình có hướng (DAG), giúp giải quyết hoàn toàn vấn đề tái sử dụng PID (PID reuse) của hệ điều hành Windows và thiết lập phả hệ tiến trình chính xác.
-    \item \textbf{Layer 3 (Multi-sensor Scoring):} Tính toán độc lập 4 cảm biến bất thường biên dựa trên phân loại của Chandola:
-    \begin{itemize}
-        \item \textbf{Bất thường điểm ($P$):} Đo độ hiếm nội tại của tiến trình dựa trên tần suất xuất hiện dòng lệnh.
-        \item \textbf{Bất thường ngữ cảnh ($C$):} Đo mức độ bất thường của quan hệ cha-con (ví dụ: một tiến trình hệ thống sinh ra một trình thông dịch như powershell).
-        \item \textbf{Bất thường chuỗi ($Seq$):} Đo mức độ bất ngờ của phả hệ tiến trình ngược về gốc sử dụng xích Markov bậc 2.
-        \item \textbf{Bất thường tập thể ($Col$):} Đo tính tuần hoàn và cường độ hoạt động mạng của tiến trình.
-    \end{itemize}
-    Các điểm số này được hiệu chuẩn chéo qua hệ số đồng thuận Corroboration Index (CI) để đưa ra điểm rủi ro tổng hợp cuối cùng.
-\end{itemize}
+\subsection{Sự thất bại của độ chồng lấn biên (Marginal Overlap)}
+Trong nhiều nghiên cứu thực nghiệm, sự chồng lấn ở các phân phối biên đơn chiều thường được sử dụng làm cơ sở để đo lường độ khó của dữ liệu. Chỉ số tiêu biểu là **DDO (Degree of Distribution Overlap)**:
+\begin{equation}
+    DDO = \frac{1}{d} \sum_{s=1}^{d} \int \min\left( f_{a,s}(x_s),\ f_{b,s}(x_s) \right) dx_s
+\end{equation}
+Tuy nhiên, DDO giả định các đặc trưng hoạt động hoàn toàn độc lập với nhau. Trong thực tế, kẻ tấn công LotL ngụy trang để từng đặc trưng riêng lẻ trông hoàn toàn bình thường (DDO rất cao), nhưng sự kết hợp đồng thời của các đặc trưng đó lại là một sự kiện bất thường. Do đó, DDO không thể lý giải chính xác nguyên nhân thất bại của các thuật toán. Các thuật toán như iForest hay ECOD dựa trên chia cắt biên (Marginal Splits) đều bị vô hiệu hóa vì điểm mù này.
 
-SRAH đại diện cho lớp mô hình UAD tích hợp đa cảm biến tiên tiến. Việc so sánh SRAH với các baseline khác ở Chương 3 giúp kiểm chứng xem cơ chế phối hợp đa cảm biến biên (Marginal Sensors) có thể giúp hệ thống vượt qua được điểm mù cấu trúc hay không.
+\subsection{Nghịch lý cấu trúc: Thiên kiến toàn cục và lỗ hổng cục bộ}
+Để khắc phục điểm mù biên, các phương pháp không gian (như khoảng cách Mahalanobis) được đề xuất để đo lường toàn cục. Tuy nhiên, điều này dẫn đến một nghịch lý toán học: **Nghịch lý cấu trúc giữa Thiên kiến trung tâm toàn cục (Global Center Bias) và Lỗ hổng cục bộ (Local Pockets)**.
 
-\section{Thiết kế Không gian Đặc trưng Hành vi V10}
+Một tiến trình độc hại có thể chui sâu vào trung tâm dữ liệu lành tính (có độ sâu Mahalanobis lớn, được hệ thống coi là an toàn tuyệt đối). Tuy nhiên, nếu xét bằng ước lượng mật độ nhân phi tham số (Kernel Density Estimation - KDE) để quan sát chi tiết cấu trúc cục bộ, tiến trình đó lại nằm trong một vùng không gian cực kỳ thưa thớt (Local Pocket) — nơi gần như không có tiến trình lành tính nào hoạt động. Sự thâm nhập này tạo ra thiên kiến toàn cục, khiến các mô hình học máy bị qua mặt hoàn toàn bởi xấp xỉ phân phối.
+
+\section{Xây dựng khung đo lường toán học}
 \label{section:2.2}
 
-Để biểu diễn hành vi của mỗi tiến trình trên Windows, nghiên cứu thiết kế một không gian đặc trưng hành vi hỗn hợp 10 chiều ($V_{10}$). Không gian này bao phủ cả ba khía cạnh hoạt động: nội tại tiến trình (spatial), phả hệ thực thi (sequential), và giao tiếp mạng (collective).
+Dựa trên các khảo sát toán học, khung đo lường **Behavioral Blending Score (BBS)** được thiết kế nhằm lượng hóa chính xác độ sâu toàn cục của mã độc ngụy trang.
 
-Vector đặc trưng của tiến trình được định nghĩa:
+\subsection{Hiện tượng hòa trộn và khoảng cách Mahalanobis}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\textwidth]{../images/blending_mahalanobis.png}
+\caption{Mô phỏng toán học hiện tượng Hòa trộn (Blending) và khoảng cách Mahalanobis.}
+\label{fig:blending_mahalanobis}
+\end{figure}
+
+Khoảng cách Mahalanobis của một vector đặc trưng $x$ đối với phân phối nền (lành tính) được tính bằng:
 \begin{equation}
-    V_{10} = [v_1, v_2, v_3, v_4, v_5, v_6, v_7, v_8, v_9, v_{10}]
+    D_M(x) = \sqrt{(x - \mu)^T \Sigma^{-1} (x - \mu)}
 \end{equation}
-Cấu hình kiểu dữ liệu của các chiều tuân theo chuỗi ký hiệu hỗn hợp \texttt{uuuuccooou} (u - unordered categorical/binary, c - continuous, o - ordered categorical/ordinal):
-\begin{itemize}
-    \item $v_1$ (\texttt{has\_network} - u): Trạng thái kết nối mạng nhị phân $\{0, 1\}$.
-    \item $v_2$ (\texttt{has\_injection} - u): Dấu hiệu Code Injection nhị phân $\{0, 1\}$ trích xuất từ EID 8.
-    \item $v_3$ (\texttt{has\_file\_drop} - u): Trạng thái tạo tệp tin nhị phân $\{0, 1\}$ trích xuất từ EID 11.
-    \item $v_4$ (\texttt{has\_reg\_mod} - u): Trạng thái ghi Registry nhị phân $\{0, 1\}$ trích xuất từ EID 13.
-    \item $v_5$ (\texttt{nif\_binary} - c): Chỉ số hiếm của tên tiến trình thực thi trong đoạn $[0, 1]$, tính dựa trên tần suất xuất hiện trong log lành tính nền.
-    \item $v_6$ (\texttt{nif\_pair} - c): Chỉ số hiếm của cặp quan hệ cha-con trong đoạn $[0, 1]$.
-    \item $v_7$ (\texttt{entropy\_bin} - o): Entropy của Command Line được rời rạc hóa thành 3 mức $\{0, 1, 2\}$ biểu thị mức độ ngụy trang hoặc chứa mã hóa.
-    \item $v_8$ (\texttt{cmd\_len\_bin} - o): Độ dài Command Line được rời rạc hóa thành 3 mức $\{0, 1, 2\}$.
-    \item $v_9$ (\texttt{child\_count\_bin} - o): Số lượng tiến trình con do tiến trình này sinh ra, rời rạc hóa thành $\{0, 1, 2\}$.
-    \item $v_{10}$ (\texttt{parent\_sigma\_bin} - u): Trạng thái tiến trình cha có bị gán nhãn rủi ro cao bởi luật Sigma hay không nhị phân $\{0, 1\}$.
-\end{itemize}
+Trong đó $\mu$ là vector trung bình và $\Sigma$ là ma trận hiệp phương sai. Hình \ref{fig:blending_mahalanobis} mô phỏng cách mã độc ngụy trang lọt sâu vào các vòng elip hiệp phương sai, hòa trộn hoàn toàn vào dữ liệu bình thường.
+
+\subsection{Thước đo cốt lõi DensPct\_Mahal}
+Để chuyển đổi khoảng cách Mahalanobis thành một hàm mật độ (probability density), đồ án định nghĩa hàm $f_{Mahal}(x)$ dựa trên phân phối Gaussian đa chiều. Giả sử $F_b(t)$ là hàm phân phối tích lũy (CDF) của mật độ dữ liệu lành tính, thước đo độ sâu toàn cục DensPct\_Mahal cho tập dữ liệu độc hại $X_a$ được xác định:
+\begin{equation}
+    DensPct\_Mahal = \text{Median} \left[ F_b(f_{Mahal}(X_a)) \right]
+\end{equation}
+Chỉ số DensPct\_Mahal lượng hóa tỷ lệ phần trăm dữ liệu bình thường có mật độ thấp hơn hoặc bằng trung vị của dữ liệu tấn công. Giá trị này đóng vai trò là điểm neo hiệu chỉnh (Threshold Calibration) tương đương với Tỷ lệ báo động giả tại mức độ nhạy 50\% ($FPR@TPR_{0.5}$) của các hệ thống dựa trên khoảng cách.
+
+\section{Thiết kế luồng xử lý (Pipeline) đo lường}
+\label{section:2.3}
+
+Để triển khai các công thức toán học vào thực tiễn, một luồng xử lý hệ thống (Pipeline) được thiết kế khép kín từ khâu thu thập dữ liệu thô đến khi trích xuất điểm số đo lường. Sơ đồ kiến trúc tổng thể được thể hiện trong Hình \ref{fig:bbs_pipeline}.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{../images/bbs_pipeline.png}
+\caption{Sơ đồ luồng xử lý (Pipeline) của Khung đo lường BBS.}
+\label{fig:bbs_pipeline}
+\end{figure}
+
+Luồng xử lý bao gồm các giai đoạn:
+1. **Raw Windows Event Logs:** Thu thập và phân tích cú pháp tệp `.evtx` của Sysmon.
+2. **Process Extraction:** Tái tạo đồ thị tiến trình có hướng dựa trên ProcessGuid để giải quyết vấn đề PID tái sử dụng.
+3. **V10 Feature Vectorization:** Biến đổi các hoạt động hành vi thành vector đặc trưng đa chiều hỗn hợp.
+4. **Mahalanobis Distance Calc:** Thực thi tính toán ma trận hiệp phương sai nghịch đảo và đo lường khoảng cách toàn cục.
+5. **BBS Score Output:** Tính toán CDF thực nghiệm và xuất ra điểm số DensPct\_Mahal để đánh giá độ khó.
+
+\section{Thiết kế môi trường thử nghiệm}
+\label{section:2.4}
+
+Khung đo lường lý thuyết cần được triển khai và kiểm chứng trên một môi trường dữ liệu thực tiễn và khắt khe.
+
+\subsection{Đề xuất Không gian đặc trưng hành vi V10}
+Không gian đặc trưng hành vi hỗn hợp 10 chiều ($V_{10}$) được thiết kế nhằm bao phủ toàn bộ khía cạnh hoạt động: nội tại tiến trình (spatial), phả hệ thực thi (sequential), và giao tiếp mạng (collective).
+Vector đặc trưng được định nghĩa: $V_{10} = [v_1, v_2, ..., v_{10}]$, tuân theo cấu hình kiểu dữ liệu hỗn hợp \texttt{uuuuccooou} (u: nhị phân, c: liên tục, o: thứ tự):
 
 \begin{table}[H]
 \centering
 \small
 \setlength{\tabcolsep}{4pt}
+\caption{Ma trận không gian đặc trưng hành vi $V_{10}$ (cấu hình hỗn hợp \texttt{uuuuccooou}).}
 \begin{tabular}{|>{\centering\arraybackslash}p{1.0cm}|p{4.0cm}|p{1.8cm}|p{1.8cm}|p{4.6cm}|}
 \hline
 \textbf{Ký hiệu} & \textbf{Tên Đặc trưng} & \textbf{Kiểu} & \textbf{Nguồn EID} & \textbf{Ý nghĩa Hành vi} \\ \hline
 $v_1$ & \texttt{has\_network} & u (Binary) & EID 3 & Tiến trình sinh kết nối mạng \\ \hline
-$v_2$ & \texttt{has\_injection} & u (Binary) & EID 8 & Có hành vi CreateRemoteThread (bơm mã) \\ \hline
+$v_2$ & \texttt{has\_injection} & u (Binary) & EID 8 & Có hành vi bơm mã (CreateRemoteThread) \\ \hline
 $v_3$ & \texttt{has\_file\_drop} & u (Binary) & EID 11 & Ghi nhận tạo file mới trên đĩa cứng \\ \hline
 $v_4$ & \texttt{has\_reg\_mod} & u (Binary) & EID 13 & Thay đổi registry để thiết lập duy trì \\ \hline
 $v_5$ & \texttt{nif\_binary} & c (Continuous) & EID 1 & Độ hiếm của tên tiến trình nền \\ \hline
@@ -62,156 +91,20 @@ $v_6$ & \texttt{nif\_pair} & c (Continuous) & EID 1 & Độ hiếm của quan h�
 $v_7$ & \texttt{entropy\_bin} & o (Ordinal) & EID 1 & Entropy dòng lệnh (ngụy trang/mã hóa) \\ \hline
 $v_8$ & \texttt{cmd\_len\_bin} & o (Ordinal) & EID 1 & Độ dài dòng lệnh phân theo khoảng \\ \hline
 $v_9$ & \texttt{child\_count\_bin} & o (Ordinal) & EID 1 & Số lượng tiến trình con được khởi tạo \\ \hline
-$v_{10}$ & \texttt{parent\_sigma\_bin} & u (Binary) & EID 1 & Cha bị phát hiện bởi tập luật tĩnh Sigma \\ \hline
+$v_{10}$ & \texttt{parent\_sigma\_bin} & u (Binary) & EID 1 & Cha bị phát hiện bởi luật tĩnh Sigma \\ \hline
 \end{tabular}
-\caption{Ma trận không gian đặc trưng hành vi $V_{10}$ (cấu hình hỗn hợp \texttt{uuuuccooou})}
 \label{tab:v10_space}
 \end{table}
 
-Việc sử dụng cấu hình hỗn hợp \texttt{uuuuccooou} là một thiết kế bắt buộc để mô phỏng chính xác các loại dữ liệu thực tế thu thập từ log hệ thống, đồng thời đòi hỏi các bộ ước lượng mật độ phải có khả năng xử lý biến hỗn hợp (như Mixed Product Kernel) thay vì các khoảng cách khoảng cách phẳng thông thường.
+\subsection{Cơ chế bơm dữ liệu có kiểm soát (Controlled Injection)}
+Để tạo ra các kịch bản đo lường đa dạng, cơ chế **Controlled Injection** được triển khai. Cơ chế này lấy một tập log lành tính làm môi trường nền (\textit{benign baseline}), sau đó bơm trực tiếp các tiến trình tấn công mô phỏng (khoảng $20 \sim 50$ tiến trình) với tỷ lệ cực thấp ($\ll 0.1\%$). Tám tập dữ liệu tổng hợp (từ KB1 đến KB8) được chế tác để mô phỏng chính xác các kỹ thuật MITRE ATT\&CK với mức độ ngụy trang tăng dần (từ việc gọi macro đơn giản đến di chuyển ngang không tập tin).
 
-\section{Phương pháp luận tạo sinh Dữ liệu Tổng hợp (KB Datasets)}
-\label{section:2.3}
-
-Để kiểm chứng toàn diện năng lực của các bộ đo lường và thuật toán phát hiện ở nhiều mức độ khó khác nhau, chúng tôi thiết kế cơ chế \textbf{Controlled Injection} (Bơm dữ liệu có kiểm soát) để tạo ra 8 tập dữ liệu tấn công tổng hợp (từ KB1 đến KB8). 
-
-Phương pháp Controlled Injection hoạt động bằng cách lấy một tập log Sysmon lành tính làm môi trường nền (\textit{benign baseline}), sau đó tiến hành bơm trực tiếp $N = 20 \sim 50$ tiến trình tấn công mô phỏng. Để tránh việc mô hình học thuộc lòng (overfitting) vào một dấu vết cố định, các đặc trưng liên tục của tiến trình tấn công không được gán tĩnh mà được sinh ngẫu nhiên (sampled) từ một dải phân phối đặc trưng cho từng chiến thuật. Hơn nữa, tỷ lệ lớp mã độc luôn được duy trì ở mức cực kỳ thấp ($\ll 0.1\%$) so với hàng chục ngàn log nền nhằm mô phỏng chính xác môi trường mất cân bằng nghiêm trọng của SOC thực tế. Các vector đặc trưng $V_{10}$ của tiến trình tấn công được chế tác thủ công để mô phỏng chính xác các kỹ thuật trong ma trận MITRE ATT\&CK với các mức độ ngụy trang tăng dần:
+\subsection{Kịch bản thử nghiệm các mô hình UAD}
+Để kiểm chứng hiệu quả của khung đo lường BBS trong việc dự đoán sự sụp đổ của AI, các tập dữ liệu sẽ được đưa qua 4 mô hình phát hiện:
 \begin{itemize}
-    \item \textbf{kb1\_macro} (Office Macro): Mô phỏng mã độc thực thi qua Macro trong tài liệu Office. Tiến trình cha là Word/Excel và tiến trình con sinh ra là \texttt{cmd.exe} hoặc \texttt{powershell.exe}. Đặc trưng nhị phân được thiết lập cố định dựa trên quan hệ cha-con bất thường này.
-    \item \textbf{kb2\_fileless} (Fileless Attack): Mô phỏng tấn công phi tập tin, thực thi mã độc hoàn toàn trên bộ nhớ RAM. Đặc trưng $v_3$ (\texttt{has\_file\_drop}) được gán bằng 0 nhằm lẩn tránh các bộ dò quét file tĩnh.
-    \item \textbf{kb3\_wmiburst} (WMI Burst): Lạm dụng công cụ WMI của hệ điều hành để trinh sát hệ thống, tạo ra hàng loạt tiến trình con chạy truy vấn trong thời gian cực ngắn.
-    \item \textbf{kb4\_inject} (Process Injection): Mô phỏng hành vi bơm mã độc vào các tiến trình hệ thống đáng tin cậy (như \texttt{lsass.exe}, \texttt{svchost.exe}). Đặc trưng $v_2$ (\texttt{has\_injection}) được gán bằng 1.
-    \item \textbf{kb5\_slow} (Slow Lateral Movement): Kẻ tấn công di chuyển ngang giữa các máy trạm một cách chậm rãi. Cường độ mạng được ép xuống mức cực thấp để lẩn tránh các luật giới hạn tần suất (\textit{rate-limiting}).
-    \item \textbf{kb6\_recon} (Reconnaissance): Thực hiện dò tìm thông tin hệ thống, tài khoản, cấu hình mạng thông qua các câu lệnh tích hợp sẵn.
-    \item \textbf{kb7\_ransom} (Ransomware): Mô phỏng mã độc tống tiền thực hiện mã hóa file hàng loạt, tạo ra tần suất I/O và tạo tệp tin cực cao trên đĩa cứng.
-    \item \textbf{kb8\_lateral} (Lateral Movement): Mô phỏng hành vi di chuyển ngang sử dụng các công cụ quản trị từ xa, tạo ra kết nối mạng phân tán và thưa thớt trên toàn hệ thống.
+    \item \textbf{iForest \& ECOD}: Các mô hình truyền thống đại diện cho thiên kiến phân phối biên (Marginal Splits).
+    \item \textbf{SRAH}: Mô hình tích hợp đa cảm biến biên (Multi-sensor UAD), dùng để đối chiếu khả năng khắc phục điểm mù.
+    \item \textbf{KDE\_Joint}: Mô hình đề xuất sử dụng ước lượng mật độ nhân đồng thời (Mixed Product KDE) phi tham số. Mô hình này hoạt động như một bằng chứng tồn tại (Existence Proof) để khẳng định mã độc ngụy trang có thể bị bóc trần nếu khai thác đúng các lỗ hổng mật độ cục bộ (Local Pockets).
 \end{itemize}
-
-\begin{table}[H]
-\centering
-\small
-\setlength{\tabcolsep}{4pt}
-\begin{tabular}{|p{2.2cm}|p{3.5cm}|p{3.0cm}|p{4.5cm}|}
-\hline
-\textbf{Kịch bản} & \textbf{Kỹ thuật MITRE} & \textbf{Chiến thuật Ngụy trang} & \textbf{Đặc trưng chế tác trên $V_{10}$} \\ \hline
-\textbf{kb1\_macro} & T1204.002 (User Execution) & Lệnh thực thi qua Office Document & Cha-con bất thường, gán cứng $v_6 \to 1.0$ \\ \hline
-\textbf{kb2\_fileless} & T1059.001 (PowerShell) & Thực thi trên RAM, không tạo file & Gán $v_3$ (\texttt{has\_file\_drop}) = 0 \\ \hline
-\textbf{kb3\_wmiburst} & T1047 (WMI) & Lạm dụng WMI trinh sát đồng loạt & Tăng $v_9$ (\texttt{child\_count}) lên mức cực đại \\ \hline
-\textbf{kb4\_inject} & T1055 (Process Injection) & Bơm mã vào tiến trình đáng tin cậy & Kích hoạt $v_2$ (\texttt{has\_injection}) = 1 \\ \hline
-\textbf{kb5\_slow} & T1021.002 (SMB/Windows Admin) & SMB Session di chuyển ngang chậm & Giảm tần suất mạng ($v_1 \approx 0$) tránh rate-limit \\ \hline
-\textbf{kb6\_recon} & T1082 (System Info Discovery) & Lệnh truy vấn cấu hình có sẵn & $v_5$ và $v_6$ (độ hiếm) trung bình, DDO cao \\ \hline
-\textbf{kb7\_ransom} & T1486 (Data Encrypted) & Mã hóa tệp tin hàng loạt & Tăng tần suất I/O và ghi tệp ($v_3 = 1, v_4 = 1$) \\ \hline
-\textbf{kb8\_lateral} & T1021 (Remote Services) & Remote Shell di chuyển ngang phân tán & Tạo đặc trưng thưa thớt, mạng phân tán \\ \hline
-\end{tabular}
-\caption{Đối chiếu các kịch bản Controlled Injection với kỹ thuật MITRE ATT\&CK và cơ chế chế tác đặc trưng}
-\label{tab:controlled_injection_scenarios}
-\end{table}
-
-Cơ chế tạo sinh dữ liệu Controlled Injection này cung cấp một phổ độ khó đa dạng và chuẩn hóa, làm nền tảng vững chắc để đánh giá tương quan của các thước đo.
-
-\section{Phép thử ngây thơ: Độ chồng lấn biên DDO}
-\label{section:2.4}
-
-Trong nhiều nghiên cứu thực nghiệm, sự chồng lấn ở các phân phối biên đơn chiều (Marginal Overlap) thường được sử dụng làm baseline để đánh giá độ khó của dữ liệu. Đại diện tiêu biểu cho phương pháp này là chỉ số **DDO (Degree of Distribution Overlap)**:
-\begin{equation}
-    DDO = \frac{1}{d} \sum_{s=1}^{d} OVL_s
-\end{equation}
-Trong đó $OVL_s$ là diện tích chồng lấn phân phối xác suất đơn chiều của đặc trưng thứ $s$ giữa tập tiến trình độc hại ($f_{a,s}$) và lành tính ($f_{b,s}$):
-\begin{equation}
-    OVL_s = \int \min\left( f_{a,s}(x_s),\ f_{b,s}(x_s) \right) dx_s
-\end{equation}
-
-Hạn chế lớn nhất của thước đo DDO là hiện tượng **Marginal Blindness (Mù biên)**. DDO giả định các đặc trưng hoạt động hoàn toàn độc lập với nhau. Trong thực tế, kẻ tấn công LotL có thể dễ dàng ngụy trang để từng đặc trưng riêng lẻ trông hoàn toàn bình thường (DDO rất cao), nhưng sự kết hợp đồng thời của các đặc trưng đó lại là một sự kiện cực kỳ bất thường trong không gian đồng thời đa chiều ($V_{10}$). Do đó, DDO không thể lý giải chính xác nguyên nhân thất bại của các bộ phát hiện đa chiều.
-
-\section{Khung đo lường Cốt lõi: Độ sâu Toàn cục (DensPct\_Mahal)}
-\label{section:2.5}
-
-Để khắc phục điểm mù biên của DDO, chúng tôi đề xuất sử dụng chỉ số **DensPct\_Mahal** (Density Percentile based on Mahalanobis) để lượng hóa độ sâu toàn cục (Global Depth) của tiến trình độc hại trong phân phối lành tính.
-
-Mặc dù được thiết kế dựa trên ngữ cảnh đặc thù của dữ liệu Sysmon, thước đo này hoàn toàn có thể được tổng quát hóa và áp dụng cho các bài toán phát hiện bất thường khác (như Network Intrusion Detection hay Fraud Detection) miễn là chúng có một không gian đặc trưng hỗn hợp tương đương.
-
-\subsection{Định nghĩa hình thức}
-
-Khoảng cách Mahalanobis của một vector đặc trưng $x$ đối với phân phối của tập dữ liệu nền (lành tính) được tính bằng:
-\begin{equation}
-    D_M(x) = \sqrt{(x - \mu)^T \Sigma^{-1} (x - \mu)}
-\end{equation}
-trong đó $\mu$ là vector trung bình và $\Sigma$ là ma trận hiệp phương sai của dữ liệu nền.
-
-Để chuyển đổi khoảng cách Mahalanobis thành một hàm mật độ (probability density), chúng tôi sử dụng hàm mật độ tương đương $f_{Mahal}(x)$ định nghĩa dựa trên phân phối Gaussian đa chiều:
-\begin{equation}
-    f_{Mahal}(x) = (2\pi)^{-d/2} |\Sigma|^{-1/2} \exp\left(-\frac{1}{2} D_M^2(x)\right)
-\end{equation}
-Giả sử $F_b(t)$ là hàm phân phối tích lũy (CDF) của mật độ dữ liệu lành tính. Đối với một tập hợp các tiến trình độc hại $X_a$, độ sâu toàn cục DensPct\_Mahal được định nghĩa:
-\begin{equation}
-    DensPct\_Mahal = \text{Median} \left[ F_b(f_{Mahal}(X_a)) \right]
-\end{equation}
-
-\textbf{Nhận xét 2.1 (Sự thỏa hiệp Mahalanobis trên dữ liệu hỗn hợp):}
-Cần lưu ý một hạn chế lý thuyết: khoảng cách Mahalanobis giả định dữ liệu tuân theo phân phối Gaussian đa chiều để bảo toàn ý nghĩa hình học của một ellipsoid toàn cục. Trên không gian $V_{10}$, do sự tồn tại của các biến nhị phân Bernoulli và biến thứ bậc (ordinal), việc sử dụng Mahalanobis là một sự thỏa hiệp. Mặc dù mất đi một phần cơ sở hình học chặt chẽ, việc áp dụng ma trận hiệp phương sai trên dữ liệu rời rạc vẫn có khả năng nắm bắt được sự tương quan tuyến tính (tương đương hệ số phi). Thực hành này đã được chấp nhận trong các nghiên cứu thống kê thực nghiệm (Bedrick et al., 2000). Thước đo DensPct\_Mahal được thiết kế như một công cụ đo lường xấp xỉ toàn cục (Global Surrogate), và chính sự thiếu hụt độ nhạy cục bộ của nó trên dữ liệu rời rạc là động lực để chúng tôi thiết kế mô hình phi tham số KDE\_Joint.
-
-\subsection{Nhận xét 2.2 (Threshold Calibration Identity)}
-\textbf{Nhận xét:} Đối với bộ phát hiện bất thường dựa trên khoảng cách Mahalanobis (hoặc bất kỳ bộ phát hiện nào tương đương về mặt cấu trúc toàn cục), DensPct\_Mahal là **điểm hoạt động chính xác (Exact Operating Point)** của đường cong ROC tại mức Tỷ lệ phát hiện $TPR = 0.5$.
-
-\textbf{Giải thích:}
-Để bộ phát hiện đạt được Tỷ lệ phát hiện thực tế $TPR = 0.5$ (phát hiện thành công 50\% số tiến trình độc hại), ngưỡng quyết định (threshold) $\tau^*$ của hệ thống bắt buộc phải được đặt tại trung vị (\textit{median}) của hàm mật độ áp dụng trên tập dữ liệu độc hại $X_a$:
-\begin{equation}
-    \tau^* = \text{Median}[f_{Mahal}(X_a)]
-\end{equation}
-Tại ngưỡng quyết định $\tau^*$ này, Tỷ lệ báo động giả (FPR) của hệ thống chính là xác suất một tiến trình lành tính $X_b$ có mật độ thấp hơn hoặc bằng ngưỡng $\tau^*$:
-\begin{equation}
-    FPR@TPR_{0.5} = P(f_{Mahal}(X_b) \le \tau^*) = F_b(\tau^*) = F_b\left(\text{Median}[f_{Mahal}(X_a)]\right)
-\end{equation}
-Chú ý rằng $F_b(t)$ là một hàm phân phối tích lũy (CDF). Theo tiên đề xác suất, hàm CDF luôn là một hàm đơn điệu không giảm ($monotonically\ non-decreasing$). 
-
-Một định lý cơ bản của Thống kê mô tả chỉ ra rằng phép biến đổi đơn điệu bảo toàn tính trung vị của biến ngẫu nhiên. Tức là, với mọi hàm đơn điệu $g$ và biến ngẫu nhiên $Y$, ta luôn có:
-\begin{equation}
-    g(\text{Median}[Y]) \equiv \text{Median}[g(Y)]
-\end{equation}
-Áp dụng định lý bảo toàn trung vị này với hàm đơn điệu $g \equiv F_b$ và biến ngẫu nhiên $Y \equiv f_{Mahal}(X_a)$, ta có đẳng thức toán học chính xác:
-\begin{equation}
-    F_b\left(\text{Median}[f_{Mahal}(X_a)]\right) \equiv \text{Median}\left[ F_b(f_{Mahal}(X_a)) \right] = DensPct\_Mahal
-\end{equation}
-Do đó, ta chứng minh được:
-\begin{equation}
-    FPR@TPR_{0.5} \equiv DensPct\_Mahal
-\end{equation}
-
-Đẳng thức toán học này là một tính chất cố hữu (inherent property) của bất kỳ hàm đánh giá điểm số (score function) đơn điệu nào. Trong thực tiễn vận hành, định danh này có ý nghĩa như một cơ sở để hiệu chỉnh (calibrate) ngưỡng cảnh báo, cho thấy đường cong ROC của hệ thống phát hiện toàn cục có điểm hoạt động xác định tại tọa độ $(DensPct\_Mahal, 0.5)$.
-
-\section{Nghịch lý Cấu trúc: Global Bias và Local Pockets}
-\label{section:2.6}
-
-Sự ra đời của thước đo DensPct\_Mahal dẫn đến một khám phá quan trọng giải thích cơ chế thất bại cấu trúc của các thuật toán UAD truyền thống: **Nghịch lý Cấu trúc giữa Thiên kiến Trung tâm Toàn cục (Global Center Bias) và Lỗ hổng Cục bộ (Local Pockets)**.
-
-Một điểm dữ liệu hoàn toàn có thể đồng thời có Mahalanobis depth rất cao (nằm sâu bên trong ellipsoid hiệp phương sai toàn cục, tương thích với hình dáng tổng thể của đám đông lành tính) nhưng lại có mật độ phi tham số cục bộ cực kỳ thấp (nằm trong một vùng rỗng cục bộ - Local Pocket). 
-
-Chiến dịch APT29 là một trường hợp kinh điển minh họa cho nghịch lý này. Các tiến trình của APT29 được thiết kế khéo léo để chui sâu vào trung tâm dữ liệu lành tính ($DensPct\_Mahal = 27\%$). Sự thâm nhập sâu này tạo ra thiên kiến **Global Center Bias**, khiến các mô hình dựa trên các lát cắt biên (iForest, ECOD) hoặc khoảng cách hình học phẳng (LOF) hoàn toàn bị qua mặt. Tuy nhiên, các tiến trình APT29 lại lọt vào các lỗ hổng cấu trúc cục bộ (\textit{Local Pockets}) vốn hiện rõ dưới ước lượng mật độ nhân phi tham số KDE nhưng bị che mờ bởi xấp xỉ Gaussian của Mahalanobis.
-
-Về bản chất, ý tưởng phát hiện các điểm dữ liệu thưa thớt nằm khuất bên trong vùng mật độ toàn cục cao không phải là hoàn toàn mới về mặt toán học. Nó là nền tảng của các thuật toán phát hiện cục bộ (Local Outlier Detection) truyền thống như LOF, LODA, hay LOCI. Tuy nhiên, đóng góp của luận văn nằm ở việc áp dụng nguyên lý này vào bài toán pháp y tiến trình Windows, chứng minh rằng sự sụp đổ của các mô hình phát hiện trên dữ liệu Log (như APT29) là do sự tồn tại dày đặc của các "Lỗ hổng Cục bộ" trong một không gian đặc trưng hỗn hợp (mixed-type feature space) rất đặc thù. Do đó, mã độc ngụy trang LotL thực chất chui vào các Local Pockets này để qua mặt Global Bias.
-
-\section{Mô hình Chứng minh Tồn tại: KDE\_Joint}
-\label{section:2.7}
-
-Dựa trên lập luận về Local Pockets, chúng tôi thiết kế mô hình **KDE\_Joint** đóng vai trò như một **Bằng chứng tồn tại (Existence Proof)** để chứng minh rằng mã độc ngụy trang sâu hoàn toàn có thể bị bóc trần nếu thuật toán thoát khỏi thiên kiến toàn cục.
-
-KDE\_Joint xây dựng một mô hình ước lượng mật độ Kernel đồng thời (Mixed Product KDE) trực tiếp trên không gian hỗn hợp V10 nguyên bản sử dụng Mixed Product Kernel (Racine \& Li, 2004). KDE\_Joint tính toán mật độ xác suất cục bộ của tiến trình lành tính tại đúng tọa độ đa chiều của tiến trình cần kiểm tra. Sự cải thiện hiệu năng của KDE\_Joint trên tập dữ liệu cực khó như APT29 sẽ chứng minh tính khả thi của việc khai thác cấu trúc cục bộ phi tham số để vượt qua điểm mù cấu trúc của học máy truyền thống.
-
-\begin{table}[H]
-\centering
-\small
-\setlength{\tabcolsep}{4pt}
-\begin{tabular}{|p{1.8cm}|p{1.8cm}|p{3.4cm}|>{\centering\arraybackslash}p{1.2cm}|p{5.0cm}|}
-\hline
-\textbf{Thuật toán} & \textbf{Quy mô Phân tích} & \textbf{Dạng mô hình} & \textbf{Biến hỗn hợp} & \textbf{Điểm mù cấu trúc cốt lõi} \\ \hline
-\textbf{iForest} & Cục bộ & Phân chia ngẫu nhiên (Random Splits) & Kém & Điểm mù phân phối biên (Marginal Blindness) \\ \hline
-\textbf{ECOD} & Toàn cục & Phân phối biên (Marginal ECDF) & Kém & Điểm mù phân phối biên (Marginal Blindness) \\ \hline
-\textbf{LOF} & Cục bộ & Mật độ cục bộ (kNN local density) & Rất kém & Lời nguyền số chiều (Curse of Dimensionality) \\ \hline
-\textbf{SRAH} & Toàn cục / Biên & Tích hợp đa cảm biến & Kém & Sụp đổ biên (Marginal Collapse) \\ \hline
-\textbf{Joint-KDE} & Cục bộ & Ước lượng phi tham số (KDE) & Tốt & Nhạy cảm dữ liệu thưa (Categorical Sparsity) \\ \hline
-\end{tabular}
-\caption{Ma trận so sánh đặc tính kỹ thuật và điểm mù cấu trúc giữa các thuật toán phát hiện bất thường}
-\label{tab:algorithm_matrix}
-\end{table}
 
 \end{document}
