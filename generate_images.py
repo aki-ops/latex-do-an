@@ -17,7 +17,7 @@ def generate_chandola_anomalies():
     x = np.random.normal(0, 1, 100)
     y = np.random.normal(0, 1, 100)
     ax.scatter(x, y, color='blue', alpha=0.5, label='Bình thường')
-    ax.scatter([4], [4], color='red', s=100, label='Point Anomaly')
+    ax.scatter([4], [4], color='red', s=100, label='Bất thường Điểm')
     ax.set_title('Bất thường Điểm (Point Anomaly)', fontsize=12)
     ax.set_xticks([])
     ax.set_yticks([])
@@ -28,7 +28,7 @@ def generate_chandola_anomalies():
     t = np.linspace(0, 10, 200)
     signal = np.sin(t) + np.random.normal(0, 0.1, 200)
     ax.plot(t, signal, color='blue', alpha=0.5, label='Bình thường')
-    ax.scatter([t[50]], [signal[50]+1.5], color='red', s=50, label='Contextual Anomaly')
+    ax.scatter([t[50]], [signal[50]+1.5], color='red', s=50, label='Bất thường Theo ngữ cảnh')
     ax.set_title('Bất thường Theo ngữ cảnh (Contextual Anomaly)', fontsize=12)
     ax.set_xticks([])
     ax.set_yticks([])
@@ -40,7 +40,7 @@ def generate_chandola_anomalies():
     x_abn = np.random.normal(5, 0.5, 20)
     y_abn = np.random.normal(5, 0.5, 20)
     ax.scatter(x_col, y_col, color='blue', alpha=0.5, label='Bình thường')
-    ax.scatter(x_abn, y_abn, color='red', alpha=0.7, label='Collective Anomaly')
+    ax.scatter(x_abn, y_abn, color='red', alpha=0.7, label='Bất thường Tập thể')
     ax.set_title('Bất thường Tập thể (Collective Anomaly)', fontsize=12)
     ax.set_xticks([])
     ax.set_yticks([])
@@ -109,9 +109,9 @@ def generate_iforest_diagram():
     ax.axvline(9, ymin=0.7, ymax=0.9, color='black', linestyle='-', linewidth=1.5)
 
     # Label splits
-    ax.text(0.5, 7.2, "Split 1", fontsize=10)
-    ax.text(6.2, 9.5, "Split 2", fontsize=10)
-    ax.text(9.2, 7.5, "Split 3", fontsize=10)
+    ax.text(0.5, 7.2, "Nhát cắt 1", fontsize=10)
+    ax.text(6.2, 9.5, "Nhát cắt 2", fontsize=10)
+    ax.text(9.2, 7.5, "Nhát cắt 3", fontsize=10)
 
     ax.set_title('Minh họa Isolation Forest chia cắt không gian', fontsize=14)
     ax.set_xticks([])
@@ -127,11 +127,11 @@ def generate_pipeline_diagram():
     ax.axis('off')
     
     boxes = [
-        ("Raw Windows\nEvent Logs\n(Sysmon)", 0.05, 0.4),
-        ("Process\nExtraction", 0.25, 0.4),
-        ("V10 Feature\nVectorization", 0.45, 0.4),
-        ("Mahalanobis\nDistance Calc", 0.65, 0.4),
-        ("BBS / DensPct\nScore Output", 0.85, 0.4)
+        ("Nhật ký\nSự kiện\n(Sysmon)", 0.05, 0.4),
+        ("Trích xuất\nTiến trình", 0.25, 0.4),
+        ("Vector hóa\nĐặc trưng V10", 0.45, 0.4),
+        ("Tính khoảng cách\nMahalanobis", 0.65, 0.4),
+        ("Đầu ra điểm số\nBBS/DensPct", 0.85, 0.4)
     ]
     
     for i, (text, x, y) in enumerate(boxes):
@@ -152,16 +152,16 @@ def generate_sysmon_diagram():
     ax.axis('off')
     
     ax.add_patch(patches.FancyBboxPatch((0.1, 0.6), 0.2, 0.2, boxstyle="round,pad=0.03", edgecolor='black', facecolor='#fff9c4', lw=2))
-    ax.text(0.2, 0.7, "OS Kernel /\nUser Mode", ha='center', va='center', fontsize=10, weight='bold')
+    ax.text(0.2, 0.7, "Nhân OS /\nChế độ người dùng", ha='center', va='center', fontsize=10, weight='bold')
 
     ax.add_patch(patches.FancyBboxPatch((0.4, 0.6), 0.2, 0.2, boxstyle="round,pad=0.03", edgecolor='black', facecolor='#c8e6c9', lw=2))
-    ax.text(0.5, 0.7, "Sysmon\nDriver", ha='center', va='center', fontsize=10, weight='bold')
+    ax.text(0.5, 0.7, "Trình điều khiển\nSysmon", ha='center', va='center', fontsize=10, weight='bold')
 
     ax.add_patch(patches.FancyBboxPatch((0.7, 0.6), 0.2, 0.2, boxstyle="round,pad=0.03", edgecolor='black', facecolor='#ffcdd2', lw=2))
-    ax.text(0.8, 0.7, "EventLog\nService", ha='center', va='center', fontsize=10, weight='bold')
+    ax.text(0.8, 0.7, "Dịch vụ\nEventLog", ha='center', va='center', fontsize=10, weight='bold')
 
     ax.add_patch(patches.FancyBboxPatch((0.4, 0.2), 0.2, 0.2, boxstyle="round,pad=0.03", edgecolor='black', facecolor='#bbdefb', lw=2))
-    ax.text(0.5, 0.3, "Log Analysis\nPlatform", ha='center', va='center', fontsize=10, weight='bold')
+    ax.text(0.5, 0.3, "Nền tảng\nPhân tích Log", ha='center', va='center', fontsize=10, weight='bold')
 
     ax.annotate('', xy=(0.4, 0.7), xytext=(0.3, 0.7), arrowprops=dict(arrowstyle="->", lw=2, color='black'))
     ax.annotate('', xy=(0.7, 0.7), xytext=(0.6, 0.7), arrowprops=dict(arrowstyle="->", lw=2, color='black'))
