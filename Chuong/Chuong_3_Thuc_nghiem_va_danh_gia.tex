@@ -16,6 +16,12 @@ Thực nghiệm được triển khai trên 11 tập dữ liệu toàn diện ba
 \centering
 \small
 \setlength{\tabcolsep}{4pt}
+\begin{flushleft}
+\small
+
+\end{flushleft}
+\caption{Đặc tính cơ bản và độ khó của 11 tập dữ liệu nghiên cứu}
+\label{tab:11datasets}
 \begin{tabular}{|p{2.2cm}|>{\centering\arraybackslash}p{2.2cm}|>{\centering\arraybackslash}p{1.8cm}|>{\centering\arraybackslash}p{2.8cm}|p{4.2cm}|}
 \hline
 \textbf{Tập dữ liệu} & \textbf{Số tiến trình độc hại ($N$)} & \textbf{DDO (mean)} & \textbf{DensPct\_Mahal (median)} & \textbf{Loại kịch bản} \\ \hline
@@ -31,12 +37,6 @@ Thực nghiệm được triển khai trên 11 tập dữ liệu toàn diện ba
 \texttt{kb7\_ransom} & 18 & 0.6991 & 2.04\% & Controlled Injection \\ \hline
 \texttt{kb8\_lateral} & 51 & 0.6748 & 0.00\% & Controlled Injection \\ \hline
 \end{tabular}
-\caption{Đặc tính cơ bản và độ khó của 11 tập dữ liệu nghiên cứu}
-\label{tab:11datasets}
-\begin{flushleft}
-\small
-
-\end{flushleft}
 \end{table}
 
 \subsection{Phương pháp chọn ngưỡng (threshold protocol)}
@@ -49,6 +49,8 @@ Thực nghiệm được triển khai trên 11 tập dữ liệu toàn diện ba
 \renewcommand{\arraystretch}{1.3}
 \setlength{\tabcolsep}{3.0pt}
 \small
+\caption{Hiệu năng với Optimal Threshold trên 11 tập dữ liệu (đã loại trừ \texttt{apt3}). Bảng trình bày F1 (kèm Độ phủ/Recall trong ngoặc) và AUC. (Lưu ý: Tất cả các mô hình bao gồm iForest, ECOD, LOF và KDE\_Joint đều được huấn luyện ở chế độ Bán giám sát / Novelty Detection trên tập dữ liệu nền sạch).}
+\label{tab:3.2}
 \begin{tabular}{@{}l|cc|cc|cc|cc|cc@{}}
 \toprule
 \multirow{2}{*}{\textbf{Tập dữ liệu}} & \multicolumn{2}{c|}{\textbf{iForest}} & \multicolumn{2}{c|}{\textbf{ECOD}} & \multicolumn{2}{c|}{\textbf{LOF}} & \multicolumn{2}{c|}{\textbf{SRAH}} & \multicolumn{2}{c}{\textbf{KDE\_Joint}} \\ \cmidrule(l){2-11} 
@@ -66,8 +68,6 @@ Thực nghiệm được triển khai trên 11 tập dữ liệu toàn diện ba
 \texttt{kb8\_lateral} & 0.843 (1.000) & 0.884 & 0.843 (1.000) & 0.884 & 0.909 (0.980) & 0.952 & 0.675 (0.510) & 0.510 & 1.000 (1.000) & 1.000 \\
 \bottomrule
 \end{tabular}
-\caption{Hiệu năng với Optimal Threshold trên 11 tập dữ liệu (đã loại trừ \texttt{apt3}). Bảng trình bày F1 (kèm Độ phủ/Recall trong ngoặc) và AUC. (Lưu ý: Tất cả các mô hình bao gồm iForest, ECOD, LOF và KDE\_Joint đều được huấn luyện ở chế độ Bán giám sát / Novelty Detection trên tập dữ liệu nền sạch).}
-\label{tab:3.2}
 \end{table}
 
 \section{Bác bỏ giả định biên (phân tích ddo)}
@@ -182,6 +182,8 @@ To verify that the Spearman result is not driven by 1--2 leverage points, we per
 
 \begin{table}[H]
 \centering
+\caption{Phân tích nhạy Leave-One-Out của hệ số Spearman $\rho$ (DensPct\_Mahal vs AUC).}
+\label{tab:loo}
 \begin{tabular}{@{}lcc@{}}
 \toprule
 \textbf{Tập dữ liệu bị loại} & $\boldsymbol{\rho}$ \textbf{còn lại} & \textbf{p-value} \\ \midrule
@@ -198,8 +200,6 @@ To verify that the Spearman result is not driven by 1--2 leverage points, we per
 \texttt{kb1\_macro} & $-0.889$ & 0.0005 \\
 \bottomrule
 \end{tabular}
-\caption{Phân tích nhạy Leave-One-Out của hệ số Spearman $\rho$ (DensPct\_Mahal vs AUC).}
-\label{tab:loo}
 \end{table}
 
 Kết quả cho thấy: (1) \texttt{apt29} là leverage point mạnh nhất — khi bị loại, $\rho$ giảm về $-0.725$, tuy nhiên vẫn giữ \textbf{p-value = 0.017 $< 0.05$}; (2) trong mọi 11 trường hợp loại bỏ, $\rho$ luôn âm ($-0.725$ đến $-0.889$) và p-value luôn $< 0.05$. 
@@ -270,6 +270,8 @@ Phân tích biểu đồ chỉ ra sự tụ tập rõ rệt của tiến trình 
 
 \begin{table}[H]
 \centering
+\caption{Ablation Study: Tầm quan trọng của các nhóm đặc trưng (Trung bình 11 dataset).}
+\label{tab:ablation}
 \begin{tabular}{@{}l|cc|cc@{}}
 \toprule
 \multirow{2}{*}{\textbf{Tập đặc trưng}} & \multicolumn{2}{c|}{\textbf{iForest (Avg)}} & \multicolumn{2}{c}{\textbf{ECOD (Avg)}} \\ \cmidrule(l){2-5} 
@@ -280,8 +282,6 @@ No\_Cont & 0.494 & 0.832 & 0.473 & 0.827 \\
 No\_Ord & 0.485 & 0.905 & 0.446 & 0.870 \\
 \bottomrule
 \end{tabular}
-\caption{Ablation Study: Tầm quan trọng của các nhóm đặc trưng (Trung bình 11 dataset).}
-\label{tab:ablation}
 \end{table}
 
 \section{Sự trung thực học thuật: hạn chế và failure mode của kde\_joint}
@@ -293,6 +293,8 @@ Bảng \ref{tab:time_complexity} so sánh độ phức tạp tính toán giữa 
 
 \begin{table}[H]
 \centering
+\caption{Độ phức tạp tính toán (với $N$ là số mẫu, $d$ là số chiều).}
+\label{tab:time_complexity}
 \begin{tabular}{|l|c|c|p{6cm}|}
 \hline
 \textbf{Thuật toán} & \textbf{Huấn luyện (Train)} & \textbf{Suy diễn (Inference)} & \textbf{Khả năng mở rộng SOC} \\ \hline
@@ -300,8 +302,6 @@ iForest & $O(N \log N)$ & $O(\log N)$ & Rất cao, phù hợp streaming real-tim
 LOF & $O(N^2)$ & $O(N^2)$ & Thấp, tắc nghẽn khi log phình to \\ \hline
 KDE\_Joint & $O(N \cdot d)$ & $O(N^2 \cdot d)$ & Không khả thi cho hệ thống hàng triệu sự kiện \\ \hline
 \end{tabular}
-\caption{Độ phức tạp tính toán (với $N$ là số mẫu, $d$ là số chiều).}
-\label{tab:time_complexity}
 \end{table}
 
 Trên hệ thống thực tế sinh ra hàng triệu sự kiện tiến trình mỗi ngày, chi phí $O(N^2)$ ở khâu suy diễn là rào cản không thể vượt qua đối với KDE\_Joint. Hơn nữa, thực nghiệm ghi nhận sự sụp đổ hoàn toàn của nó (trả về giá trị N/A) trên các tập dữ liệu thưa thớt do những giới hạn toán học cốt lõi.

@@ -50,6 +50,8 @@ Cấu hình kiểu dữ liệu của các chiều tuân theo chuỗi ký hiệu 
 \centering
 \small
 \setlength{\tabcolsep}{4pt}
+\caption{Ma trận không gian đặc trưng hành vi $V_{10}$ (cấu hình hỗn hợp \texttt{uuuuccooou})}
+\label{tab:v10_space}
 \begin{tabular}{|>{\centering\arraybackslash}p{1.0cm}|p{4.0cm}|p{1.8cm}|p{1.8cm}|p{4.6cm}|}
 \hline
 \textbf{Ký hiệu} & \textbf{Tên Đặc trưng} & \textbf{Kiểu} & \textbf{Nguồn EID} & \textbf{Ý nghĩa Hành vi} \\ \hline
@@ -64,8 +66,6 @@ $v_8$ & \texttt{cmd\_len\_bin} & o (Ordinal) & EID 1 & Độ dài dòng lệnh p
 $v_9$ & \texttt{child\_count\_bin} & o (Ordinal) & EID 1 & Số lượng tiến trình con được khởi tạo \\ \hline
 $v_{10}$ & \texttt{parent\_sigma\_bin} & u (Binary) & EID 1 & Cha bị phát hiện bởi tập luật tĩnh Sigma \\ \hline
 \end{tabular}
-\caption{Ma trận không gian đặc trưng hành vi $V_{10}$ (cấu hình hỗn hợp \texttt{uuuuccooou})}
-\label{tab:v10_space}
 \end{table}
 
 Việc sử dụng cấu hình hỗn hợp \texttt{uuuuccooou} là một thiết kế bắt buộc để mô phỏng chính xác các loại dữ liệu thực tế thu thập từ log hệ thống, đồng thời đòi hỏi các bộ ước lượng mật độ phải có khả năng xử lý biến hỗn hợp (như Mixed Product Kernel) thay vì các khoảng cách khoảng cách phẳng thông thường.
@@ -91,6 +91,8 @@ Phương pháp Controlled Injection hoạt động bằng cách lấy một tậ
 \centering
 \small
 \setlength{\tabcolsep}{4pt}
+\caption{Đối chiếu các kịch bản Controlled Injection với kỹ thuật MITRE ATT\&CK và cơ chế chế tác đặc trưng}
+\label{tab:controlled_injection_scenarios}
 \begin{tabular}{|p{2.2cm}|p{3.5cm}|p{3.0cm}|p{4.5cm}|}
 \hline
 \textbf{Kịch bản} & \textbf{Kỹ thuật MITRE} & \textbf{Chiến thuật Ngụy trang} & \textbf{Đặc trưng chế tác trên $V_{10}$} \\ \hline
@@ -103,8 +105,6 @@ Phương pháp Controlled Injection hoạt động bằng cách lấy một tậ
 \textbf{kb7\_ransom} & T1486 (Data Encrypted) & Mã hóa tệp tin hàng loạt & Tăng tần suất I/O và ghi tệp ($v_3 = 1, v_4 = 1$) \\ \hline
 \textbf{kb8\_lateral} & T1021 (Remote Services) & Remote Shell di chuyển ngang phân tán & Tạo đặc trưng thưa thớt, mạng phân tán \\ \hline
 \end{tabular}
-\caption{Đối chiếu các kịch bản Controlled Injection với kỹ thuật MITRE ATT\&CK và cơ chế chế tác đặc trưng}
-\label{tab:controlled_injection_scenarios}
 \end{table}
 
 Cơ chế tạo sinh dữ liệu Controlled Injection này cung cấp một phổ độ khó đa dạng và chuẩn hóa, làm nền tảng vững chắc để đánh giá tương quan của các thước đo.
@@ -201,6 +201,8 @@ KDE\_Joint xây dựng một mô hình ước lượng mật độ Kernel đồn
 \centering
 \small
 \setlength{\tabcolsep}{4pt}
+\caption{Ma trận so sánh đặc tính kỹ thuật và điểm mù cấu trúc giữa các thuật toán phát hiện bất thường}
+\label{tab:algorithm_matrix}
 \begin{tabular}{|p{1.8cm}|p{1.8cm}|p{3.4cm}|>{\centering\arraybackslash}p{1.2cm}|p{5.0cm}|}
 \hline
 \textbf{Thuật toán} & \textbf{Quy mô Phân tích} & \textbf{Dạng mô hình} & \textbf{Biến hỗn hợp} & \textbf{Điểm mù cấu trúc cốt lõi} \\ \hline
@@ -210,8 +212,6 @@ KDE\_Joint xây dựng một mô hình ước lượng mật độ Kernel đồn
 \textbf{SRAH} & Toàn cục / Biên & Tích hợp đa cảm biến & Kém & Sụp đổ biên (Marginal Collapse) \\ \hline
 \textbf{Joint-KDE} & Cục bộ & Ước lượng phi tham số (KDE) & Tốt & Nhạy cảm dữ liệu thưa (Categorical Sparsity) \\ \hline
 \end{tabular}
-\caption{Ma trận so sánh đặc tính kỹ thuật và điểm mù cấu trúc giữa các thuật toán phát hiện bất thường}
-\label{tab:algorithm_matrix}
 \end{table}
 
 \end{document}

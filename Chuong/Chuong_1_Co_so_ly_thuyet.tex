@@ -16,6 +16,8 @@ Sysmon cho phép ghi nhận chi tiết các hoạt động ở mức hệ thốn
 \centering
 \small
 \setlength{\tabcolsep}{4pt}
+\caption{Các Event ID chính của Sysmon phục vụ giám sát hành vi tiến trình}
+\label{tab:sysmon_eids}
 \begin{tabular}{|>{\centering\arraybackslash}p{1.8cm}|p{3.2cm}|p{8.0cm}|}
 \hline
 \textbf{Event ID} & \textbf{Tên Sự kiện} & \textbf{Ý nghĩa trong Giám sát An ninh} \\ \hline
@@ -29,8 +31,6 @@ Sysmon cho phép ghi nhận chi tiết các hoạt động ở mức hệ thốn
 \textbf{18} & \textit{Pipe Connected} & Theo dõi kết nối Named Pipe, thường dùng để phát hiện C2 Beaconing. \\ \hline
 \textbf{22} & \textit{DNS Query} & Theo dõi yêu cầu phân giải tên miền sinh ra bởi tiến trình. \\ \hline
 \end{tabular}
-\caption{Các Event ID chính của Sysmon phục vụ giám sát hành vi tiến trình}
-\label{tab:sysmon_eids}
 \end{table}
 
 \subsection{Vấn đề tái sử dụng PID (pid reuse)}
