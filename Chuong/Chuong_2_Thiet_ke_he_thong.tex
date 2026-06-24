@@ -197,7 +197,10 @@ Dựa trên lập luận về Local Pockets, mô hình phi tham số **KDE\_Join
 \section{Thiết kế pipeline đo lường}
 \label{section:2.3}
 
-Để triển khai khung đo lường BBS vào thực tiễn và làm nổi bật trọng tâm nghiên cứu, một kiến trúc đường ống luồng dữ liệu (pipeline) được thiết kế chuyên biệt. Quá trình đo lường được chia thành 4 giai đoạn chính, quy định rõ ràng dữ liệu đầu vào (Input), luồng xử lý và kết quả đầu ra (Output).
+Để triển khai khung đo lường BBS vào thực tiễn và làm nổi bật trọng tâm nghiên cứu, một kiến trúc đường ống xử lý (pipeline) và luồng hoạt động dữ liệu (data flow) được thiết kế chuyên biệt. Hai thành phần này được tách biệt để thể hiện tính chất tổng quát của hệ thống và chi tiết hoạt động của từng luồng dữ liệu.
+
+\subsection{Kiến trúc tổng thể (Pipeline)}
+Kiến trúc tổng thể của hệ thống đo lường được chia thành 4 giai đoạn chính, quy định rõ ràng dữ liệu đầu vào (Input), luồng xử lý và kết quả đầu ra (Output). Sơ đồ Pipeline dưới đây tập trung vào luồng các giai đoạn xử lý vĩ mô:
 
 \begin{figure}[H]
 \centering
@@ -217,38 +220,8 @@ Dựa trên lập luận về Local Pockets, mô hình phi tham số **KDE\_Join
     \draw[arrow] (stage2) -- (stage3);
     \draw[arrow] (stage3) -- (stage4);
 \end{tikzpicture}
-\caption{Sơ đồ kiến trúc tổng thể Khung đo lường BBS}
+\caption{Sơ đồ kiến trúc tổng thể (Pipeline) Khung đo lường BBS}
 \label{fig:bbs_pipeline}
-\end{figure}
-
-\begin{figure}[H]
-\centering
-\begin{tikzpicture}[
-    node distance=1.8cm,
-    data_box/.style={cylinder, shape border rotate=90, draw=orange!80, fill=orange!20, aspect=0.25, thick, minimum width=2.5cm, minimum height=1cm, align=center, font=\small},
-    proc_box/.style={rectangle, draw=gray!80, fill=gray!10, thick, minimum width=3.0cm, minimum height=0.8cm, align=center, font=\small},
-    arrow/.style={->, >=stealth, thick, gray!80}
-]
-    % Nodes
-    \node[data_box] (raw) {Log thô (.evtx)};
-    \node[proc_box, right of=raw, xshift=2.5cm] (parse) {Parse \& Graph Build};
-    \node[data_box, right of=parse, xshift=2.5cm] (dag) {Đồ thị DAG};
-    \node[proc_box, right of=dag, xshift=2.5cm] (extract) {Ánh xạ Đặc trưng};
-    
-    \node[data_box, below of=extract, yshift=-0.5cm] (v10) {Ma trận $V_{10}$};
-    \node[proc_box, left of=v10, xshift=-2.5cm] (compute) {Ước lượng Mahalanobis/KDE};
-    \node[data_box, left of=compute, xshift=-2.5cm] (score) {Điểm số DDO,\\DensPct};
-
-    % Arrows
-    \draw[arrow] (raw) -- (parse);
-    \draw[arrow] (parse) -- (dag);
-    \draw[arrow] (dag) -- (extract);
-    \draw[arrow] (extract) -- (v10);
-    \draw[arrow] (v10) -- (compute);
-    \draw[arrow] (compute) -- (score);
-\end{tikzpicture}
-\caption{Sơ đồ luồng chạy dữ liệu biến đổi (Data Flow) trong Khung đo lường BBS}
-\label{fig:bbs_dataflow}
 \end{figure}
 
 \begin{enumerate}
@@ -277,6 +250,69 @@ Dựa trên lập luận về Local Pockets, mô hình phi tham số **KDE\_Join
         \item \textit{Output:} Báo cáo so sánh toàn diện bao gồm độ khó của dữ liệu (DDO, DensPct) và hiệu năng thực tế của thuật toán (AUC, F1-Score).
     \end{itemize}
 \end{enumerate}
+
+\subsection{Sơ đồ luồng chạy dữ liệu chi tiết (Activity Map)}
+Trong khi sơ đồ Pipeline mô tả cấu trúc tĩnh, biểu đồ hoạt động (Activity Map) dưới đây mô tả chi tiết luồng chạy của dữ liệu xuyên suốt các thành phần tương tác (Người dùng/Hệ thống, Cốt lõi xử lý, Đầu ra báo cáo):
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    font=\sffamily\small,
+    >=stealth,
+    act/.style={rectangle, draw=gray!80, fill=gray!10, rounded corners=2mm, thick, minimum width=2.5cm, minimum height=1cm, align=center},
+    dec/.style={diamond, draw=gray!80, fill=gray!10, thick, aspect=1.5, align=center, inner sep=2pt},
+    start/.style={circle, fill=black, minimum size=6mm},
+    end_outer/.style={circle, draw=black, thick, minimum size=6mm, inner sep=0pt},
+    end_inner/.style={circle, fill=black, minimum size=3mm, inner sep=0pt}
+]
+
+% Background & Swimlanes
+\draw[thick] (0, 0) rectangle (12.5, -15.5);
+\draw[thick] (0, -1) -- (12.5, -1); % Header separator
+\draw[thick] (3.5, 0) -- (3.5, -15.5);
+\draw[thick] (8.5, 0) -- (8.5, -15.5);
+
+% Headers
+\node at (1.75, -0.5) {\textbf{Input: Dữ liệu}};
+\node at (6.0, -0.5) {\textbf{Hệ thống xử lý BBS}};
+\node at (10.5, -0.5) {\textbf{Output: Đánh giá}};
+
+% Nodes
+\node[start] (start) at (1.75, -1.8) {};
+\node[act] (sysmon) at (1.75, -3.5) {Ghi nhận sự kiện\\Sysmon (.evtx)};
+
+\node[act] (parse) at (6, -3.5) {Phân tích cú pháp \&\\Chuẩn hóa log};
+\node[act] (dag) at (6, -5.5) {Xây dựng đồ thị\\tiến trình (DAG)};
+\node[act] (v10) at (6, -7.5) {Trích xuất ma trận\\đặc trưng $V_{10}$};
+\node[act] (compute) at (6, -9.5) {Ước lượng DDO\\\& DensPct};
+
+\node[act] (metrics) at (10.5, -9.5) {Điểm số cấu trúc\\(DDO, DensPct)};
+\node[dec] (check) at (10.5, -12) {Có nhãn\\Ground Truth?};
+\node[act] (eval) at (10.5, -14.5) {Đánh giá hiệu năng\\(AUC, F1)};
+
+\node[act] (report) at (6, -14.5) {Xuất báo cáo\\tổng hợp};
+
+\node[end_outer] (end) at (1.75, -14.5) {};
+\node[end_inner] at (1.75, -14.5) {};
+
+% Connections
+\draw[->, thick] (start) -- (sysmon);
+\draw[->, thick] (sysmon) -- (parse);
+\draw[->, thick] (parse) -- (dag);
+\draw[->, thick] (dag) -- (v10);
+\draw[->, thick] (v10) -- (compute);
+\draw[->, thick] (compute) -- (metrics);
+\draw[->, thick] (metrics) -- (check);
+
+\draw[->, thick] (check) -- node[right, font=\scriptsize] {Có} (eval);
+\draw[->, thick] (check) -| node[above near start, font=\scriptsize] {Không} (report);
+\draw[->, thick] (eval) -- (report);
+\draw[->, thick] (report) -- (end);
+
+\end{tikzpicture}
+\caption{Sơ đồ luồng hoạt động (Activity Map) chi tiết theo dòng sự kiện của hệ thống đo lường BBS}
+\label{fig:bbs_activity_map}
+\end{figure}
 
 \section{Thiết kế môi trường thử nghiệm}
 \label{section:2.4}

@@ -41,38 +41,63 @@ Hệ thống SRAH được thiết kế thành một chuỗi luồng xử lý (p
     \item \textbf{Layer 4 (Ensemble):} Tổng hợp rủi ro từ 4 cảm biến bằng trọng số để đưa ra quyết định cuối cùng.
 \end{itemize}
 
-\section*{2. Sơ đồ luồng chạy dữ liệu của SRAH}
+\section*{2. Sơ đồ luồng chạy dữ liệu của SRAH (Activity Map)}
 
-Sơ đồ luồng dữ liệu dưới đây chỉ rõ các trạng thái biến đổi của sự kiện từ khi thu thập đến khi xuất ra cảnh báo.
+Tương tự như khung đo lường, hoạt động xử lý bên trong SRAH cũng có thể được mô tả chi tiết thông qua biểu đồ luồng hoạt động (Activity Map) với các tuyến thực thi (Swimlane) rõ ràng:
 
 \begin{figure}[H]
 \centering
 \begin{tikzpicture}[
-    node distance=1.8cm,
-    data_box/.style={cylinder, shape border rotate=90, draw=teal!80, fill=teal!20, aspect=0.25, thick, minimum width=2.5cm, minimum height=1cm, align=center, font=\small},
-    proc_box/.style={rectangle, draw=gray!80, fill=gray!10, thick, minimum width=3.0cm, minimum height=0.8cm, align=center, font=\small},
-    arrow/.style={->, >=stealth, thick, gray!80}
+    font=\sffamily\small,
+    >=stealth,
+    act/.style={rectangle, draw=gray!80, fill=gray!10, rounded corners=2mm, thick, minimum width=2.5cm, minimum height=1cm, align=center},
+    dec/.style={diamond, draw=gray!80, fill=gray!10, thick, aspect=1.5, align=center, inner sep=2pt},
+    start/.style={circle, fill=black, minimum size=6mm},
+    end_outer/.style={circle, draw=black, thick, minimum size=6mm, inner sep=0pt},
+    end_inner/.style={circle, fill=black, minimum size=3mm, inner sep=0pt}
 ]
-    % Nodes
-    \node[data_box] (evtx) {Sysmon .evtx};
-    \node[proc_box, right of=evtx, xshift=2cm] (rust) {Rust Parser};
-    \node[data_box, right of=rust, xshift=2cm] (json) {JSON Objects};
-    \node[proc_box, right of=json, xshift=2cm] (graph) {Build DAG};
-    
-    \node[data_box, below of=graph, yshift=-0.5cm] (dag) {Tiến trình (Node)};
-    \node[proc_box, left of=dag, xshift=-2cm] (sensor) {Chạy 4 Cảm biến};
-    \node[data_box, left of=sensor, xshift=-2cm] (score) {Điểm rủi ro (Score)};
 
-    % Arrows
-    \draw[arrow] (evtx) -- (rust);
-    \draw[arrow] (rust) -- (json);
-    \draw[arrow] (json) -- (graph);
-    \draw[arrow] (graph) -- (dag);
-    \draw[arrow] (dag) -- (sensor);
-    \draw[arrow] (sensor) -- (score);
+% Background & Swimlanes
+\draw[thick] (0, 0) rectangle (12.5, -14.5);
+\draw[thick] (0, -1) -- (12.5, -1); 
+\draw[thick] (3.5, 0) -- (3.5, -14.5);
+\draw[thick] (8.5, 0) -- (8.5, -14.5);
+
+% Headers
+\node at (1.75, -0.5) {\textbf{Input: Hệ thống}};
+\node at (6.0, -0.5) {\textbf{Engine SRAH}};
+\node at (10.5, -0.5) {\textbf{Output: Cảnh báo}};
+
+% Nodes
+\node[start] (start) at (1.75, -1.8) {};
+\node[act] (sysmon) at (1.75, -3.5) {Cung cấp log\\Sysmon (.evtx)};
+
+\node[act] (rust) at (6, -3.5) {Parse bằng Rust\\\& nạp RAM};
+\node[act] (dag) at (6, -5.5) {Xây dựng đồ thị\\tiến trình (DAG)};
+\node[act] (sensor) at (6, -7.5) {Chạy 4 cảm biến\\biên độc lập};
+\node[act] (ensemble) at (6, -9.5) {Tổng hợp rủi ro\\(Ensemble Score)};
+\node[dec] (check) at (6, -12) {Vượt\\ngưỡng?};
+
+\node[act] (alert) at (10.5, -12) {Phát tín hiệu\\bất thường};
+
+\node[end_outer] (end) at (6, -13.8) {};
+\node[end_inner] at (6, -13.8) {};
+
+% Connections
+\draw[->, thick] (start) -- (sysmon);
+\draw[->, thick] (sysmon) -- (rust);
+\draw[->, thick] (rust) -- (dag);
+\draw[->, thick] (dag) -- (sensor);
+\draw[->, thick] (sensor) -- (ensemble);
+\draw[->, thick] (ensemble) -- (check);
+
+\draw[->, thick] (check) -- node[above, font=\scriptsize] {Có} (alert);
+\draw[->, thick] (check) -- node[right, font=\scriptsize] {Không} (end);
+\draw[->, thick] (alert) |- (end);
+
 \end{tikzpicture}
-\caption{Sơ đồ luồng chạy dữ liệu (Data Flow) bên trong kiến trúc SRAH}
-\label{fig:srah_dataflow}
+\caption{Sơ đồ luồng hoạt động (Activity Map) chi tiết của hệ thống SRAH}
+\label{fig:srah_activity_map}
 \end{figure}
 
 Sự tách bạch rõ ràng giữa Engine thu thập tốc độ cao (Rust) và Bộ phân tích ngữ nghĩa (Python) cho phép SRAH vừa đảm bảo tốc độ phản hồi thực tế (Real-time response), vừa có khả năng mở rộng thuật toán phát hiện phức tạp.
