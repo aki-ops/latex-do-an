@@ -205,7 +205,7 @@ Kiến trúc tổng thể tập trung mô tả luồng trung chuyển dữ liệ
 \begin{figure}[H]
 \centering
 \begin{tikzpicture}[
-    node distance=3.5cm,
+    node distance=0.8cm,
     stage_box/.style={rectangle, rounded corners, draw=blue!80, fill=blue!10, very thick, minimum width=2.8cm, minimum height=1.2cm, align=center, font=\bfseries},
     arrow/.style={->, >=stealth, thick, blue!80}
 ]
@@ -267,31 +267,29 @@ Sơ đồ Activity Map mô tả luồng chạy thực tế của dữ liệu xuy
 \node (h_core) at (5, 0) {\textbf{Lõi Xử lý BBS}};
 \node (h_out) at (10, 0) {\textbf{Output: Định lượng}};
 
-% Vertical Dividers
-\draw[thick, gray] (2.5, 0.5) -- (2.5, -11.5);
-\draw[thick, gray] (7.5, 0.5) -- (7.5, -11.5);
-\draw[thick, gray] (-2.5, -0.5) -- (12.5, -0.5);
-
-% Lane 1: Input
-\node[start] (start) [below=0.8cm of h_in] {};
-\node[act] (sysmon) [below=0.6cm of start] {Log Sysmon \&\\Nhãn Ground-truth};
-
 % Lane 2: Core
-\node[act] (parse) [below=1.5cm of h_core] {Xây dựng DAG \&\\Trích xuất đặc trưng};
+\node[act] (parse) [below=1.0cm of h_core] {Xây dựng DAG \&\\Trích xuất đặc trưng};
 \node[act] (split) [below=0.6cm of parse] {Tách tập Attack\\\& Benign};
 \node[dec] (check) [below=0.6cm of split] {Mẫu Local\\Benign > 0?};
 
-% Use absolute positioning for the parallel nodes to keep them perfectly centered in the lane, 
-% but relative Y to the check node
-\node[act] (local) at (3.5, -6.5) {Đo lường với\\Local Benign};
-\node[act] (univ) at (6.5, -6.5) {Đo lường với\\Univ. Benign};
-\node[act] (merge) at (5, -8.2) {Tính 3 thành phần\\(Spa, Seq, Col)};
+\node[act] (local) at ([xshift=-1.8cm, yshift=-2.2cm]check.center) {Đo lường với\\Local Benign};
+\node[act] (univ) at ([xshift=1.8cm, yshift=-2.2cm]check.center) {Đo lường với\\Univ. Benign};
+\node[act] (merge) at ([yshift=-4.2cm]check.center) {Tính 3 thành phần\\(Spa, Seq, Col)};
+
+% Lane 1: Input
+\node[start] (start) at (0, 0 |- parse.north) {};
+\node[act] (sysmon) [below=0.6cm of start] {Log Sysmon \&\\Nhãn Ground-truth};
 
 % Lane 3: Output
-\node[act] (aggregate) at (10, -8.2) {Lấy cực tiểu\\$BBS_{min}$};
+\node[act] (aggregate) at (10, 0 |- merge) {Lấy cực tiểu\\$BBS_{min}$};
 \node[act] (report) [below=0.6cm of aggregate] {Báo cáo mức độ\\hòa trộn};
 \node[end_outer] (end) [below=0.6cm of report] {};
 \node[end_inner] at (end) {};
+
+% Vertical Dividers (dynamic length calculation)
+\draw[thick, gray] (2.5, 0.5) -- (2.5, 0 |- end.south) ++(0, -0.5cm);
+\draw[thick, gray] (7.5, 0.5) -- (7.5, 0 |- end.south) ++(0, -0.5cm);
+\draw[thick, gray] (-2.5, -0.5) -- (12.5, -0.5);
 
 % Connections
 \draw[->, thick] (start) -- (sysmon);
@@ -299,11 +297,11 @@ Sơ đồ Activity Map mô tả luồng chạy thực tế của dữ liệu xuy
 \draw[->, thick] (parse) -- (split);
 \draw[->, thick] (split) -- (check);
 
-\draw[->, thick] (check) -| node[above, font=\scriptsize, near start] {Có} (local);
-\draw[->, thick] (check) -| node[above, font=\scriptsize, near start] {Không} (univ);
+\draw[->, thick] (check.west) -| node[above, font=\scriptsize, near start, xshift=-0.2cm] {Có} (local.north);
+\draw[->, thick] (check.east) -| node[above, font=\scriptsize, near start, xshift=0.2cm] {Không} (univ.north);
 
-\draw[->, thick] (local) |- (merge);
-\draw[->, thick] (univ) |- (merge);
+\draw[->, thick] (local.south) -- +(0,-0.4) -| (merge.north);
+\draw[->, thick] (univ.south) -- +(0,-0.4) -| (merge.north);
 
 \draw[->, thick] (merge) -- (aggregate);
 \draw[->, thick] (aggregate) -- (report);
