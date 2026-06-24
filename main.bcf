@@ -2374,3 +2374,58 @@
     <bcf:datasource type="file" datatype="bibtex" glob="false">Danh_sach_tai_lieu_tham_khao.bib</bcf:datasource>
   </bcf:bibdata>
   <bcf:section number="0">
+    <bcf:citekey order="1" intorder="1">sigmahq2024</bcf:citekey>
+    <bcf:citekey order="2" intorder="1">ahmed2016survey</bcf:citekey>
+    <bcf:citekey order="2" intorder="2">alsaheel2021atlas</bcf:citekey>
+    <bcf:citekey order="2" intorder="3">han2020unicorn</bcf:citekey>
+    <bcf:citekey order="3" intorder="1">smiliotopoulos2025detection</bcf:citekey>
+    <bcf:citekey order="3" intorder="2">ugea_lmd_2025</bcf:citekey>
+    <bcf:citekey order="4" intorder="1">botsv1</bcf:citekey>
+    <bcf:citekey order="5" intorder="1">mitre_fin6</bcf:citekey>
+    <bcf:citekey order="6" intorder="1">mitre_apt29</bcf:citekey>
+    <bcf:citekey order="7" intorder="1">chandola2009anomaly</bcf:citekey>
+    <bcf:citekey order="8" intorder="1">hassan2020tactical</bcf:citekey>
+    <bcf:citekey order="9" intorder="1">liu2008isolation</bcf:citekey>
+    <bcf:citekey order="10" intorder="1">li2023ecod</bcf:citekey>
+    <bcf:citekey order="11" intorder="1">breunig2000lof</bcf:citekey>
+    <bcf:citekey order="12" intorder="1">francois2007concentration</bcf:citekey>
+    <bcf:citekey order="13" intorder="1">silverman1986density</bcf:citekey>
+    <bcf:citekey order="14" intorder="1">racine2004nonparametric</bcf:citekey>
+    <bcf:citekey order="15" intorder="1">liu1993quality</bcf:citekey>
+    <bcf:citekey order="15" intorder="2">zuo2000general</bcf:citekey>
+    <bcf:citekey order="16" intorder="1">rousseeuw1999fast</bcf:citekey>
+    <bcf:citekey order="17" intorder="1">janssens2012data</bcf:citekey>
+    <bcf:citekey order="18" intorder="1">zimek2012survey</bcf:citekey>
+    <bcf:citekey order="19" intorder="1">emmott2013systematic</bcf:citekey>
+    <bcf:citekey order="20" intorder="1">campos2016evaluation</bcf:citekey>
+    <bcf:citekey order="21" intorder="1">davis2006relationship</bcf:citekey>
+    <bcf:citekey order="22" intorder="1">saito2015precision</bcf:citekey>
+    <bcf:citekey order="23" intorder="1">papadimitriou2003loci</bcf:citekey>
+    <bcf:citekey order="24" intorder="1">pevny2016loda</bcf:citekey>
+    <bcf:citekey order="25" intorder="1">ruff2018deep</bcf:citekey>
+    <bcf:citekey order="26" intorder="1">han2020unicorn</bcf:citekey>
+    <bcf:citekey order="27" intorder="1">hassan2020tactical</bcf:citekey>
+    <bcf:citekey order="28" intorder="1">smiliotopoulos2025detection</bcf:citekey>
+    <bcf:citekey order="29" intorder="1">ugea_lmd_2025</bcf:citekey>
+  </bcf:section>
+  <!-- SORTING TEMPLATES -->
+  <bcf:sortingtemplate name="none">
+    <bcf:sort order="1">
+      <bcf:sortitem order="1">citeorder</bcf:sortitem>
+    </bcf:sort>
+    <bcf:sort order="2">
+      <bcf:sortitem order="1">intciteorder</bcf:sortitem>
+    </bcf:sort>
+  </bcf:sortingtemplate>
+  <!-- DATALISTS -->
+  <bcf:datalist section="0"
+                name="none/global//global/global/global"
+                type="entry"
+                sortingtemplatename="none"
+                sortingnamekeytemplatename="global"
+                labelprefix=""
+                uniquenametemplatename="global"
+                labelalphanametemplatename="global"
+                namehashtemplatename="global">
+  </bcf:datalist>
+</bcf:controlfile>
