@@ -255,7 +255,7 @@ Sơ đồ Activity Map mô tả luồng chạy thực tế của dữ liệu xuy
 \begin{tikzpicture}[
     font=\sffamily\small,
     >=stealth,
-    act/.style={rectangle, draw=gray!80, fill=gray!10, rounded corners=2mm, thick, minimum width=2.8cm, minimum height=1cm, align=center},
+    act/.style={rectangle, draw=gray!80, fill=gray!10, rounded corners=2mm, thick, minimum width=2.5cm, minimum height=1cm, align=center},
     dec/.style={diamond, draw=gray!80, fill=gray!10, thick, aspect=1.8, align=center, inner sep=1pt},
     start/.style={circle, fill=black, minimum size=6mm},
     end_outer/.style={circle, draw=black, thick, minimum size=6mm, inner sep=0pt},
@@ -264,32 +264,32 @@ Sơ đồ Activity Map mô tả luồng chạy thực tế của dữ liệu xuy
 
 % Headers for Swimlanes
 \node (h_in) at (0, 0) {\textbf{Input: Dữ liệu}};
-\node (h_core) at (5, 0) {\textbf{Lõi Xử lý BBS}};
-\node (h_out) at (10, 0) {\textbf{Output: Định lượng}};
+\node (h_core) at (5.5, 0) {\textbf{Lõi Xử lý BBS}};
+\node (h_out) at (11.5, 0) {\textbf{Output: Định lượng}};
 
 % Lane 2: Core
 \node[act] (parse) [below=1.0cm of h_core] {Xây dựng DAG \&\\Trích xuất đặc trưng};
-\node[act] (split) [below=0.6cm of parse] {Tách tập Attack\\\& Benign};
-\node[dec] (check) [below=0.6cm of split] {Mẫu Local\\Benign > 0?};
+\node[act] (split) [below=0.8cm of parse] {Tách tập Attack\\\& Benign};
+\node[dec] (check) [below=0.8cm of split] {Mẫu Local\\Benign > 0?};
 
-\node[act] (local) at ([xshift=-1.8cm, yshift=-2.2cm]check.center) {Đo lường với\\Local Benign};
-\node[act] (univ) at ([xshift=1.8cm, yshift=-2.2cm]check.center) {Đo lường với\\Univ. Benign};
-\node[act] (merge) at ([yshift=-4.2cm]check.center) {Tính 3 thành phần\\(Spa, Seq, Col)};
+\node[act] (local) at ([xshift=-2.1cm, yshift=-2.6cm]check.center) {Đo lường với\\Local Benign};
+\node[act] (univ) at ([xshift=2.1cm, yshift=-2.6cm]check.center) {Đo lường với\\Univ. Benign};
+\node[act] (merge) at ([yshift=-5.0cm]check.center) {Tính 3 thành phần\\(Spa, Seq, Col)};
 
 % Lane 1: Input
 \node[start] (start) at (0, 0 |- parse.north) {};
-\node[act] (sysmon) [below=0.6cm of start] {Log Sysmon \&\\Nhãn Ground-truth};
+\node[act] (sysmon) [below=0.8cm of start] {Log Sysmon \&\\Nhãn Ground-truth};
 
 % Lane 3: Output
-\node[act] (aggregate) at (10, 0 |- merge) {Lấy cực tiểu\\$BBS_{min}$};
-\node[act] (report) [below=0.6cm of aggregate] {Báo cáo mức độ\\hòa trộn};
-\node[end_outer] (end) [below=0.6cm of report] {};
+\node[act] (aggregate) at (11.5, 0 |- merge) {Lấy cực tiểu\\$BBS_{min}$};
+\node[act] (report) [below=0.8cm of aggregate] {Báo cáo mức độ\\hòa trộn};
+\node[end_outer] (end) [below=0.8cm of report] {};
 \node[end_inner] at (end) {};
 
 % Vertical Dividers (dynamic length calculation)
-\draw[thick, gray] (2.5, 0.5) -- (2.5, 0 |- end.south) ++(0, -0.5cm);
-\draw[thick, gray] (7.5, 0.5) -- (7.5, 0 |- end.south) ++(0, -0.5cm);
-\draw[thick, gray] (-2.5, -0.5) -- (12.5, -0.5);
+\draw[thick, gray] (2.2, 0.5) -- (2.2, 0 |- end.south) ++(0, -0.5cm);
+\draw[thick, gray] (8.8, 0.5) -- (8.8, 0 |- end.south) ++(0, -0.5cm);
+\draw[thick, gray] (-2.2, -0.5) -- (13.8, -0.5);
 
 % Connections
 \draw[->, thick] (start) -- (sysmon);
@@ -345,26 +345,26 @@ Mục tiêu cốt lõi của giai đoạn này là tìm ra "khoảng trống ng�
 % Nodes
 \node[data] (in) at (0, 0) {Không gian Đặc trưng $V_{10}$};
 
-\node[block] (bw_benign) at (-3.5, -2) {Tối ưu CV-ML\\(Dữ liệu Benign)};
-\node[block] (bw_attack) at (3.5, -2) {Quy tắc Silverman\\(Dữ liệu Attack)};
+\node[block] (bw_benign) at (-3.8, -2.5) {Tối ưu CV-ML\\(Dữ liệu Benign)};
+\node[block] (bw_attack) at (3.8, -2.5) {Quy tắc Silverman\\(Dữ liệu Attack)};
 
-\node[block] (mc_gen) at (0, -3.8) {Sinh ngẫu nhiên $M=2000$ mẫu Monte Carlo\\từ phân phối hỗn hợp $q = 0.5 f_A + 0.5 f_B$};
+\node[block] (mc_gen) at (0, -4.8) {Sinh ngẫu nhiên $M=2000$ mẫu Monte Carlo\\từ phân phối hỗn hợp $q = 0.5 f_A + 0.5 f_B$};
 
-\node[block] (kde) at (0, -5.3) {Tính Mật độ Kernel Hỗn hợp (Mixed KDE)\\Gaussian / Flip / Wang-Ryzin};
+\node[block] (kde) at (0, -6.6) {Tính Mật độ Kernel Hỗn hợp (Mixed KDE)\\Gaussian / Flip / Wang-Ryzin};
 
-\node[block] (integrate) at (0, -6.8) {Tích phân Trọng số (Importance Sampling)\\$BBS_{spa} = \mathbb{E}\left[ \frac{\min(f_A, f_B)}{q} \right]$};
+\node[block] (integrate) at (0, -8.4) {Tích phân Trọng số (Importance Sampling)\\$BBS_{spa} = \mathbb{E}\left[ \frac{\min(f_A, f_B)}{q} \right]$};
 
-\node[block] (min) at (0, -8.3) {Hội tụ 3 trục: $\min(BBS_{spa}, BBS_{seq}, BBS_{col})$};
-\node[data, draw=red!80, fill=red!10] (out) at (0, -9.8) {Độ khó Tập dữ liệu ($BBS_{min}$)};
+\node[block] (min) at (0, -10.2) {Hội tụ 3 trục: $\min(BBS_{spa}, BBS_{seq}, BBS_{col})$};
+\node[data, draw=red!80, fill=red!10] (out) at (0, -12.0) {Độ khó Tập dữ liệu ($BBS_{min}$)};
 
 % Arrows
-\draw[thick, gray!80!black] (in.south) -- (0, -0.8);
-\draw[arrow] (0, -0.8) -| node[above, pos=0.25, font=\scriptsize] {Dồi dào} (bw_benign.north);
-\draw[arrow] (0, -0.8) -| node[above, pos=0.25, font=\scriptsize] {Khan hiếm} (bw_attack.north);
+\draw[thick, gray!80!black] (in.south) -- (0, -1.0);
+\draw[arrow] (0, -1.0) -| node[above, pos=0.25, font=\scriptsize] {Dồi dào} (bw_benign.north);
+\draw[arrow] (0, -1.0) -| node[above, pos=0.25, font=\scriptsize] {Khan hiếm} (bw_attack.north);
 
-\draw[thick, gray!80!black] (bw_benign.south) |- (0, -3.0);
-\draw[thick, gray!80!black] (bw_attack.south) |- (0, -3.0);
-\draw[arrow] (0, -3.0) -- (mc_gen.north);
+\draw[thick, gray!80!black] (bw_benign.south) |- (0, -3.7);
+\draw[thick, gray!80!black] (bw_attack.south) |- (0, -3.7);
+\draw[arrow] (0, -3.7) -- (mc_gen.north);
 
 \draw[arrow] (mc_gen) -- (kde);
 \draw[arrow] (kde) -- (integrate);
