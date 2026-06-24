@@ -1,0 +1,303 @@
+\documentclass[../main.tex]{subfiles}
+\begin{document}
+
+Chương này trình bày cơ sở lý thuyết hệ điều hành Windows, nhật ký giám sát Sysmon, và phân tích cấu trúc của các mô hình phát hiện bất thường không giám sát (Unsupervised Anomaly Detection - UAD). Đồng thời, nghiên cứu giới thiệu công cụ toán học phi tham số phục vụ việc lượng hóa độ hòa trộn phân phối trong không gian đa chiều, làm tiền đề để định vị các điểm mù cấu trúc của học máy truyền thống trước chiến thuật ngụy trang Living-off-the-Land.
+
+\section{Nền tảng Windows event logging và nhật ký sự kiện Sysmon}
+\label{section:1.1}
+
+Hệ điều hành Windows sử dụng cơ chế ghi nhật ký sự kiện tập trung (\textbf{Windows Event Logging}) để ghi nhận các hoạt động của hệ thống dưới dạng tệp nhị phân \textit{.evtx}. Mỗi sự kiện trong tệp nhật ký bao gồm các thông tin chính: thời gian xảy ra (\textit{Timestamp}), mã sự kiện (\textit{Event ID}), nguồn sinh nhật ký (\textit{Provider}), mức độ ưu tiên (\textit{Level}), và trường thông tin chi tiết (\textit{EventData}). 
+
+Mặc dù Windows Event Log cung cấp khả năng giám sát hệ thống, các nhật ký mặc định (như kênh Security, System) thường thiếu thông tin chi tiết ở cấp tiến trình, đặc biệt là các tham số dòng lệnh đầy đủ và các kết nối mạng liên kết trực tiếp với tiến trình. Để phục vụ bài toán điều tra số chuyên sâu, công cụ \textbf{Sysmon} (\textit{System Monitor}) thuộc bộ công cụ Microsoft Sysinternals được tích hợp như một lớp giám sát bổ sung có độ phân giải cao.
+
+Sysmon cho phép ghi nhận chi tiết các hoạt động ở mức hệ thống thông qua các Event ID (EID) chuẩn hóa. Trong nghiên cứu này, các sự kiện từ Sysmon được sử dụng để xây dựng các đặc trưng hành vi tiến trình, cụ thể gồm các Event ID được mô tả trong Bảng \ref{tab:sysmon_eids}:
+
+\begin{table}[H]
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\caption{Các Event ID chính của Sysmon phục vụ giám sát hành vi tiến trình}
+\label{tab:sysmon_eids}
+\begin{tabular}{|>{\centering\arraybackslash}p{1.8cm}|p{3.2cm}|p{8.0cm}|}
+\hline
+\textbf{Event ID} & \textbf{Tên Sự kiện} & \textbf{Ý nghĩa trong Giám sát An ninh} \\ \hline
+\textbf{1} & \textit{Process Create} & Ghi nhận tiến trình được tạo lập, dòng lệnh (\textit{Command Line}), parent process. \\ \hline
+\textbf{3} & \textit{Network Connection} & Ghi nhận kết nối mạng (IP, Port) liên kết trực tiếp với PID sinh ra nó. \\ \hline
+\textbf{8} & \textit{CreateRemoteThread} & Phát hiện hành vi bơm mã độc (\textit{Process Injection}) vào tiến trình khác. \\ \hline
+\textbf{10} & \textit{Process Access} & Ghi nhận thao tác mở tiến trình khác, liên quan đến hành vi đọc trộm bộ nhớ. \\ \hline
+\textbf{11} & \textit{File Create} & Ghi nhận tệp tin mới được tạo dựng trên đĩa cứng. \\ \hline
+\textbf{13} & \textit{Registry Value Set} & Theo dõi thay đổi Registry nhằm phát hiện cơ chế duy trì (\textit{Persistence}). \\ \hline
+\textbf{17} & \textit{Pipe Created} & Theo dõi giao tiếp liên tiến trình (IPC) qua Named Pipes. \\ \hline
+\textbf{18} & \textit{Pipe Connected} & Theo dõi kết nối Named Pipe, thường dùng để phát hiện C2 Beaconing. \\ \hline
+\textbf{22} & \textit{DNS Query} & Theo dõi yêu cầu phân giải tên miền sinh ra bởi tiến trình. \\ \hline
+\end{tabular}
+\end{table}
+
+\subsection{Vấn đề tái sử dụng PID (pid reuse)}
+\label{subsection:1.1.1}
+Trong hệ điều hành Windows, mỗi tiến trình khi khởi chạy được cấp một định danh số nguyên gọi là \textbf{Process ID (PID)}. Tuy nhiên, không gian PID bị giới hạn và Windows sẽ tái sử dụng (\textit{reuse}) lại các giá trị PID đã kết thúc cho các tiến trình mới khởi chạy sau đó. 
+
+Điều này gây ra lỗi nghiêm trọng trong phân tích an ninh nếu chúng ta chỉ sử dụng PID làm định danh để liên kết các sự kiện log (ví dụ: gán kết nối mạng EID 3 của PID 4120 ở thời điểm $t_2$ cho hành vi tạo file EID 1 của PID 4120 ở thời điểm $t_1$, trong khi thực tế tiến trình độc hại đã kết thúc và nhường PID lại cho một ứng dụng vô hại).
+
+Để khắc phục lỗi này, Sysmon cung cấp thuộc tính \textbf{ProcessGuid} (Global Unique Identifier) được tính toán dựa trên thời gian khởi tạo hệ thống và thời gian sinh tiến trình thực tế. \textbf{ProcessGuid} là định danh duy nhất toàn cầu và không bao giờ bị trùng lặp hay tái sử dụng. Do đó, trong nghiên cứu này, \textbf{ProcessGuid} được sử dụng làm khóa chính (\textit{primary key}) để định danh tiến trình và xây dựng các cấu trúc quan hệ.
+
+\section{Biểu diễn tiến trình và chuẩn hóa đặc trưng}
+\label{section:1.2}
+
+\subsection{Chuẩn hóa đường dẫn tiến trình}
+\label{subsection:1.2.1}
+Trong nhật ký Windows, đường dẫn thực thi của cùng một tiến trình có thể xuất hiện dưới nhiều định dạng khác nhau do sự khác biệt về chữ hoa/chữ thường (Windows là hệ điều hành không phân biệt case-sensitive đối với đường dẫn), việc sử dụng các ký tự phân tách mục mục khác nhau, hoặc sử dụng các biến môi trường hệ thống. Ví dụ:
+\begin{itemize}
+    \item \texttt{C:\textbackslash Windows\textbackslash System32\textbackslash cmd.exe}
+    \item \texttt{c:\textbackslash windows\textbackslash system32\textbackslash CMD.EXE}
+    \item \texttt{\%SystemRoot\%\textbackslash System32\textbackslash cmd.exe}
+\end{itemize}
+Để tránh việc mô hình đánh giá sai lệch tần suất hành vi, toàn bộ đường dẫn tiến trình được chuẩn hóa qua các bước: chuyển về chữ thường (\textit{lowercase}), chuẩn hóa dấu gạch chéo ngược \texttt{\textbackslash} thành gạch chéo xuôi \texttt{/}, và mở rộng toàn bộ các biến môi trường (\textit{environment variables expansion}) về dạng đường dẫn tuyệt đối. Sau khi chuẩn hóa, chuỗi \texttt{c:/windows/system32/cmd.exe} được sử dụng làm biểu diễn duy nhất.
+
+\subsection{Biểu diễn đồ thị tiến trình}
+\label{subsection:1.2.2}
+Mối quan hệ thực thi giữa các tiến trình được mô hình hóa dưới dạng một đồ thị có hướng không chu trình (Directed Acyclic Graph - DAG):
+\begin{equation}
+    G = (V, E)
+\end{equation}
+Trong đó:
+\begin{itemize}
+    \item Mỗi đỉnh $v \in V$ đại diện cho một vòng đời tiến trình duy nhất được định danh bằng \textbf{ProcessGuid}.
+    \item Mỗi cạnh có hướng $e = (u, v) \in E$ đại diện cho quan hệ sinh tiến trình (tiến trình cha $u$ sinh ra tiến trình con $v$), được trích xuất từ sự kiện Sysmon Event ID 1.
+\end{itemize}
+Mỗi nút $v$ trên đồ thị chứa một tập hợp các thông số đặc trưng tĩnh và động trích xuất từ Event Data (như Command Line, Integrity Level, các cờ kích hoạt kết nối mạng hoặc ghi registry), phục vụ cho việc tính toán vector hành vi.
+
+\section{Phân loại bất thường theo mô hình chandola}
+\label{section:1.3}
+Theo nghiên cứu tổng quan kinh điển của Chandola et al. (2009) \cite{chandola2009anomaly}, các hành vi bất thường trong hệ thống dữ liệu được chia làm ba nhóm chính:
+\begin{itemize}
+    \item \textbf{Bất thường điểm (Point Anomaly):} Một điểm dữ liệu đơn lẻ có giá trị khác biệt hoàn toàn so với phân phối bình thường. Ví dụ: một tiến trình chạy command line có độ dài cực lớn hoặc chứa entropy quá cao do mang shellcode mã hóa.
+    \item \textbf{Bất thường ngữ cảnh (Contextual Anomaly):} Điểm dữ liệu có thuộc tính hoàn toàn bình thường nếu đứng độc lập, nhưng trở thành bất thường khi đặt vào một ngữ cảnh cụ thể. Ví dụ: tiến trình \texttt{cmd.exe} là bình thường nếu được mở bởi người dùng qua \texttt{explorer.exe}, nhưng trở thành bất thường nếu được sinh ra bởi máy chủ web \texttt{w3wp.exe} dưới quyền IIS.
+    \item \textbf{Bất thường tập thể (Collective Anomaly):} Tập hợp các sự kiện có vẻ bình thường khi xét riêng lẻ, nhưng sự xuất hiện đồng thời hoặc tuần tự của chúng tạo nên một cấu trúc bất thường. Ví dụ: một chuỗi các tiến trình gọi lệnh truy vấn hệ thống liên tiếp trong thời gian ngắn để dò tìm mạng (\textit{discovery}).
+\end{itemize}
+
+Sự phân loại này đóng vai trò quan trọng định hình thiết kế của các hệ thống phát hiện bất thường: để chống lại các cuộc tấn công ngụy trang LotL (vốn tận dụng các công cụ hợp lệ để tạo ra các hành vi bình thường ở mức biên), mô hình bắt buộc phải có khả năng phân tích đa chiều để nhận diện các bất thường ngữ cảnh và bất thường tập thể.
+
+\section{Chiến thuật Living-off-the-Land (LotL) và khoảng trống ngữ nghĩa}
+\label{section:1.4}
+
+Trong bối cảnh các giải pháp bảo mật Endpoint Detection and Response (EDR) và Antivirus (AV) ngày càng hoàn thiện, các rào cản kỹ thuật để một mã độc truyền thống (File-based Malware) có thể thực thi thành công trên hệ thống Windows đã trở nên vô cùng khắt khe. Các cơ chế như quét mã băm (Hash Signature), phân tích tĩnh cấu trúc tệp (Static Analysis), và kiểm tra chữ ký số (Digital Signature Verification) gần như loại bỏ hoàn toàn khả năng tồn tại của các tệp tin thực thi tùy chỉnh chưa được kiểm chứng.
+
+Để thích ứng với môi trường phòng thủ này, các nhóm tấn công có chủ đích (Advanced Persistent Threat - APT) đã dịch chuyển mạnh mẽ sang chiến thuật \textbf{Living-off-the-Land (LotL)}. LotL là kỹ thuật sử dụng trực tiếp các công cụ quản trị hệ thống hợp lệ, đã được ký số và có sẵn trên hệ điều hành mục tiêu (như \texttt{powershell.exe}, \texttt{wmi.exe}, \texttt{certutil.exe}, \texttt{rundll32.exe}) để thực hiện chuỗi hành vi tấn công \cite{hassan2020tactical}. 
+
+\subsection{Cơ chế vượt qua các lớp phòng thủ truyền thống}
+Bản chất của LotL dựa trên việc lợi dụng các tiến trình "lõi" của Windows, do đó kẻ tấn công tự động kế thừa đặc quyền và sự tin cậy (\textit{Trust}) từ hệ điều hành:
+\begin{itemize}
+    \item \textbf{Kháng phân tích tĩnh:} Vì không có tệp tin độc hại nào được ghi xuống ổ cứng (\textit{Fileless}), các cơ chế quét mã băm và kiểm tra chữ ký số bị vô hiệu hóa hoàn toàn. Tiến trình thực thi mã độc chính là tiến trình hệ thống hợp lệ.
+    \item \textbf{Trà trộn tiến trình (Process Blending):} Kẻ tấn công thường chèn mã độc vào bộ nhớ của một tiến trình đang chạy (Process Injection/Hollowing) hoặc khởi chạy tiến trình hợp lệ với các tham số dòng lệnh được mã hóa (Ví dụ: \texttt{powershell -enc <base64>}). Nhìn từ bên ngoài, hệ thống chỉ thấy một hoạt động quản trị mạng hoặc hệ thống thông thường.
+    \item \textbf{Hòa quyện mạng (Network Blending):} Các kết nối Command and Control (C2) được thiết lập qua các tiến trình hợp pháp vốn có chức năng giao tiếp mạng tự nhiên (như \texttt{svchost.exe} thực hiện cập nhật hệ thống hoặc \texttt{certutil.exe} tải chứng chỉ số).
+\end{itemize}
+
+\subsection{Khoảng trống ngữ nghĩa (Semantic Gap) trong phân tích log}
+Việc chuyển dịch sang LotL tạo ra một rào cản vô cùng lớn đối với hệ thống phân tích nhật ký, được gọi là \textbf{Khoảng trống ngữ nghĩa (Semantic Gap)}. Đây là khoảng cách giữa "hành động cấp thấp" được ghi nhận trong log và "mục tiêu ngữ nghĩa cấp cao" của hành động đó.
+Khi một tiến trình \texttt{powershell.exe} gọi một lệnh kết nối mạng ra bên ngoài, hành động cấp thấp này không mang bản chất độc hại tự thân. Nó hoàn toàn có thể là một script do quản trị viên hệ thống (Sysadmin) thiết lập để tải cấu hình tự động. Hệ thống học máy chỉ nhìn thấy một chuỗi dữ liệu nhị phân hoặc log văn bản, nhưng không thể có được bức tranh toàn cảnh về "ý định" đằng sau câu lệnh.
+
+Khoảng trống ngữ nghĩa này khiến các mô hình học máy bị rối loạn. Thay vì nhận diện các đặc điểm rõ ràng rành mạch của mã độc (như cấu trúc PE bất thường hay thư viện khả nghi), mô hình phải xử lý dữ liệu chứa toàn bộ các thuộc tính của một phần mềm hợp lệ, dẫn đến sự bùng nổ của Tỷ lệ báo động giả (False Positive Rate - FPR) và sự sụp đổ hiệu năng trong môi trường thực tế. Đây chính là tiền đề sống còn đòi hỏi sự ra đời của một khung đo lường khả năng hòa trộn như BBS, giúp định lượng chính xác sự bất lực của mô hình trước các mức độ ngụy trang LotL.
+
+\section{Lý thuyết học máy không giám sát (uad) và ảo giác hiệu năng}
+\label{section:1.5}
+
+Học máy không giám sát (Unsupervised Anomaly Detection - UAD) là phương pháp cốt lõi để phát hiện các mối đe dọa an ninh chưa biết trước (Zero-day) nhờ khả năng xây dựng mô hình hành vi bình thường (\textit{baseline}) mà không cần gán nhãn dữ liệu tấn công. Các thuật toán UAD truyền thống được chia làm hai hướng tiếp cận chính: dựa trên phân tách biên đơn giản hoặc dựa trên khoảng cách không gian.
+
+\subsection{Isolation Forest (iforest)}
+Isolation Forest dựa trên nguyên lý cô lập \cite{liu2008isolation}. Thuật toán chia cắt không gian dữ liệu bằng cách chọn ngẫu nhiên một đặc trưng và chọn ngẫu nhiên một điểm cắt nằm giữa giá trị lớn nhất và nhỏ nhất của đặc trưng đó. Quá trình chia cắt được lặp lại cho đến khi mọi điểm dữ liệu bị cô lập hoàn toàn dưới dạng các cây cô lập (Isolation Trees). 
+\begin{itemize}
+    \item \textbf{Ưu điểm:} Tốc độ xử lý nhanh và độ phức tạp tính toán tuyến tính, thích hợp với dữ liệu quy mô lớn.
+    \item \textbf{Hạn chế cấu trúc:} iForest thực hiện các nhát cắt song song với trục tọa độ (axis-aligned splits) trên từng chiều đặc trưng độc lập. Điều này tạo ra một điểm mù chí mạng gọi là **Marginal Blindness (Mù phân phối biên)**. Nếu mã độc ngụy trang khéo léo để giá trị đặc trưng của nó nằm trùng lấp hoàn toàn vào dải phân phối của dữ liệu bình thường trên từng chiều độc lập, iForest sẽ không thể cô lập được mã độc và gán cho nó chiều dài đường đi dài (tương đương với điểm an toàn).
+\end{itemize}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[scale=0.8]
+    % Axes for Main Plot
+    \draw[->, thick] (0,0) -- (8,0) node[right] {Đặc trưng 1 ($v_1$)};
+    \draw[->, thick] (0,0) -- (0,8) node[above] {Đặc trưng 2 ($v_2$)};
+    
+    % Benign distribution (diagonal correlation)
+    \draw[fill=blue!20, draw=blue!40, rotate around={45:(3.5,3.5)}] (3.5,3.5) ellipse (3.5cm and 0.8cm);
+    \node[blue, font=\small] at (4,4) {Dữ liệu lành tính (Benign)};
+    
+    % Attack points (separate pocket but values overlap in X and Y)
+    \draw[fill=red!20, draw=red!60] (2,6) circle (0.6cm);
+    \fill[red] (2,6) circle (2pt);
+    \node[red, font=\small, above] at (2,6.6) {Mã độc (Attack)};
+    
+    % Marginal projection lines
+    \draw[dashed, red] (2,6) -- (2,0);
+    \draw[dashed, red] (2,6) -- (0,6);
+    
+    \draw[dashed, blue] (2,2) -- (2,0);
+    \draw[dashed, blue] (6,6) -- (0,6);
+    
+    % Projections on X axis
+    \draw[ultra thick, blue!60] (0.8,0) -- (6.2,0);
+    \draw[ultra thick, red] (1.4,0) -- (2.6,0);
+    \node[below, font=\scriptsize] at (3.5,-0.2) {Phân phối chiếu trên trục $v_1$ (Chồng lấn cao)};
+    
+    % Projections on Y axis
+    \draw[ultra thick, blue!60] (0,0.8) -- (0,6.2);
+    \draw[ultra thick, red] (0,5.4) -- (0,6.6);
+    \node[left, rotate=90, font=\scriptsize] at (-0.3,3.5) {Phân phối chiếu trên trục $v_2$ (Chồng lấn cao)};
+    
+    % iForest Cuts (dashed orange lines)
+    \draw[orange, ultra thick, dashed] (2.8, -0.5) -- (2.8, 7.5);
+    \node[orange, right, font=\scriptsize] at (2.8,7.2) {Cắt ngang đặc trưng 1};
+    \draw[orange, ultra thick, dashed] (-0.5, 4.5) -- (7.5, 4.5);
+    \node[orange, above, font=\scriptsize] at (5.5,4.5) {Cắt ngang đặc trưng 2};
+    
+    \node[orange, draw, font=\scriptsize, align=left] at (5.5, 1.5) {Các nhát cắt song song\\trục tọa độ của iForest\\không cô lập được mã độc\\mà không cắt qua benign.};
+\end{tikzpicture}
+\caption{Sơ đồ minh họa hiện tượng Điểm mù Phân phối Biên (Marginal Blindness). Mã độc nằm hoàn toàn tách biệt trong không gian đồng thời 2 chiều, nhưng các phân phối chiếu đơn chiều của nó đè lấn hoàn toàn lên phân phối của dữ liệu lành tính, khiến các thuật toán dựa trên phân tách biên như iForest bị qua mặt.}
+\label{fig:marginal_blindness}
+\end{figure}
+
+
+\subsection{Empirical cumulative distribution functions (ecod)}
+ECOD là thuật toán phát hiện bất thường dựa trên xác suất đuôi thực nghiệm \cite{li2023ecod}. ECOD ước lượng Hàm phân phối tích lũy thực nghiệm (ECDF) cho từng chiều đặc trưng một cách độc lập:
+\begin{equation}
+    F_{d}(x_d) = \frac{1}{n} \sum_{i=1}^{n} \mathbb{I}(X_{id} \le x_d)
+\end{equation}
+Điểm số rủi ro của điểm dữ liệu $x$ được tính bằng tổng log-likelihood xác suất đuôi của các chiều:
+\begin{equation}
+    Score(x) = -\sum_{d=1}^{D} \log\left( \min(F_{d}(x_d),\ 1 - F_{d}(x_d)) \right)
+\end{equation}
+Do ECOD hoạt động hoàn toàn dựa trên giả định độc lập biên (cộng dồn điểm số đơn chiều), nó cũng chịu chung điểm mù **Marginal Blindness**. Khi kẻ tấn công LotL duy trì các chỉ số đơn lẻ nằm ở vùng mật độ cao của biên, ECOD hoàn toàn bị vô hiệu hóa.
+
+\subsection{Local outlier factor (lof)}
+LOF là thuật toán phát hiện bất thường dựa trên mật độ cục bộ \cite{breunig2000lof}. LOF so sánh mật độ của một điểm dữ liệu với mật độ của $k$ láng giềng gần nhất của nó sử dụng khoảng cách Minkowski (thường là khoảng cách Euclidean). Tuy nhiên, LOF gặp phải hai giới hạn toán học lớn:
+\begin{itemize}
+    \item \textbf{Co cụm khoảng cách (Distance Concentration):} Trong không gian đặc trưng đa chiều ($d \to \infty$), khoảng cách Euclidean giữa điểm gần nhất và xa nhất bị phẳng hóa, hội tụ về cùng một giá trị trung bình \cite{francois2007concentration}. Hệ quả là tỷ số tương phản khoảng cách bị triệt tiêu:
+    \begin{equation}
+        \lim_{d \to \infty} \text{Var}\left( \frac{D_{\max} - D_{\min}}{D_{\min}} \right) = 0
+    \end{equation}
+    Điều này làm cho LOF mất đi khả năng nhận diện láng giềng thực sự và tính toán mật độ cục bộ chính xác.
+    \item \textbf{Mù tương quan (Correlation Blindness):} Khoảng cách Euclidean mặc định giả định mọi đặc trưng có vai trò ngang nhau và không thể đo lường chính xác khoảng cách trên các không gian dữ liệu hỗn hợp (mixed-type) chứa cả biến phân loại và biến liên tục.
+\end{itemize}
+
+\section{Mật độ toàn cục vs cấu trúc phi tham số cục bộ}
+\label{section:1.6}
+
+Để giải quyết bài toán mã độc ngụy trang LotL, chúng ta cần phân biệt rõ hai góc nhìn toán học: Khoảng cách toàn cục tham số (Mahalanobis) và Ước lượng mật độ phi tham số cục bộ (KDE).
+
+\subsection{Độ sâu toàn cục qua khoảng cách Mahalanobis}
+Khoảng cách Mahalanobis đo khoảng cách từ một điểm dữ liệu $x$ đến trung tâm phân phối $\mu$, có xét đến ma trận hiệp phương sai $\Sigma$ của toàn bộ dữ liệu bình thường:
+\begin{equation}
+    d_M(x) = \sqrt{(x - \mu)^T \Sigma^{-1} (x - \mu)}
+\end{equation}
+\begin{itemize}
+    \item \textbf{Ý nghĩa:} Nó xấp xỉ phân phối của dữ liệu lành tính dưới dạng một ellipsoid toàn cục (xấp xỉ Gaussian). Nó đo lường mức độ chui sâu của điểm dữ liệu vào lõi trung tâm của phân phối lành tính.
+    \item \textbf{Hạn chế:} Việc ép dữ liệu vào dạng đa tạp ellipsoid khiến khoảng cách Mahalanobis bị "mù" trước các cấu trúc rỗng (hố đen mật độ thấp) nằm xen kẽ bên trong ellipsoid đó.
+\end{itemize}
+
+\subsection{Cấu trúc phi tham số cục bộ qua KDE}
+Ước lượng mật độ nhân (Kernel Density Estimation - KDE) là phương pháp phi tham số để ước lượng hàm mật độ xác suất của biến ngẫu nhiên \cite{silverman1986density}. Đối với biến liên tục 1 chiều, KDE có dạng:
+\begin{equation}
+    \hat{f}(x) = \frac{1}{nh} \sum_{i=1}^{n} K\left( \frac{x - X_i}{h} \right)
+\end{equation}
+Trong đó $h$ là tham số làm mịn (bandwidth), thường được chọn theo quy tắc ngón tay của Silverman để tối thiểu hóa sai số tích phân bình phương trung bình (MISE):
+\begin{equation}
+    h = 0.9 \cdot \min\left( \text{Std}(X),\ \frac{\text{IQR}(X)}{1.34} \right) \cdot n^{-1/5}
+\end{equation}
+
+Do không gian đặc trưng của hành vi tiến trình là không gian đa chiều hỗn hợp (chứa cả biến liên tục và biến rời rạc), nghiên cứu áp dụng mô hình \textbf{Mixed Product Kernel} của Racine và Li (2004) \cite{racine2004nonparametric}. Hàm mật độ đồng thời $\hat{f}(x)$ được tính bằng tích của các nhân thành phần:
+\begin{equation}
+    \hat{f}(x) = \frac{1}{n} \sum_{i=1}^{n} \prod_{s=1}^{q} K_s(x_s, X_{is}, h_s)
+\end{equation}
+Trong đó ba loại nhân được định nghĩa tương ứng với kiểu đặc trưng:
+\begin{enumerate}
+    \item \textbf{Nhân Gaussian} (cho biến liên tục):
+    \begin{equation}
+        K_c(x_s, X_{is}, h_s) = \frac{1}{h_s \sqrt{2\pi}} \exp\left( -\frac{1}{2} \left( \frac{x_s - X_{is}}{h_s} \right)^2 \right)
+    \end{equation}
+    \item \textbf{Nhân Aitchison-Aitken} (cho biến phân loại không thứ tự):
+    \begin{equation}
+        K_u(x_s, X_{is}, \lambda_s) = \begin{cases} 1 - \lambda_s & \text{nếu } x_s = X_{is} \\ \dfrac{\lambda_s}{c_s - 1} & \text{nếu } x_s \neq X_{is} \end{cases}
+    \end{equation}
+    Trong đó $c_s$ là số phân loại và $\lambda_s \in [0, (c_s - 1)/c_s]$ là tham số làm mịn.
+    \item \textbf{Nhân Wang-van Ryzin} (cho biến phân loại có thứ tự):
+    \begin{equation}
+        K_o(x_s, X_{is}, \lambda_s) = \begin{cases} 1 - \lambda_s & \text{nếu } x_s = X_{is} \\ \dfrac{1 - \lambda_s}{2} \lambda_s^{|x_s - X_{is}|} & \text{nếu } x_s \neq X_{is} \end{cases}
+    \end{equation}
+    Trong đó $\lambda_s \in [0, 1]$ là tham số làm mịn.
+\end{enumerate}
+
+\subsection{Tích phân monte carlo}
+Để tính toán phần diện tích chồng lấn (Overlap - OVL) của hai hàm mật độ xác suất đa chiều $\hat{f}_a$ (attack) và $\hat{f}_b$ (benign), việc tính tích phân giải tích là bất khả thi. Thay vào đó, tích phân Monte Carlo được áp dụng bằng cách lấy mẫu ngẫu nhiên $M$ điểm từ phân phối benign ($Y_m \sim f_b$) để chuyển tích phân thành kỳ vọng thực nghiệm:
+\begin{equation}
+    OVL = \int_{\mathbb{R}^d} \min\left( f_a(x),\ f_b(x) \right) dx \approx \frac{1}{M} \sum_{m=1}^{M} \min\left( 1,\ \frac{\hat{f}_a(Y_m)}{\hat{f}_b(Y_m)} \right)
+\end{equation}
+Với số lượng mẫu chọn $M=10.000$, giới hạn độ phân giải tối thiểu của phép đo được thiết lập chính xác ở mức $1/M = 10^{-4}$, giúp nhận diện các hoạt động mã độc ngụy trang siêu hiếm mà không bị ảnh hưởng bởi sai số ước lượng.
+
+Nhờ bản chất phi tham số, KDE có khả năng định vị chính xác các \textbf{Local Pockets (Hố đen mật độ cục bộ)} — những vùng không gian có mật độ xác suất cực thấp nằm bao bọc bên trong vùng mật độ cao của dữ liệu lành tính, nơi các tiến trình LotL ngụy trang chui sâu vào cấu trúc hiệp phương sai toàn cục đang ẩn nấp.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[scale=0.85]
+    % Draw grid
+    \draw[->, gray!40] (-0.5,0) -- (8.5,0) node[right, black] {$v_1$};
+    \draw[->, gray!40] (0,-0.5) -- (0,6.5) node[above, black] {$v_2$};
+    
+    % Draw Mahalanobis Ellipse (representing global covariance approximation)
+    \draw[dashed, blue!50, fill=blue!5, thick, rotate around={15:(4,3)}] (4,3) ellipse (3.8cm and 2.2cm);
+    \node[blue!80, font=\bfseries] at (4, 5.0) {Biên hiệp phương sai Mahalanobis (Xấp xỉ Gaussian)};
+    
+    % Draw Benign points (scattered around, but leaving a hole at (3.8,2.7))
+    \foreach \x/\y in {
+        1.5/2.0, 1.8/1.5, 2.2/1.8, 2.5/1.2, 2.8/2.1, 1.6/3.1, 2.1/2.8,
+        3.0/1.4, 3.8/1.1, 4.5/1.3, 5.2/1.5, 5.8/1.8, 6.2/2.1, 6.6/2.5,
+        2.5/4.2, 3.1/4.5, 4.0/4.8, 4.8/4.6, 5.5/4.1, 6.0/3.8, 6.5/3.2,
+        2.0/3.6, 2.7/3.8, 4.5/4.0, 5.1/3.6, 5.7/3.2, 6.3/2.7, 5.9/2.4,
+        3.2/2.0, 4.0/1.7, 4.6/1.9, 5.0/2.2, 5.3/2.6, 5.1/3.0, 4.6/3.2,
+        3.0/3.0, 3.6/3.4, 4.1/3.5, 4.2/2.8, 4.0/2.3, 3.0/2.5, 3.4/1.7
+    } {
+        \fill[blue!70!black] (\x,\y) circle (2pt);
+    }
+    
+    % Draw the Local Pocket (the empty region)
+    \draw[dotted, green!60!black, thick] (3.8,2.7) circle (0.7cm);
+    \node[green!60!black, font=\scriptsize, align=center] at (5.2, 2.8) {Lỗ hổng mật độ\\cục bộ\\(Local Pocket)};
+    
+    % Draw Anomaly points inside the Local Pocket
+    \fill[red] (3.8,2.7) circle (3pt);
+    \fill[red] (3.6,2.6) circle (3pt);
+    \fill[red] (3.9,2.8) circle (3pt);
+    \node[red, font=\bfseries] at (3.8, 2.1) {Mã độc (Attack)};
+    
+    % Draw arrow explaining the global distance
+    \draw[->, ultra thick, purple] (4.2,3.1) -- (3.8,2.7);
+    \node[purple, font=\scriptsize, anchor=south west] at (4.0,3.0) {Khoảng cách toàn cục nhỏ};
+    
+    % Legend box
+    \node[draw, fill=white, font=\scriptsize, align=left] at (1.5, 5.2) {
+        \textbf{Nghịch lý Cấu trúc:}\\
+        - \textcolor{purple}{\textbf{Global Bias}}: Mã độc nằm gần\\
+        tâm hiệp phương sai nên khoảng cách\\
+        Mahalanobis nhỏ $\to$ bị bỏ lọt.\\
+        - \textcolor{green!60!black}{\textbf{Local Pocket}}: KDE phát hiện mật\\
+        độ cục bộ $\approx 0$ $\to$ phát hiện chính xác.
+    };
+    
+\end{tikzpicture}
+\caption{Sơ đồ Nghịch lý cấu trúc giữa Thiên kiến Trung tâm Toàn cục (Global Center Bias) và Lỗ hổng Cục bộ (Local Pockets). Mã độc ngụy trang chui sâu vào vùng mật độ cao của phân phối dữ liệu lành tính (Mahalanobis depth rất cao), tuy nhiên chúng lại rơi vào các lỗ hổng mật độ (Local Pockets) mà xấp xỉ Gaussian của Mahalanobis bị che khuất nhưng bộ ước lượng phi tham số (KDE) có thể tách biệt được.}
+\label{fig:global_vs_local}
+\end{figure}
+
+\section{Các nghiên cứu liên quan}
+\label{section:1.7}
+
+Trong thập kỷ qua, các nghiên cứu nền tảng về chiều sâu dữ liệu (statistical data depth) \cite{liu1993quality, zuo2000general} đã chỉ ra rằng các mô hình tham số (parametric models) có rủi ro lớn trong việc ước lượng cấu trúc thực tế do các giả định chặt chẽ về phân phối. Khoảng cách Mahalanobis, vốn là cốt lõi của nhiều thước đo chiều sâu và có thể được ước lượng mạnh mẽ (robust) thông qua các thuật toán như Minimum Covariance Determinant (MCD) \cite{rousseeuw1999fast}, mang lại tính ổn định toàn cục xuất sắc. Tuy nhiên, chúng thường thiếu khả năng định vị các cấu trúc phi tuyến phức tạp tại không gian cục bộ. Mặc dù luận văn có kế thừa lý thuyết này để đề xuất khung đo lường DensPct\_Mahal, nghiên cứu cũng làm rõ rằng DensPct\_Mahal tập trung vào việc áp dụng trực tiếp khái niệm này vào không gian hỗn hợp đặc trưng an toàn thông tin để bộc lộ các yếu điểm cấu trúc.
+
+Bên cạnh đó, việc xây dựng các bộ dữ liệu chuẩn (benchmarks) để đánh giá độ khó của bài toán phát hiện bất thường đã được cộng đồng nghiên cứu quan tâm từ lâu. Các nghiên cứu nền tảng như của Janssens \& Postma (2012) \cite{janssens2012data} hay Zimek et al. (2012) \cite{zimek2012survey} đã phân tích sâu sắc tác động của số chiều dữ liệu lên độ chính xác phân loại. Tương tự, công trình của Emmott et al. (2013) \cite{emmott2013systematic} và Campos et al. (2016) \cite{campos2016evaluation} đã chỉ ra rằng hiệu năng của các thuật toán phụ thuộc cực kỳ lớn vào cách dữ liệu bất thường được tạo ra, đặc biệt là mức độ chồng lấn biên (marginal overlap). Mặc dù vậy, các thước đo độ khó trong các nghiên cứu này chủ yếu áp dụng cho dữ liệu dạng bảng phân bố rõ ràng, chưa giải quyết triệt để sự phức tạp của không gian log sự kiện hệ thống mạng (LotL).
+
+Về phương pháp đánh giá hiệu năng trên dữ liệu mất cân bằng cực đoan (điển hình của SOC), các nghiên cứu của Davis \& Goadrich (2006) \cite{davis2006relationship} và Saito \& Rehmsmeier (2015) \cite{saito2015precision} đã chứng minh toán học rằng đường cong ROC có thể tạo ra "ảo giác hiệu năng". Hơn nữa, những yếu điểm của phân phối biên độc lập cũng đã thúc đẩy sự ra đời của các phương pháp phát hiện cục bộ (Local Outlier Detection) như LOCI \cite{papadimitriou2003loci} hay LODA \cite{pevny2016loda} nhằm giải quyết hiện tượng "hố đen mật độ thấp" bị che khuất bởi phân phối toàn cục. Tuy nhiên, các phương pháp này thường đối mặt với thách thức lớn về chi phí tính toán khi không gian có cả đặc trưng rời rạc và liên tục.
+
+Trong mảng ứng dụng học máy phát hiện bất thường (UAD) hiện đại, nhiều nghiên cứu giai đoạn 2022–2025 đã phát triển các mô hình dựa trên mạng học sâu (Deep UAD như DeepSVDD \cite{ruff2018deep}) hoặc đồ thị (như UNICORN \cite{han2020unicorn}). Để đối phó với chiến thuật LotL, một hướng tiếp cận nổi bật là phân tích nguồn gốc truy vết (Provenance Analysis), điển hình là mô hình phân tích chiến thuật của Hassan et al. (2020) \cite{hassan2020tactical} sử dụng đồ thị nhân quả để liên kết các sự kiện endpoint. Tuy nhiên, các phương pháp này thường đòi hỏi xây dựng đồ thị khổng lồ hoặc học biểu diễn phức tạp.
+
+Gần đây nhất, một số công trình như của Smiliotopoulos et al. (2025) \cite{smiliotopoulos2025detection} hay mô hình UGEA-LMD (2025) \cite{ugea_lmd_2025} đã bắt đầu đưa ra các cảnh báo định tính về giới hạn của học máy không giám sát, thừa nhận rằng các thuật toán UAD truyền thống gặp khó khăn khi kẻ tấn công bắt chước chính xác các câu lệnh quản trị hệ thống. Mặc dù vậy, cộng đồng học thuật vẫn thiếu một thước đo chuẩn hóa độc lập (không phụ thuộc thuật toán) để lượng hóa bằng con số mức độ hòa trộn hành vi này. Khoảng trống lý thuyết này chính là động lực lớn nhất để nghiên cứu xây dựng khung đo lường dựa trên chiều sâu toàn cục và ước lượng mật độ cục bộ trong các chương tiếp theo.
+
+\end{document}

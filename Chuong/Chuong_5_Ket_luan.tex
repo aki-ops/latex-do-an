@@ -5,7 +5,7 @@
 \label{section:5.1}
 \addcontentsline{toc}{section}{Kết luận và Đánh giá chung}
 
-Luận văn này đã hoàn thành toàn bộ mục tiêu đề ra, giải quyết thành công bài toán lượng hóa mức độ hòa trộn hành vi của tiến trình độc hại trên hệ điều hành Windows và xác lập ranh giới rủi ro của các bộ phát hiện bất thường không giám sát (UAD). Thông qua hệ thống phân tích lý thuyết toán học hình học và thực nghiệm đối chứng trên 11 tập dữ liệu, nghiên cứu đã làm rõ những hạn chế hiệu năng biên của các phương pháp truyền thống và đề xuất một hướng đi phi tham số để mở khóa giới hạn này.
+Luận văn đã tiến hành một quá trình nghiên cứu toàn diện từ cơ sở lý thuyết đến thực nghiệm để lượng hóa khả năng phát hiện của các mô hình học máy đối với chiến thuật tấn công ngụy trang (LotL) trên hệ điều hành Windows. Chương 1 đã xây dựng cơ sở lý thuyết vững chắc về phương pháp học máy không giám sát (UAD) và không gian đặc trưng hành vi hệ thống. Chương 2 đề xuất khung đo lường độ khó dựa trên các chỉ số toán học hình học và phi tham số (DensPct\_Mahal và KDE\_Joint). Chương 3 đã triển khai thực nghiệm đối chứng trên 11 tập dữ liệu, làm rõ những hạn chế hiệu năng của các phương pháp truyền thống dựa trên phân phối biên đơn lẻ, từ đó xác nhận các yếu điểm cấu trúc của các mô hình UAD khi đối diện với dữ liệu mất cân bằng. Toàn bộ quá trình nghiên cứu đã hoàn thành mục tiêu thiết lập một khung đo lường độ khó thực tiễn và xác lập các giới hạn hiệu năng thực sự của các thuật toán phân loại hành vi.
 
 \section*{Hai đóng góp học thuật nổi bật của luận văn}
 \label{section:5.2}
@@ -13,29 +13,24 @@ Luận văn này đã hoàn thành toàn bộ mục tiêu đề ra, giải quy�
 
 Nghiên cứu mang lại hai đóng góp khoa học quan trọng cho lý thuyết phát hiện bất thường và thực tiễn an ninh hệ thống:
 
-\subsection*{Đóng góp 1: thước đo độ khó nội tại denspct\_mahal}
+\subsection*{Đóng góp 1: Thước đo độ khó nội tại DensPct\_Mahal}
 \addcontentsline{toc}{subsection}{Đóng góp 1: Thước đo độ khó nội tại DensPct\_Mahal}
-Nghiên cứu đề xuất và thiết lập thước đo độ khó nội tại \texttt{DensPct\_Mahal} dành riêng cho các chiến dịch LotL. Bằng cách kết hợp hình học Gaussian (độ sâu Mahalanobis) và đối chiếu với mật độ đồng thời, thước đo này cho phép lượng hóa mức độ "chui sâu" của mã độc vào trung tâm phân phối nền. Kết quả thực nghiệm gợi ý rằng thước đo này có khả năng giải thích sự sụp đổ hiệu năng của các thuật toán truyền thống tốt hơn hẳn so với thước đo Marginal Overlap (DDO) đang phổ biến.
+Nghiên cứu thiết lập thước đo độ khó nội tại DensPct\_Mahal dành riêng cho việc đánh giá khả năng ngụy trang của chiến thuật LotL. Bằng cách sử dụng khoảng cách Mahalanobis, thước đo này cho phép lượng hóa chính xác mức độ hòa trộn của mã độc vào trung tâm phân phối nền. Kết quả thực nghiệm đã chứng minh rằng thước đo này có khả năng giải thích sự sụp đổ hiệu năng của các thuật toán truyền thống vượt trội hơn hẳn so với thước đo đơn chiều DDO.
 
-\subsection*{Đóng góp 2: phát hiện và chứng minh Local Pockets}
-\addcontentsline{toc}{subsection}{Đóng góp 2: Phát hiện và chứng minh Local Pockets}
-Luận văn đã khám phá và chứng minh sự tồn tại của hiện tượng "Local Pockets" - các vùng rỗng cục bộ nơi mã độc lẩn trốn sự giám sát toàn cục. Việc ứng dụng mô hình KDE\_Joint đã đóng vai trò như một \textit{bằng chứng tồn tại (existence proof)} cho cấu trúc này. Mặc dù KDE\_Joint bộc lộ những yếu điểm trên dữ liệu thưa thớt, nó xác nhận rằng hành vi ngụy trang LotL (như trong chiến dịch APT29) hoàn toàn có thể bị phát hiện nếu thay đổi kiến trúc đo lường sang các công cụ phi tham số cấu trúc lân cận. Trong suốt quá trình đi đến kết luận này, không gian V10 và quy trình Controlled Injection đã hoàn thành xuất sắc vai trò làm phương tiện thực nghiệm và môi trường giả lập.
+\subsection*{Đóng góp 2: Phát hiện và chứng minh hiện tượng Local Pockets}
+\addcontentsline{toc}{subsection}{Đóng góp 2: Phát hiện và chứng minh hiện tượng Local Pockets}
+Luận văn khám phá và chứng minh sự tồn tại của hiện tượng Lỗ hổng mật độ cục bộ (Local Pockets) - các vùng không gian có cấu trúc đồng thời đặc thù nơi mã độc có thể tránh khỏi sự giám sát toàn cục. Việc ứng dụng mô hình ước lượng mật độ phi tham số (KDE\_Joint) đã cung cấp bằng chứng tồn tại rõ ràng cho cấu trúc này. Đóng góp này chỉ ra rằng hành vi ngụy trang LotL hoàn toàn có thể bị bóc trần nếu chúng ta khai thác đúng cấu trúc đa chiều thay vì chỉ phụ thuộc vào xấp xỉ phân phối toàn cục.
 
 \section*{Giới hạn của đề tài}
 \label{section:5.3}
 \addcontentsline{toc}{section}{Giới hạn của đề tài}
 
-Bên cạnh các đóng góp đạt được, nghiên cứu vẫn tồn tại các giới hạn cần nhìn nhận khách quan:
+Bên cạnh các đóng góp đạt được, nghiên cứu vẫn tồn tại một số hạn chế nhất định:
 \begin{itemize}
-    \item \textbf{Cỡ mẫu thực nghiệm:} Số lượng chiến dịch có ground truth đầy đủ còn tương đối nhỏ ($N=11$). Mặc dù kiểm định hoán vị (Permutation Test) đã được áp dụng để tối đa hóa độ tin cậy của mẫu nhỏ, sức mạnh kiểm chứng thống kê tổng quát sẽ vững chắc hơn nếu quy mô tập dữ liệu được mở rộng.
-    \item \textbf{Lỗi thưa thớt của KDE\_Joint:} Khái niệm "Local Pockets" gắn liền với lý thuyết mật độ cục bộ, nhưng công cụ ước lượng hiện tại (KDE) sụp đổ hoàn toàn (log-likelihood bằng $-\infty$) trên các kịch bản chứa đặc trưng thưa thớt. Kết quả F1=1.0 trên \texttt{kb8\_lateral} đạt được thông qua can thiệp kỹ thuật (clipping), cho thấy KDE không phải là công cụ tối ưu cho thực tiễn.
+    \item \textbf{Cỡ mẫu thực nghiệm:} Số lượng chiến dịch có dữ liệu thực tế đẩy đủ (ground truth) còn tương đối nhỏ. Dù các kỹ thuật thống kê đã được sử dụng để tối ưu hóa sức mạnh kiểm định, quy mô tập dữ liệu cần được mở rộng để đảm bảo tính khái quát hóa tuyệt đối.
+    \item \textbf{Giới hạn của mô hình phi tham số trên dữ liệu thưa thớt:} Công cụ đánh giá Local Pockets (KDE\_Joint) gặp khó khăn và sụp đổ khi đối mặt với dữ liệu phân loại thưa thớt (sparse categorical features). Điều này chứng minh rằng mặc dù KDE\_Joint tốt về mặt lý thuyết nhưng lại chưa đủ vững vàng để triển khai trong thực tiễn hàng ngày của các hệ thống giám sát.
+    \item \textbf{Hiện tượng trôi dạt khái niệm (Concept Drift):} Khung đo lường DensPct\_Mahal phải đối mặt với khó khăn khi triển khai thời gian thực do sự thay đổi tự nhiên của phân phối hành vi hệ thống qua các bản cập nhật phần mềm, đòi hỏi các cơ chế hiệu chỉnh liên tục.
 \end{itemize}
-
-\subsection*{Ảnh hưởng của concept drift và cập nhật hệ thống}
-\addcontentsline{toc}{subsection}{Ảnh hưởng của Concept Drift và Cập nhật hệ thống}
-Mặc dù khung đo lường \texttt{DensPct\_Mahal} tỏ ra hiệu quả trong môi trường đánh giá tĩnh (offline forensics), nó phải đối mặt với một thách thức thực tế lớn khi triển khai trên hệ thống SOC thời gian thực: hiện tượng \textit{Concept Drift} (trôi dạt khái niệm). Khi hệ điều hành Windows được cập nhật hoặc khi doanh nghiệp triển khai một phần mềm quản lý mới, phân phối hành vi của các tiến trình nền bình thường sẽ bị thay đổi. 
-
-Sự thay đổi này làm cho ma trận hiệp phương sai toàn cục $\Sigma$ và vector trung bình $\mu$, vốn được ước lượng từ tập dữ liệu quá khứ, dần trở nên lạc hậu. Hậu quả là khoảng cách Mahalanobis có thể bị thổi phồng, làm sai lệch độ chui sâu \texttt{DensPct} của mã độc. Để giải quyết vấn đề này, cần tích hợp cơ chế \textit{Incremental Covariance Updating} (cập nhật hiệp phương sai trực tuyến) cho phép $\Sigma$ tự động thích nghi với môi trường mới.
 
 \section*{Hướng phát triển trong tương lai}
 \label{section:5.4}
@@ -43,9 +38,9 @@ Sự thay đổi này làm cho ma trận hiệp phương sai toàn cục $\Sigma
 
 Để khắc phục các hạn chế và mở rộng hướng nghiên cứu, các công việc trong tương lai sẽ tập trung vào các định hướng:
 \begin{itemize}
-    \item \textbf{Mở rộng Quy mô Tập dữ liệu ($N \ge 30$):} Tích hợp các bộ dữ liệu quy mô công nghiệp như DARPA OpTC, DARPA Transparent Computing, hoặc CICIDS để mở rộng số lượng chiến dịch kiểm chứng. Điều này sẽ cho phép áp dụng Permutation Test với ý nghĩa thống kê thuyết phục tuyệt đối.
-    \item \textbf{Thiết kế Kiến trúc Hybrid Estimator (k-NN + KDE):} Để khắc phục chi phí suy diễn bậc hai $O(N^2 \cdot d)$ của KDE vốn không thể mở rộng (scale) trong môi trường thời gian thực, nghiên cứu đề xuất phác thảo kiến trúc lai hai giai đoạn: (1) \textit{Giai đoạn Sàng lọc (Screening)} sử dụng cấu trúc cây (VD: Ball-Tree) kết hợp khoảng cách Gower để định vị $k$ láng giềng gần nhất với chi phí $O(N \log N)$; (2) \textit{Giai đoạn Mật độ Cục bộ (Local Density)} chỉ kích hoạt tính toán KDE trên tập ứng viên nhỏ này, giảm độ phức tạp xuống $O(k \cdot d)$. Thiết kế này không chỉ xử lý tự nhiên biến phân loại mà còn hạ tổng chi phí tính toán xuống mức khả thi $O(N \log N + k \cdot d)$, mở đường cho việc triển khai Local Pockets trên hệ thống thực tiễn.
-    \item \textbf{Phát triển Thước đo Local Pocket Độc lập:} Thay vì phụ thuộc vào một mô hình để chứng minh sự tồn tại, nghiên cứu hướng tới định nghĩa một \textit{Pocket Score} cấp độ dataset, so sánh trực tiếp percentile toàn cục (Mahalanobis) và percentile cục bộ (k-NN) để lượng hóa tính chất này thành một đặc tính nội tại thứ hai của dữ liệu LotL.
+    \item \textbf{Mở rộng quy mô tập dữ liệu:} Tích hợp các bộ dữ liệu an toàn thông tin quy mô công nghiệp (như DARPA OpTC, CICIDS) để tăng số lượng chiến dịch kiểm chứng, qua đó củng cố độ vững chắc của các kết luận thống kê.
+    \item \textbf{Thiết kế bộ ước lượng mật độ lai ghép (Hybrid Estimator):} Phát triển một kiến trúc phối hợp giữa tính kháng nhiễu và chi phí thấp của các bộ phân tích cấu trúc lân cận gần nhất (như k-NN hoặc Ball-Tree) kết hợp với đánh giá mật độ phi tham số cục bộ. Điều này giúp loại bỏ sự sụp đổ của KDE nguyên bản và giải quyết bài toán hiệu năng $O(N^2)$ để có thể ứng dụng trong môi trường thời gian thực.
+    \item \textbf{Phát triển thước đo Local Pocket độc lập:} Định nghĩa một chỉ số đánh giá cục bộ ở cấp độ tập dữ liệu (dataset-level) để lượng hóa tính chất thâm nhập của mã độc mà không cần phụ thuộc vào một mô hình phân loại cụ thể.
 \end{itemize}
 
 \end{document}
