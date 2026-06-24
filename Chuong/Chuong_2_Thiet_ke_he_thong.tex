@@ -194,106 +194,104 @@ Dựa trên lập luận về Local Pockets, mô hình phi tham số **KDE\_Join
 \end{tabular}
 \end{table}
 
-\section{Thiết kế pipeline đo lường}
+\section{Thiết kế đường ống đo lường (Pipeline)}
 \label{section:2.3}
 
-Để triển khai khung đo lường BBS vào thực tiễn và làm nổi bật trọng tâm nghiên cứu, một kiến trúc đường ống xử lý (pipeline) và luồng hoạt động dữ liệu (data flow) được thiết kế chuyên biệt. Hai thành phần này được tách biệt để thể hiện tính chất tổng quát của hệ thống và chi tiết hoạt động của từng luồng dữ liệu.
+Để triển khai khung đo lường BBS vào thực tiễn và làm nổi bật trọng tâm nghiên cứu, kiến trúc đường ống xử lý (pipeline) được chia thành các cấp độ từ vĩ mô đến vi mô.
 
-\subsection{Kiến trúc tổng thể (Pipeline)}
-Kiến trúc tổng thể của hệ thống đo lường được chia thành 4 giai đoạn chính, quy định rõ ràng dữ liệu đầu vào (Input), luồng xử lý và kết quả đầu ra (Output). Sơ đồ Pipeline dưới đây tập trung vào luồng các giai đoạn xử lý vĩ mô:
+\subsection{Kiến trúc tổng thể (Macro Pipeline)}
+Kiến trúc tổng thể tập trung mô tả luồng trung chuyển dữ liệu tĩnh giữa các khối chức năng chính. Mỗi giai đoạn được thiết kế tinh gọn để làm rõ tính chất "đầu vào - đầu ra" (Input - Output).
 
 \begin{figure}[H]
 \centering
 \begin{tikzpicture}[
-    node distance=2.5cm,
-    stage_box/.style={rectangle, rounded corners, draw=blue!80, fill=blue!10, very thick, minimum width=3.5cm, minimum height=1.2cm, align=center, font=\bfseries},
+    node distance=3.5cm,
+    stage_box/.style={rectangle, rounded corners, draw=blue!80, fill=blue!10, very thick, minimum width=2.8cm, minimum height=1.2cm, align=center, font=\bfseries},
     arrow/.style={->, >=stealth, thick, blue!80}
 ]
-    % Nodes
-    \node[stage_box] (stage1) {Giai đoạn 1:\\Xây dựng đồ thị};
-    \node[stage_box, right of=stage1, xshift=2cm] (stage2) {Giai đoạn 2:\\Trích xuất không gian};
-    \node[stage_box, right of=stage2, xshift=2cm] (stage3) {Giai đoạn 3:\\Ước lượng mật độ};
-    \node[stage_box, right of=stage3, xshift=2cm] (stage4) {Giai đoạn 4:\\Tổng hợp chỉ số};
+    % Nodes with positioning
+    \node[stage_box] (stage1) {Giai đoạn 1:\\Tiền xử lý};
+    \node[stage_box, right=of stage1] (stage2) {Giai đoạn 2:\\Trích xuất};
+    \node[stage_box, right=of stage2] (stage3) {Giai đoạn 3:\\Định lượng};
+    \node[stage_box, right=of stage3] (stage4) {Giai đoạn 4:\\Tổng hợp};
 
     % Arrows
     \draw[arrow] (stage1) -- (stage2);
     \draw[arrow] (stage2) -- (stage3);
     \draw[arrow] (stage3) -- (stage4);
 \end{tikzpicture}
-\caption{Sơ đồ kiến trúc tổng thể (Pipeline) Khung đo lường BBS}
+\caption{Sơ đồ kiến trúc tổng thể (Pipeline) của Khung đo lường BBS}
 \label{fig:bbs_pipeline}
 \end{figure}
 
-\begin{enumerate}
-    \item \textbf{Giai đoạn 1: Tiền xử lý và Xây dựng đồ thị (Data Ingestion \& Graph Building)}
+\begin{itemize}
+    \item \textbf{Giai đoạn 1: Tiền xử lý (Data Ingestion)}
     \begin{itemize}
-        \item \textit{Input:} Các tệp tin log thô định dạng \texttt{.evtx} sinh ra từ Windows Event Logging và Sysmon.
-        \item \textit{Luồng thực thi:} Đọc sự kiện song song, chuẩn hóa đường dẫn tuyệt đối, và trích xuất trường \texttt{ProcessGuid}. Các sự kiện rời rạc được liên kết thành cấu trúc đồ thị quan hệ tiến trình có hướng (DAG).
-        \item \textit{Output:} Đồ thị tiến trình hệ thống, phục vụ trích xuất đặc trưng.
+        \item \textit{Input:} Tập tin log hệ thống thô (ví dụ: Sysmon \texttt{.evtx}).
+        \item \textit{Output:} Đồ thị quan hệ tiến trình có hướng (DAG).
     \end{itemize}
-    \item \textbf{Giai đoạn 2: Trích xuất không gian đặc trưng đa chiều (Feature Extraction)}
+    \item \textbf{Giai đoạn 2: Trích xuất không gian (Feature Extraction)}
     \begin{itemize}
-        \item \textit{Input:} Đồ thị quan hệ tiến trình từ Giai đoạn 1.
-        \item \textit{Luồng thực thi:} Trích xuất ba nhóm đặc trưng cốt lõi: Đặc trưng nội tại $V_{10}$ (Spatial), đặc trưng chuỗi thời gian thông qua Negative Log-Likelihood (Sequential), và ma trận hiệp phương sai của đồ thị nhánh (Collective).
-        \item \textit{Output:} Các cấu trúc dữ liệu số hóa đầy đủ để biểu diễn trạng thái của tiến trình.
+        \item \textit{Input:} Đồ thị quan hệ DAG từ Giai đoạn 1.
+        \item \textit{Output:} Các vector đặc trưng toán học số hóa ($V_{10}$, Log-Likelihood, Covariance).
     \end{itemize}
-    \item \textbf{Giai đoạn 3: Ước lượng mật độ và khoảng cách (Density \& Distance Computation)}
+    \item \textbf{Giai đoạn 3: Định lượng mật độ (Density Quantification)}
     \begin{itemize}
-        \item \textit{Input:} Tập dữ liệu đã số hóa và nhãn thực tế (Ground-truth) để phân tách rõ tập mã độc (Attack) và lành tính (Benign).
-        \item \textit{Luồng thực thi:} Áp dụng Mixed Kernel Density Estimation (KDE) cho không gian hỗn hợp $V_{10}$ để tính mật độ không gian. Tính toán sự chồng lấn phân phối biên đơn chiều (DDO) và khoảng cách toàn cục Mahalanobis.
-        \item \textit{Output:} Các giá trị ước lượng phân phối xác suất và độ chồng lấn giữa tập độc hại và tập lành tính.
+        \item \textit{Input:} Không gian đặc trưng chia thành tập độc hại (Attack) và lành tính (Benign).
+        \item \textit{Output:} Các tỷ số phân phối và mức độ chồng lấn.
     \end{itemize}
-    \item \textbf{Giai đoạn 4: Tổng hợp điểm số hòa trộn BBS (BBS Aggregation)}
+    \item \textbf{Giai đoạn 4: Tổng hợp chỉ số (BBS Aggregation)}
     \begin{itemize}
-        \item \textit{Input:} Các điểm số phân phối từ Giai đoạn 3.
-        \item \textit{Luồng thực thi:} Hệ thống tổng hợp các chỉ số độc lập từ ba trục: BBS\_spa (Không gian), BBS\_seq (Chuỗi), và BBS\_col (Tập thể). Điểm $BBS_{min}$ được rút ra làm thước đo cuối cùng.
-        \item \textit{Output:} Báo cáo định lượng độ khó (hardness) của tập dữ liệu, trả lời bằng con số toán học cho câu hỏi mã độc đã hòa trộn sâu đến mức độ nào vào nền hệ thống. Toàn bộ quá trình này \textbf{không} thực hiện bất kỳ thao tác phát hiện hay huấn luyện mô hình học máy nào (như iForest, SRAH).
+        \item \textit{Input:} Tỷ số phân phối từ Giai đoạn 3.
+        \item \textit{Output:} Điểm cực tiểu $BBS_{min}$ đại diện cho độ khó của tập dữ liệu.
     \end{itemize}
-\end{enumerate}
+\end{itemize}
 
-\subsection{Sơ đồ luồng chạy dữ liệu chi tiết (Activity Map)}
-Trong khi sơ đồ Pipeline mô tả cấu trúc tĩnh, biểu đồ hoạt động (Activity Map) dưới đây mô tả chi tiết quá trình Khung BBS thực hiện đo lường độ khó của một tập dữ liệu:
+\subsection{Sơ đồ luồng hoạt động chi tiết (Activity Map)}
+Sơ đồ Activity Map mô tả luồng chạy thực tế của dữ liệu xuyên qua hệ thống. Sơ đồ được chia làm ba làn (Swimlane) để phân định rạch ròi giữa dữ liệu cấp vào, lõi xử lý, và báo cáo trả ra. Việc sử dụng cấu trúc làn giúp dễ dàng theo dõi trạng thái dữ liệu ở bất kỳ thời điểm nào.
 
 \begin{figure}[H]
 \centering
 \begin{tikzpicture}[
     font=\sffamily\small,
     >=stealth,
-    act/.style={rectangle, draw=gray!80, fill=gray!10, rounded corners=2mm, thick, minimum width=2.5cm, minimum height=1cm, align=center},
-    dec/.style={diamond, draw=gray!80, fill=gray!10, thick, aspect=1.5, align=center, inner sep=2pt},
+    act/.style={rectangle, draw=gray!80, fill=gray!10, rounded corners=2mm, thick, minimum width=2.8cm, minimum height=1cm, align=center},
+    dec/.style={diamond, draw=gray!80, fill=gray!10, thick, aspect=1.8, align=center, inner sep=1pt},
     start/.style={circle, fill=black, minimum size=6mm},
     end_outer/.style={circle, draw=black, thick, minimum size=6mm, inner sep=0pt},
     end_inner/.style={circle, fill=black, minimum size=3mm, inner sep=0pt}
 ]
 
-% Background & Swimlanes
-\draw[thick] (0, 0) rectangle (12.5, -16);
-\draw[thick] (0, -1) -- (12.5, -1); % Header separator
-\draw[thick] (3.5, 0) -- (3.5, -16);
-\draw[thick] (8.5, 0) -- (8.5, -16);
+% Headers for Swimlanes
+\node (h_in) at (0, 0) {\textbf{Input: Dữ liệu}};
+\node (h_core) at (5, 0) {\textbf{Lõi Xử lý BBS}};
+\node (h_out) at (10, 0) {\textbf{Output: Định lượng}};
 
-% Headers
-\node at (1.75, -0.5) {\textbf{Input: Dữ liệu}};
-\node at (6.0, -0.5) {\textbf{Hệ thống Đo lường BBS}};
-\node at (10.5, -0.5) {\textbf{Output: Định lượng}};
+% Vertical Dividers
+\draw[thick, gray] (2.5, 0.5) -- (2.5, -11.5);
+\draw[thick, gray] (7.5, 0.5) -- (7.5, -11.5);
+\draw[thick, gray] (-2.5, -0.5) -- (12.5, -0.5);
 
-% Nodes
-\node[start] (start) at (1.75, -1.8) {};
-\node[act] (sysmon) at (1.75, -3) {Log Sysmon \&\\Nhãn Ground-truth};
+% Lane 1: Input
+\node[start] (start) [below=0.8cm of h_in] {};
+\node[act] (sysmon) [below=0.6cm of start] {Log Sysmon \&\\Nhãn Ground-truth};
 
-\node[act] (parse) at (6, -3) {Xây dựng DAG \&\\Trích xuất đặc trưng};
-\node[act] (split) at (6, -5) {Tách tập Attack\\\& Benign};
-\node[dec] (check) at (6, -7.5) {Số mẫu Local\\Benign > 0?};
+% Lane 2: Core
+\node[act] (parse) [below=1.5cm of h_core] {Xây dựng DAG \&\\Trích xuất đặc trưng};
+\node[act] (split) [below=0.6cm of parse] {Tách tập Attack\\\& Benign};
+\node[dec] (check) [below=0.6cm of split] {Mẫu Local\\Benign > 0?};
 
-\node[act] (local) at (4.5, -10) {Đo lường với\\Local Benign};
-\node[act] (univ) at (7.5, -10) {Đo lường với\\Universal Benign};
-\node[act] (merge) at (6, -12) {Tính các thành phần\\(Spa, Seq, Col)};
+% Use absolute positioning for the parallel nodes to keep them perfectly centered in the lane, 
+% but relative Y to the check node
+\node[act] (local) at (3.5, -6.5) {Đo lường với\\Local Benign};
+\node[act] (univ) at (6.5, -6.5) {Đo lường với\\Univ. Benign};
+\node[act] (merge) at (5, -8.2) {Tính 3 thành phần\\(Spa, Seq, Col)};
 
-\node[act] (aggregate) at (10.5, -12) {Lấy cực tiểu\\$BBS_{min}$ \& DDO};
-\node[act] (report) at (10.5, -14) {Báo cáo độ khó\\(Dataset Hardness)};
-
-\node[end_outer] (end) at (10.5, -15.5) {};
-\node[end_inner] at (10.5, -15.5) {};
+% Lane 3: Output
+\node[act] (aggregate) at (10, -8.2) {Lấy cực tiểu\\$BBS_{min}$};
+\node[act] (report) [below=0.6cm of aggregate] {Báo cáo mức độ\\hòa trộn};
+\node[end_outer] (end) [below=0.6cm of report] {};
+\node[end_inner] at (end) {};
 
 % Connections
 \draw[->, thick] (start) -- (sysmon);
@@ -301,8 +299,8 @@ Trong khi sơ đồ Pipeline mô tả cấu trúc tĩnh, biểu đồ hoạt đ�
 \draw[->, thick] (parse) -- (split);
 \draw[->, thick] (split) -- (check);
 
-\draw[->, thick] (check) -| node[above near start, font=\scriptsize] {Có} (local);
-\draw[->, thick] (check) -| node[above near start, font=\scriptsize] {Không} (univ);
+\draw[->, thick] (check) -| node[above, font=\scriptsize, near start] {Có} (local);
+\draw[->, thick] (check) -| node[above, font=\scriptsize, near start] {Không} (univ);
 
 \draw[->, thick] (local) |- (merge);
 \draw[->, thick] (univ) |- (merge);
@@ -312,9 +310,71 @@ Trong khi sơ đồ Pipeline mô tả cấu trúc tĩnh, biểu đồ hoạt đ�
 \draw[->, thick] (report) -- (end);
 
 \end{tikzpicture}
-\caption{Sơ đồ luồng hoạt động (Activity Map) chi tiết quá trình định lượng độ khó tập dữ liệu của Khung đo lường BBS}
+\caption{Sơ đồ luồng hoạt động (Activity Map) với cấu trúc làn phân định rạch ròi}
 \label{fig:bbs_activity_map}
 \end{figure}
+
+\subsection{Luồng định lượng mật độ (Density Quantification)}
+Để tính toán chỉ số $BBS_{min}$ tại Giai đoạn 3 một cách chính xác trên không gian 10 chiều, hệ thống áp dụng chuỗi thuật toán ước lượng phân phối phi tham số kết hợp với tích phân Monte Carlo. 
+
+Mục tiêu cốt lõi của giai đoạn này là tìm ra "khoảng trống ngữ nghĩa", tức là xác định xem mã độc đã ngụy trang (hòa trộn) tốt đến mức nào vào dữ liệu của người dùng thông thường. Việc tính toán này có thể được giải thích một cách trực quan thông qua các bước sau:
+
+\begin{enumerate}
+    \item \textbf{Ước lượng Băng thông (Bandwidth Estimation) -- "Chọn ống kính máy ảnh":} \\
+    Hệ thống cần chọn kích thước cửa sổ nội suy (băng thông) tối ưu để quan sát dữ liệu. Khâu này đóng vai trò như việc điều chỉnh tiêu cự của ống kính để ảnh chụp không bị mờ nhòe.
+    \begin{itemize}
+        \item Đối với phân phối Benign (dữ liệu lành tính): Lượng mẫu thường rất lớn. Hệ thống sử dụng thuật toán Tối ưu hóa hợp lý cực đại chéo (Cross-Validation Maximum Likelihood) để căn chỉnh băng thông tỉ mỉ nhất có thể, giống như việc dùng ống kính chuyên nghiệp để nhận diện hàng vạn người trong đám đông.
+        \item Đối với phân phối Attack (dữ liệu mã độc): Lượng mẫu thường rất khan hiếm, nếu sử dụng Cross-Validation sẽ gây ra hiện tượng rỗ ảnh (nhiễu cục bộ). Thay vào đó, hệ thống sử dụng Quy tắc tham chiếu Silverman (Silverman's Reference Rule). Điều này tương tự việc dùng ống kính mặc định góc rộng để làm mịn hình bóng của kẻ tấn công, đảm bảo các đặc điểm không bị bóp méo do thiếu dữ liệu thực nghiệm.
+    \end{itemize}
+    \item \textbf{Tích phân Monte Carlo cho Mixed KDE -- "Thả flycam khảo sát":} \\
+    Việc rà quét sự chồng lấn phân phối trên toàn bộ lưới tọa độ 10 chiều là bất khả thi về mặt tài nguyên máy tính do "lời nguyền số chiều" (Curse of Dimensionality). Giải pháp đột phá ở đây là dùng Tích phân Monte Carlo: Hệ thống tự động sinh ra $M = 2000$ điểm tọa độ ngẫu nhiên dựa trên sự pha trộn của cả hai tập dữ liệu. 
+    
+    Quá trình này tương tự như việc thả 2000 chiếc \textit{flycam} xuống một thành phố 10 chiều. Tại mỗi tọa độ flycam hạ cánh, một hàm nhân hỗn hợp (Mixed Kernel bao gồm Gaussian cho đặc trưng liên tục, Flip cho đặc trưng nhị phân, và Wang-Ryzin cho đặc trưng thứ tự) sẽ thực hiện thao tác so sánh mật độ mã độc với mật độ người dùng bình thường. Nếu tỷ lệ mật độ này xấp xỉ 1, hệ thống kết luận rằng tại khu vực đó, mã độc đã ngụy trang hoàn hảo thành một tiến trình hợp lệ.
+\end{enumerate}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    font=\sffamily\small,
+    >=stealth,
+    node distance=0.8cm,
+    block/.style={rectangle, draw=blue!80, fill=blue!5, thick, rounded corners=1mm, align=center, minimum height=0.8cm, minimum width=4cm},
+    data/.style={rectangle, draw=orange!80, fill=orange!10, thick, align=center, minimum height=0.6cm},
+    arrow/.style={->, thick, gray!80!black}
+]
+
+% Nodes
+\node[data] (in) at (0, 0) {Không gian Đặc trưng $V_{10}$};
+
+\node[block] (bw_benign) at (-3.5, -2) {Tối ưu CV-ML\\(Dữ liệu Benign)};
+\node[block] (bw_attack) at (3.5, -2) {Quy tắc Silverman\\(Dữ liệu Attack)};
+
+\node[block] (mc_gen) at (0, -3.8) {Sinh ngẫu nhiên $M=2000$ mẫu Monte Carlo\\từ phân phối hỗn hợp $q = 0.5 f_A + 0.5 f_B$};
+
+\node[block] (kde) at (0, -5.3) {Tính Mật độ Kernel Hỗn hợp (Mixed KDE)\\Gaussian / Flip / Wang-Ryzin};
+
+\node[block] (integrate) at (0, -6.8) {Tích phân Trọng số (Importance Sampling)\\$BBS_{spa} = \mathbb{E}\left[ \frac{\min(f_A, f_B)}{q} \right]$};
+
+\node[block] (min) at (0, -8.3) {Hội tụ 3 trục: $\min(BBS_{spa}, BBS_{seq}, BBS_{col})$};
+\node[data, draw=red!80, fill=red!10] (out) at (0, -9.8) {Độ khó Tập dữ liệu ($BBS_{min}$)};
+
+% Arrows
+\draw[arrow] (in) -| node[above left, font=\scriptsize] {Dồi dào} (bw_benign);
+\draw[arrow] (in) -| node[above right, font=\scriptsize] {Khan hiếm} (bw_attack);
+
+\draw[arrow] (bw_benign) |- (mc_gen);
+\draw[arrow] (bw_attack) |- (mc_gen);
+
+\draw[arrow] (mc_gen) -- (kde);
+\draw[arrow] (kde) -- (integrate);
+\draw[arrow] (integrate) -- (min);
+\draw[arrow] (min) -- (out);
+
+\end{tikzpicture}
+\caption{Sơ đồ luồng thuật toán định lượng (Density Quantification) dựa trên Mixed KDE và Tích phân Monte Carlo}
+\label{fig:bbs_quantification}
+\end{figure}
+
 
 \section{Thiết kế môi trường thử nghiệm}
 \label{section:2.4}
