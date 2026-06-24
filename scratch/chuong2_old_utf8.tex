@@ -1,0 +1,217 @@
+﻿\documentclass[../main.tex]{subfiles}
+\begin{document}
+
+Ch╞░╞íng n├áy tr├¼nh b├áy chi tiß║┐t vß╗ü ph╞░╞íng ph├íp luß║¡n v├á c╞í sß╗ƒ to├ín hß╗ìc ─æß╗â ─æß╗ïnh l╞░ß╗úng ─æß╗Ö kh├│ cß╗ºa dß╗» liß╗çu m├ú ─æß╗Öc ngß╗Ñy trang. Tr╞░ß╗¢c hß║┐t, nghi├¬n cß╗⌐u m├┤ tß║ú m├┤ h├¼nh ph├ít hiß╗çn ─æa cß║úm biß║┐n SRAH ─æ├│ng vai tr├▓ l├á ─æß║íi diß╗çn cho hß╗ç thß╗æng ph├ít hiß╗çn dß╗▒a tr├¬n ph├ón phß╗æi bi├¬n (Marginal). Sau ─æ├│, nghi├¬n cß╗⌐u thiß║┐t kß║┐ kh├┤ng gian ─æß║╖c tr╞░ng V10 v├á c╞í chß║┐ Controlled Injection tß║ío sinh dß╗» liß╗çu. Trß╗ìng t├óm cß╗ºa ch╞░╞íng l├á to├ín hß╗ìc h├│a th╞░ß╗¢c ─æo DDO (ph├ón phß╗æi bi├¬n) v├á khung ─æo l╞░ß╗¥ng ─æß╗Ö chui s├óu to├án cß╗Ñc DensPct\_Mahal (ph├ón phß╗æi ─æß╗ông thß╗¥i), ─æi k├¿m thiß║┐t lß║¡p Nhß║¡n x├⌐t vß╗ü ─æiß╗âm neo hiß╗çu chß╗ënh ROC (Threshold Calibration Identity), tr╞░ß╗¢c khi ─æß╗ü xuß║Ñt m├┤ h├¼nh phi tham sß╗æ KDE\_Joint ─æß╗â khai th├íc c├íc cß║Ñu tr├║c rß╗ùng cß╗Ñc bß╗Ö (Local Pockets).
+
+\section{M├┤ h├¼nh ph├ít hiß╗çn ─æa cß║úm biß║┐n SRAH}
+\label{section:2.1}
+
+Hß╗ç thß╗æng SRAH (Security Response \& Analysis Hub) ─æ╞░ß╗úc thiß║┐t kß║┐ nh╞░ mß╗Öt **m├┤ h├¼nh ph├ít hiß╗çn bß║Ñt th╞░ß╗¥ng kh├┤ng gi├ím s├ít ─æa lß╗¢p (Multi-sensor UAD Detector)** nhß║▒m kß║┐t hß╗úp c├íc t├¡n hiß╗çu bß║Ñt th╞░ß╗¥ng bi├¬n ─æß╗â n├óng cao n─âng lß╗▒c ph├ít hiß╗çn m├ú ─æß╗Öc ngß╗Ñy trang. Kiß║┐n tr├║c cß╗ºa SRAH bao gß╗ôm c├íc tß║ºng chß╗⌐c n─âng ch├¡nh:
+
+\begin{itemize}
+    \item \textbf{Layer 0 (Ingestion Engine):} Triß╗ân khai bß║▒ng ng├┤n ngß╗» Rust ─æß╗â tß╗æi ╞░u h├│a hiß╗çu n─âng, thß╗▒c hiß╗çn ─æß╗ìc trß╗▒c tiß║┐p tß╗çp nhß╗ï ph├ón sß╗▒ kiß╗çn Windows \texttt{.evtx}, parse song song c├íc tr╞░ß╗¥ng dß╗» liß╗çu v├á truyß╗ün trß╗▒c tiß║┐p v├áo bß╗Ö nhß╗¢ RAM qua th╞░ viß╗çn Native Binding \textbf{PyO3} nhß║▒m loß║íi bß╗Å n├║t thß║»t cß╗ò chai I/O.
+    \item \textbf{Layer 2 (Graph Builder):} Sß╗¡ dß╗Ñng ─æß╗ïnh danh duy nhß║Ñt \textbf{ProcessGuid} tr├¡ch xuß║Ñt tß╗½ sß╗▒ kiß╗çn Sysmon Event ID 1 ─æß╗â x├óy dß╗▒ng ─æß╗ô thß╗ï quan hß╗ç tiß║┐n tr├¼nh c├│ h╞░ß╗¢ng (DAG), gi├║p giß║úi quyß║┐t ho├án to├án vß║Ñn ─æß╗ü t├íi sß╗¡ dß╗Ñng PID (PID reuse) cß╗ºa hß╗ç ─æiß╗üu h├ánh Windows v├á thiß║┐t lß║¡p phß║ú hß╗ç tiß║┐n tr├¼nh ch├¡nh x├íc.
+    \item \textbf{Layer 3 (Multi-sensor Scoring):} T├¡nh to├ín ─æß╗Öc lß║¡p 4 cß║úm biß║┐n bß║Ñt th╞░ß╗¥ng bi├¬n dß╗▒a tr├¬n ph├ón loß║íi cß╗ºa Chandola:
+    \begin{itemize}
+        \item \textbf{Bß║Ñt th╞░ß╗¥ng ─æiß╗âm ($P$):} ─Éo ─æß╗Ö hiß║┐m nß╗Öi tß║íi cß╗ºa tiß║┐n tr├¼nh dß╗▒a tr├¬n tß║ºn suß║Ñt xuß║Ñt hiß╗çn d├▓ng lß╗çnh.
+        \item \textbf{Bß║Ñt th╞░ß╗¥ng ngß╗» cß║únh ($C$):} ─Éo mß╗⌐c ─æß╗Ö bß║Ñt th╞░ß╗¥ng cß╗ºa quan hß╗ç cha-con (v├¡ dß╗Ñ: mß╗Öt tiß║┐n tr├¼nh hß╗ç thß╗æng sinh ra mß╗Öt tr├¼nh th├┤ng dß╗ïch nh╞░ powershell).
+        \item \textbf{Bß║Ñt th╞░ß╗¥ng chuß╗ùi ($Seq$):} ─Éo mß╗⌐c ─æß╗Ö bß║Ñt ngß╗¥ cß╗ºa phß║ú hß╗ç tiß║┐n tr├¼nh ng╞░ß╗úc vß╗ü gß╗æc sß╗¡ dß╗Ñng x├¡ch Markov bß║¡c 2.
+        \item \textbf{Bß║Ñt th╞░ß╗¥ng tß║¡p thß╗â ($Col$):} ─Éo t├¡nh tuß║ºn ho├án v├á c╞░ß╗¥ng ─æß╗Ö hoß║ít ─æß╗Öng mß║íng cß╗ºa tiß║┐n tr├¼nh.
+    \end{itemize}
+    C├íc ─æiß╗âm sß╗æ n├áy ─æ╞░ß╗úc hiß╗çu chuß║⌐n ch├⌐o qua hß╗ç sß╗æ ─æß╗ông thuß║¡n Corroboration Index (CI) ─æß╗â ─æ╞░a ra ─æiß╗âm rß╗ºi ro tß╗òng hß╗úp cuß╗æi c├╣ng.
+\end{itemize}
+
+SRAH ─æß║íi diß╗çn cho lß╗¢p m├┤ h├¼nh UAD t├¡ch hß╗úp ─æa cß║úm biß║┐n ti├¬n tiß║┐n. Viß╗çc so s├ính SRAH vß╗¢i c├íc baseline kh├íc ß╗ƒ Ch╞░╞íng 3 gi├║p kiß╗âm chß╗⌐ng xem c╞í chß║┐ phß╗æi hß╗úp ─æa cß║úm biß║┐n bi├¬n (Marginal Sensors) c├│ thß╗â gi├║p hß╗ç thß╗æng v╞░ß╗út qua ─æ╞░ß╗úc ─æiß╗âm m├╣ cß║Ñu tr├║c hay kh├┤ng.
+
+\section{Thiß║┐t kß║┐ kh├┤ng gian ─æß║╖c tr╞░ng h├ánh vi V10}
+\label{section:2.2}
+
+─Éß╗â biß╗âu diß╗àn h├ánh vi cß╗ºa mß╗ùi tiß║┐n tr├¼nh tr├¬n Windows, nghi├¬n cß╗⌐u thiß║┐t kß║┐ mß╗Öt kh├┤ng gian ─æß║╖c tr╞░ng h├ánh vi hß╗ùn hß╗úp 10 chiß╗üu ($V_{10}$). Kh├┤ng gian n├áy bao phß╗º cß║ú ba kh├¡a cß║ính hoß║ít ─æß╗Öng: nß╗Öi tß║íi tiß║┐n tr├¼nh (spatial), phß║ú hß╗ç thß╗▒c thi (sequential), v├á giao tiß║┐p mß║íng (collective).
+
+Vector ─æß║╖c tr╞░ng cß╗ºa tiß║┐n tr├¼nh ─æ╞░ß╗úc ─æß╗ïnh ngh─⌐a:
+\begin{equation}
+    V_{10} = [v_1, v_2, v_3, v_4, v_5, v_6, v_7, v_8, v_9, v_{10}]
+\end{equation}
+Cß║Ñu h├¼nh kiß╗âu dß╗» liß╗çu cß╗ºa c├íc chiß╗üu tu├ón theo chuß╗ùi k├╜ hiß╗çu hß╗ùn hß╗úp \texttt{uuuuccooou} (u - unordered categorical/binary, c - continuous, o - ordered categorical/ordinal):
+\begin{itemize}
+    \item $v_1$ (\texttt{has\_network} - u): Trß║íng th├íi kß║┐t nß╗æi mß║íng nhß╗ï ph├ón $\{0, 1\}$.
+    \item $v_2$ (\texttt{has\_injection} - u): Dß║Ñu hiß╗çu Code Injection nhß╗ï ph├ón $\{0, 1\}$ tr├¡ch xuß║Ñt tß╗½ EID 8.
+    \item $v_3$ (\texttt{has\_file\_drop} - u): Trß║íng th├íi tß║ío tß╗çp tin nhß╗ï ph├ón $\{0, 1\}$ tr├¡ch xuß║Ñt tß╗½ EID 11.
+    \item $v_4$ (\texttt{has\_reg\_mod} - u): Trß║íng th├íi ghi Registry nhß╗ï ph├ón $\{0, 1\}$ tr├¡ch xuß║Ñt tß╗½ EID 13.
+    \item $v_5$ (\texttt{nif\_binary} - c): Chß╗ë sß╗æ hiß║┐m cß╗ºa t├¬n tiß║┐n tr├¼nh thß╗▒c thi trong ─æoß║ín $[0, 1]$, t├¡nh dß╗▒a tr├¬n tß║ºn suß║Ñt xuß║Ñt hiß╗çn trong log l├ánh t├¡nh nß╗ün.
+    \item $v_6$ (\texttt{nif\_pair} - c): Chß╗ë sß╗æ hiß║┐m cß╗ºa cß║╖p quan hß╗ç cha-con trong ─æoß║ín $[0, 1]$.
+    \item $v_7$ (\texttt{entropy\_bin} - o): Entropy cß╗ºa Command Line ─æ╞░ß╗úc rß╗¥i rß║íc h├│a th├ánh 3 mß╗⌐c $\{0, 1, 2\}$ biß╗âu thß╗ï mß╗⌐c ─æß╗Ö ngß╗Ñy trang hoß║╖c chß╗⌐a m├ú h├│a.
+    \item $v_8$ (\texttt{cmd\_len\_bin} - o): ─Éß╗Ö d├ái Command Line ─æ╞░ß╗úc rß╗¥i rß║íc h├│a th├ánh 3 mß╗⌐c $\{0, 1, 2\}$.
+    \item $v_9$ (\texttt{child\_count\_bin} - o): Sß╗æ l╞░ß╗úng tiß║┐n tr├¼nh con do tiß║┐n tr├¼nh n├áy sinh ra, rß╗¥i rß║íc h├│a th├ánh $\{0, 1, 2\}$.
+    \item $v_{10}$ (\texttt{parent\_sigma\_bin} - u): Trß║íng th├íi tiß║┐n tr├¼nh cha c├│ bß╗ï g├ín nh├ún rß╗ºi ro cao bß╗ƒi luß║¡t Sigma hay kh├┤ng nhß╗ï ph├ón $\{0, 1\}$.
+\end{itemize}
+
+\begin{table}[H]
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\caption{Ma trß║¡n kh├┤ng gian ─æß║╖c tr╞░ng h├ánh vi $V_{10}$ (cß║Ñu h├¼nh hß╗ùn hß╗úp \texttt{uuuuccooou})}
+\label{tab:v10_space}
+\begin{tabular}{|>{\centering\arraybackslash}p{1.0cm}|p{4.0cm}|p{1.8cm}|p{1.8cm}|p{4.6cm}|}
+\hline
+\textbf{K├╜ hiß╗çu} & \textbf{T├¬n ─Éß║╖c tr╞░ng} & \textbf{Kiß╗âu} & \textbf{Nguß╗ôn EID} & \textbf{├¥ ngh─⌐a H├ánh vi} \\ \hline
+$v_1$ & \texttt{has\_network} & u (Binary) & EID 3 & Tiß║┐n tr├¼nh sinh kß║┐t nß╗æi mß║íng \\ \hline
+$v_2$ & \texttt{has\_injection} & u (Binary) & EID 8 & C├│ h├ánh vi CreateRemoteThread (b╞ím m├ú) \\ \hline
+$v_3$ & \texttt{has\_file\_drop} & u (Binary) & EID 11 & Ghi nhß║¡n tß║ío file mß╗¢i tr├¬n ─æ─⌐a cß╗⌐ng \\ \hline
+$v_4$ & \texttt{has\_reg\_mod} & u (Binary) & EID 13 & Thay ─æß╗òi registry ─æß╗â thiß║┐t lß║¡p duy tr├¼ \\ \hline
+$v_5$ & \texttt{nif\_binary} & c (Continuous) & EID 1 & ─Éß╗Ö hiß║┐m cß╗ºa t├¬n tiß║┐n tr├¼nh nß╗ün \\ \hline
+$v_6$ & \texttt{nif\_pair} & c (Continuous) & EID 1 & ─Éß╗Ö hiß║┐m cß╗ºa quan hß╗ç cha - con \\ \hline
+$v_7$ & \texttt{entropy\_bin} & o (Ordinal) & EID 1 & Entropy d├▓ng lß╗çnh (ngß╗Ñy trang/m├ú h├│a) \\ \hline
+$v_8$ & \texttt{cmd\_len\_bin} & o (Ordinal) & EID 1 & ─Éß╗Ö d├ái d├▓ng lß╗çnh ph├ón theo khoß║úng \\ \hline
+$v_9$ & \texttt{child\_count\_bin} & o (Ordinal) & EID 1 & Sß╗æ l╞░ß╗úng tiß║┐n tr├¼nh con ─æ╞░ß╗úc khß╗ƒi tß║ío \\ \hline
+$v_{10}$ & \texttt{parent\_sigma\_bin} & u (Binary) & EID 1 & Cha bß╗ï ph├ít hiß╗çn bß╗ƒi tß║¡p luß║¡t t─⌐nh Sigma \\ \hline
+\end{tabular}
+\end{table}
+
+Viß╗çc sß╗¡ dß╗Ñng cß║Ñu h├¼nh hß╗ùn hß╗úp \texttt{uuuuccooou} l├á mß╗Öt thiß║┐t kß║┐ bß║»t buß╗Öc ─æß╗â m├┤ phß╗Ång ch├¡nh x├íc c├íc loß║íi dß╗» liß╗çu thß╗▒c tß║┐ thu thß║¡p tß╗½ log hß╗ç thß╗æng, ─æß╗ông thß╗¥i ─æ├▓i hß╗Åi c├íc bß╗Ö ╞░ß╗¢c l╞░ß╗úng mß║¡t ─æß╗Ö phß║úi c├│ khß║ú n─âng xß╗¡ l├╜ biß║┐n hß╗ùn hß╗úp (nh╞░ Mixed Product Kernel) thay v├¼ c├íc khoß║úng c├ích khoß║úng c├ích phß║│ng th├┤ng th╞░ß╗¥ng.
+
+\section{Ph╞░╞íng ph├íp luß║¡n tß║ío sinh dß╗» liß╗çu tß╗òng hß╗úp (kb datasets)}
+\label{section:2.3}
+
+─Éß╗â kiß╗âm chß╗⌐ng to├án diß╗çn n─âng lß╗▒c cß╗ºa c├íc bß╗Ö ─æo l╞░ß╗¥ng v├á thuß║¡t to├ín ph├ít hiß╗çn ß╗ƒ nhiß╗üu mß╗⌐c ─æß╗Ö kh├│ kh├íc nhau, nghi├¬n cß╗⌐u thiß║┐t kß║┐ c╞í chß║┐ \textbf{Controlled Injection} (B╞ím dß╗» liß╗çu c├│ kiß╗âm so├ít) ─æß╗â tß║ío ra 8 tß║¡p dß╗» liß╗çu tß║Ñn c├┤ng tß╗òng hß╗úp (tß╗½ KB1 ─æß║┐n KB8). 
+
+Ph╞░╞íng ph├íp Controlled Injection hoß║ít ─æß╗Öng bß║▒ng c├ích lß║Ñy mß╗Öt tß║¡p log Sysmon l├ánh t├¡nh l├ám m├┤i tr╞░ß╗¥ng nß╗ün (\textit{benign baseline}), sau ─æ├│ tiß║┐n h├ánh b╞ím trß╗▒c tiß║┐p $N = 20 \sim 50$ tiß║┐n tr├¼nh tß║Ñn c├┤ng m├┤ phß╗Ång. ─Éß╗â tr├ính viß╗çc m├┤ h├¼nh hß╗ìc thuß╗Öc l├▓ng (overfitting) v├áo mß╗Öt dß║Ñu vß║┐t cß╗æ ─æß╗ïnh, c├íc ─æß║╖c tr╞░ng li├¬n tß╗Ñc cß╗ºa tiß║┐n tr├¼nh tß║Ñn c├┤ng kh├┤ng ─æ╞░ß╗úc g├ín t─⌐nh m├á ─æ╞░ß╗úc sinh ngß║½u nhi├¬n (sampled) tß╗½ mß╗Öt dß║úi ph├ón phß╗æi ─æß║╖c tr╞░ng cho tß╗½ng chiß║┐n thuß║¡t. H╞ín nß╗»a, tß╗╖ lß╗ç lß╗¢p m├ú ─æß╗Öc lu├┤n ─æ╞░ß╗úc duy tr├¼ ß╗ƒ mß╗⌐c cß╗▒c kß╗│ thß║Ñp ($\ll 0.1\%$) so vß╗¢i h├áng chß╗Ñc ng├án log nß╗ün nhß║▒m m├┤ phß╗Ång ch├¡nh x├íc m├┤i tr╞░ß╗¥ng mß║Ñt c├ón bß║▒ng nghi├¬m trß╗ìng cß╗ºa SOC thß╗▒c tß║┐. C├íc vector ─æß║╖c tr╞░ng $V_{10}$ cß╗ºa tiß║┐n tr├¼nh tß║Ñn c├┤ng ─æ╞░ß╗úc chß║┐ t├íc thß╗º c├┤ng ─æß╗â m├┤ phß╗Ång ch├¡nh x├íc c├íc kß╗╣ thuß║¡t trong ma trß║¡n MITRE ATT\&CK vß╗¢i c├íc mß╗⌐c ─æß╗Ö ngß╗Ñy trang t─âng dß║ºn:
+\begin{itemize}
+    \item \textbf{kb1\_macro} (Office Macro): M├┤ phß╗Ång m├ú ─æß╗Öc thß╗▒c thi qua Macro trong t├ái liß╗çu Office. Tiß║┐n tr├¼nh cha l├á Word/Excel v├á tiß║┐n tr├¼nh con sinh ra l├á \texttt{cmd.exe} hoß║╖c \texttt{powershell.exe}. ─Éß║╖c tr╞░ng nhß╗ï ph├ón ─æ╞░ß╗úc thiß║┐t lß║¡p cß╗æ ─æß╗ïnh dß╗▒a tr├¬n quan hß╗ç cha-con bß║Ñt th╞░ß╗¥ng n├áy.
+    \item \textbf{kb2\_fileless} (Fileless Attack): M├┤ phß╗Ång tß║Ñn c├┤ng phi tß║¡p tin, thß╗▒c thi m├ú ─æß╗Öc ho├án to├án tr├¬n bß╗Ö nhß╗¢ RAM. ─Éß║╖c tr╞░ng $v_3$ (\texttt{has\_file\_drop}) ─æ╞░ß╗úc g├ín bß║▒ng 0 nhß║▒m lß║⌐n tr├ính c├íc bß╗Ö d├▓ qu├⌐t file t─⌐nh.
+    \item \textbf{kb3\_wmiburst} (WMI Burst): Lß║ím dß╗Ñng c├┤ng cß╗Ñ WMI cß╗ºa hß╗ç ─æiß╗üu h├ánh ─æß╗â trinh s├ít hß╗ç thß╗æng, tß║ío ra h├áng loß║ít tiß║┐n tr├¼nh con chß║íy truy vß║Ñn trong thß╗¥i gian cß╗▒c ngß║»n.
+    \item \textbf{kb4\_inject} (Process Injection): M├┤ phß╗Ång h├ánh vi b╞ím m├ú ─æß╗Öc v├áo c├íc tiß║┐n tr├¼nh hß╗ç thß╗æng ─æ├íng tin cß║¡y (nh╞░ \texttt{lsass.exe}, \texttt{svchost.exe}). ─Éß║╖c tr╞░ng $v_2$ (\texttt{has\_injection}) ─æ╞░ß╗úc g├ín bß║▒ng 1.
+    \item \textbf{kb5\_slow} (Slow Lateral Movement): Kß║╗ tß║Ñn c├┤ng di chuyß╗ân ngang giß╗»a c├íc m├íy trß║ím mß╗Öt c├ích chß║¡m r├úi. C╞░ß╗¥ng ─æß╗Ö mß║íng ─æ╞░ß╗úc ├⌐p xuß╗æng mß╗⌐c cß╗▒c thß║Ñp ─æß╗â lß║⌐n tr├ính c├íc luß║¡t giß╗¢i hß║ín tß║ºn suß║Ñt (\textit{rate-limiting}).
+    \item \textbf{kb6\_recon} (Reconnaissance): Thß╗▒c hiß╗çn d├▓ t├¼m th├┤ng tin hß╗ç thß╗æng, t├ái khoß║ún, cß║Ñu h├¼nh mß║íng th├┤ng qua c├íc c├óu lß╗çnh t├¡ch hß╗úp sß║╡n.
+    \item \textbf{kb7\_ransom} (Ransomware): M├┤ phß╗Ång m├ú ─æß╗Öc tß╗æng tiß╗ün thß╗▒c hiß╗çn m├ú h├│a file h├áng loß║ít, tß║ío ra tß║ºn suß║Ñt I/O v├á tß║ío tß╗çp tin cß╗▒c cao tr├¬n ─æ─⌐a cß╗⌐ng.
+    \item \textbf{kb8\_lateral} (Lateral Movement): M├┤ phß╗Ång h├ánh vi di chuyß╗ân ngang sß╗¡ dß╗Ñng c├íc c├┤ng cß╗Ñ quß║ún trß╗ï tß╗½ xa, tß║ío ra kß║┐t nß╗æi mß║íng ph├ón t├ín v├á th╞░a thß╗¢t tr├¬n to├án hß╗ç thß╗æng.
+\end{itemize}
+
+\begin{table}[H]
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\caption{─Éß╗æi chiß║┐u c├íc kß╗ïch bß║ún Controlled Injection vß╗¢i kß╗╣ thuß║¡t MITRE ATT\&CK v├á c╞í chß║┐ chß║┐ t├íc ─æß║╖c tr╞░ng}
+\label{tab:controlled_injection_scenarios}
+\begin{tabular}{|p{2.2cm}|p{3.5cm}|p{3.0cm}|p{4.5cm}|}
+\hline
+\textbf{Kß╗ïch bß║ún} & \textbf{Kß╗╣ thuß║¡t MITRE} & \textbf{Chiß║┐n thuß║¡t Ngß╗Ñy trang} & \textbf{─Éß║╖c tr╞░ng chß║┐ t├íc tr├¬n $V_{10}$} \\ \hline
+\textbf{kb1\_macro} & T1204.002 (User Execution) & Lß╗çnh thß╗▒c thi qua Office Document & Cha-con bß║Ñt th╞░ß╗¥ng, g├ín cß╗⌐ng $v_6 \to 1.0$ \\ \hline
+\textbf{kb2\_fileless} & T1059.001 (PowerShell) & Thß╗▒c thi tr├¬n RAM, kh├┤ng tß║ío file & G├ín $v_3$ (\texttt{has\_file\_drop}) = 0 \\ \hline
+\textbf{kb3\_wmiburst} & T1047 (WMI) & Lß║ím dß╗Ñng WMI trinh s├ít ─æß╗ông loß║ít & T─âng $v_9$ (\texttt{child\_count}) l├¬n mß╗⌐c cß╗▒c ─æß║íi \\ \hline
+\textbf{kb4\_inject} & T1055 (Process Injection) & B╞ím m├ú v├áo tiß║┐n tr├¼nh ─æ├íng tin cß║¡y & K├¡ch hoß║ít $v_2$ (\texttt{has\_injection}) = 1 \\ \hline
+\textbf{kb5\_slow} & T1021.002 (SMB/Windows Admin) & SMB Session di chuyß╗ân ngang chß║¡m & Giß║úm tß║ºn suß║Ñt mß║íng ($v_1 \approx 0$) tr├ính rate-limit \\ \hline
+\textbf{kb6\_recon} & T1082 (System Info Discovery) & Lß╗çnh truy vß║Ñn cß║Ñu h├¼nh c├│ sß║╡n & $v_5$ v├á $v_6$ (─æß╗Ö hiß║┐m) trung b├¼nh, DDO cao \\ \hline
+\textbf{kb7\_ransom} & T1486 (Data Encrypted) & M├ú h├│a tß╗çp tin h├áng loß║ít & T─âng tß║ºn suß║Ñt I/O v├á ghi tß╗çp ($v_3 = 1, v_4 = 1$) \\ \hline
+\textbf{kb8\_lateral} & T1021 (Remote Services) & Remote Shell di chuyß╗ân ngang ph├ón t├ín & Tß║ío ─æß║╖c tr╞░ng th╞░a thß╗¢t, mß║íng ph├ón t├ín \\ \hline
+\end{tabular}
+\end{table}
+
+C╞í chß║┐ tß║ío sinh dß╗» liß╗çu Controlled Injection n├áy cung cß║Ñp mß╗Öt phß╗ò ─æß╗Ö kh├│ ─æa dß║íng v├á chuß║⌐n h├│a, l├ám nß╗ün tß║úng vß╗»ng chß║»c ─æß╗â ─æ├ính gi├í t╞░╞íng quan cß╗ºa c├íc th╞░ß╗¢c ─æo.
+
+\section{Ph├⌐p thß╗¡ ng├óy th╞í: ─æß╗Ö chß╗ông lß║Ñn bi├¬n DDO}
+\label{section:2.4}
+
+Trong nhiß╗üu nghi├¬n cß╗⌐u thß╗▒c nghiß╗çm, sß╗▒ chß╗ông lß║Ñn ß╗ƒ c├íc ph├ón phß╗æi bi├¬n ─æ╞ín chiß╗üu (Marginal Overlap) th╞░ß╗¥ng ─æ╞░ß╗úc sß╗¡ dß╗Ñng l├ám baseline ─æß╗â ─æ├ính gi├í ─æß╗Ö kh├│ cß╗ºa dß╗» liß╗çu. ─Éß║íi diß╗çn ti├¬u biß╗âu cho ph╞░╞íng ph├íp n├áy l├á chß╗ë sß╗æ **DDO (Degree of Distribution Overlap)**:
+\begin{equation}
+    DDO = \frac{1}{d} \sum_{s=1}^{d} OVL_s
+\end{equation}
+Trong ─æ├│ $OVL_s$ l├á diß╗çn t├¡ch chß╗ông lß║Ñn ph├ón phß╗æi x├íc suß║Ñt ─æ╞ín chiß╗üu cß╗ºa ─æß║╖c tr╞░ng thß╗⌐ $s$ giß╗»a tß║¡p tiß║┐n tr├¼nh ─æß╗Öc hß║íi ($f_{a,s}$) v├á l├ánh t├¡nh ($f_{b,s}$):
+\begin{equation}
+    OVL_s = \int \min\left( f_{a,s}(x_s),\ f_{b,s}(x_s) \right) dx_s
+\end{equation}
+
+Hß║ín chß║┐ lß╗¢n nhß║Ñt cß╗ºa th╞░ß╗¢c ─æo DDO l├á hiß╗çn t╞░ß╗úng **Marginal Blindness (M├╣ bi├¬n)**. DDO giß║ú ─æß╗ïnh c├íc ─æß║╖c tr╞░ng hoß║ít ─æß╗Öng ho├án to├án ─æß╗Öc lß║¡p vß╗¢i nhau. Trong thß╗▒c tß║┐, kß║╗ tß║Ñn c├┤ng LotL c├│ thß╗â dß╗à d├áng ngß╗Ñy trang ─æß╗â tß╗½ng ─æß║╖c tr╞░ng ri├¬ng lß║╗ tr├┤ng ho├án to├án b├¼nh th╞░ß╗¥ng (DDO rß║Ñt cao), nh╞░ng sß╗▒ kß║┐t hß╗úp ─æß╗ông thß╗¥i cß╗ºa c├íc ─æß║╖c tr╞░ng ─æ├│ lß║íi l├á mß╗Öt sß╗▒ kiß╗çn cß╗▒c kß╗│ bß║Ñt th╞░ß╗¥ng trong kh├┤ng gian ─æß╗ông thß╗¥i ─æa chiß╗üu ($V_{10}$). Do ─æ├│, DDO kh├┤ng thß╗â l├╜ giß║úi ch├¡nh x├íc nguy├¬n nh├ón thß║Ñt bß║íi cß╗ºa c├íc bß╗Ö ph├ít hiß╗çn ─æa chiß╗üu.
+
+\section{Khung ─æo l╞░ß╗¥ng cß╗æt l├╡i: ─æß╗Ö s├óu to├án cß╗Ñc (denspct\_mahal)}
+\label{section:2.5}
+
+─Éß╗â khß║»c phß╗Ñc ─æiß╗âm m├╣ bi├¬n cß╗ºa DDO, nghi├¬n cß╗⌐u ─æß╗ü xuß║Ñt sß╗¡ dß╗Ñng chß╗ë sß╗æ **DensPct\_Mahal** (Density Percentile based on Mahalanobis) ─æß╗â l╞░ß╗úng h├│a ─æß╗Ö s├óu to├án cß╗Ñc (Global Depth) cß╗ºa tiß║┐n tr├¼nh ─æß╗Öc hß║íi trong ph├ón phß╗æi l├ánh t├¡nh.
+
+Mß║╖c d├╣ ─æ╞░ß╗úc thiß║┐t kß║┐ dß╗▒a tr├¬n ngß╗» cß║únh ─æß║╖c th├╣ cß╗ºa dß╗» liß╗çu Sysmon, th╞░ß╗¢c ─æo n├áy ho├án to├án c├│ thß╗â ─æ╞░ß╗úc tß╗òng qu├ít h├│a v├á ├íp dß╗Ñng cho c├íc b├ái to├ín ph├ít hiß╗çn bß║Ñt th╞░ß╗¥ng kh├íc (nh╞░ Network Intrusion Detection hay Fraud Detection) miß╗àn l├á ch├║ng c├│ mß╗Öt kh├┤ng gian ─æß║╖c tr╞░ng hß╗ùn hß╗úp t╞░╞íng ─æ╞░╞íng.
+
+\subsection{─Éß╗ïnh ngh─⌐a h├¼nh thß╗⌐c}
+
+Khoß║úng c├ích Mahalanobis cß╗ºa mß╗Öt vector ─æß║╖c tr╞░ng $x$ ─æß╗æi vß╗¢i ph├ón phß╗æi cß╗ºa tß║¡p dß╗» liß╗çu nß╗ün (l├ánh t├¡nh) ─æ╞░ß╗úc t├¡nh bß║▒ng:
+\begin{equation}
+    D_M(x) = \sqrt{(x - \mu)^T \Sigma^{-1} (x - \mu)}
+\end{equation}
+trong ─æ├│ $\mu$ l├á vector trung b├¼nh v├á $\Sigma$ l├á ma trß║¡n hiß╗çp ph╞░╞íng sai cß╗ºa dß╗» liß╗çu nß╗ün.
+
+─Éß╗â chuyß╗ân ─æß╗òi khoß║úng c├ích Mahalanobis th├ánh mß╗Öt h├ám mß║¡t ─æß╗Ö (probability density), nghi├¬n cß╗⌐u sß╗¡ dß╗Ñng h├ám mß║¡t ─æß╗Ö t╞░╞íng ─æ╞░╞íng $f_{Mahal}(x)$ ─æß╗ïnh ngh─⌐a dß╗▒a tr├¬n ph├ón phß╗æi Gaussian ─æa chiß╗üu:
+\begin{equation}
+    f_{Mahal}(x) = (2\pi)^{-d/2} |\Sigma|^{-1/2} \exp\left(-\frac{1}{2} D_M^2(x)\right)
+\end{equation}
+Giß║ú sß╗¡ $F_b(t)$ l├á h├ám ph├ón phß╗æi t├¡ch l┼⌐y (CDF) cß╗ºa mß║¡t ─æß╗Ö dß╗» liß╗çu l├ánh t├¡nh. ─Éß╗æi vß╗¢i mß╗Öt tß║¡p hß╗úp c├íc tiß║┐n tr├¼nh ─æß╗Öc hß║íi $X_a$, ─æß╗Ö s├óu to├án cß╗Ñc DensPct\_Mahal ─æ╞░ß╗úc ─æß╗ïnh ngh─⌐a:
+\begin{equation}
+    DensPct\_Mahal = \text{Median} \left[ F_b(f_{Mahal}(X_a)) \right]
+\end{equation}
+
+\textbf{Nhß║¡n x├⌐t 2.1 (Sß╗▒ thß╗Åa hiß╗çp Mahalanobis tr├¬n dß╗» liß╗çu hß╗ùn hß╗úp):}
+Cß║ºn l╞░u ├╜ mß╗Öt hß║ín chß║┐ l├╜ thuyß║┐t: khoß║úng c├ích Mahalanobis giß║ú ─æß╗ïnh dß╗» liß╗çu tu├ón theo ph├ón phß╗æi Gaussian ─æa chiß╗üu ─æß╗â bß║úo to├án ├╜ ngh─⌐a h├¼nh hß╗ìc cß╗ºa mß╗Öt ellipsoid to├án cß╗Ñc. Tr├¬n kh├┤ng gian $V_{10}$, do sß╗▒ tß╗ôn tß║íi cß╗ºa c├íc biß║┐n nhß╗ï ph├ón Bernoulli v├á biß║┐n thß╗⌐ bß║¡c (ordinal), viß╗çc sß╗¡ dß╗Ñng Mahalanobis l├á mß╗Öt sß╗▒ thß╗Åa hiß╗çp. Mß║╖c d├╣ mß║Ñt ─æi mß╗Öt phß║ºn c╞í sß╗ƒ h├¼nh hß╗ìc chß║╖t chß║╜, viß╗çc ├íp dß╗Ñng ma trß║¡n hiß╗çp ph╞░╞íng sai tr├¬n dß╗» liß╗çu rß╗¥i rß║íc vß║½n c├│ khß║ú n─âng nß║»m bß║»t ─æ╞░ß╗úc sß╗▒ t╞░╞íng quan tuyß║┐n t├¡nh (t╞░╞íng ─æ╞░╞íng hß╗ç sß╗æ phi). Thß╗▒c h├ánh n├áy ─æ├ú ─æ╞░ß╗úc chß║Ñp nhß║¡n trong c├íc nghi├¬n cß╗⌐u thß╗æng k├¬ thß╗▒c nghiß╗çm (Bedrick et al., 2000). Th╞░ß╗¢c ─æo DensPct\_Mahal ─æ╞░ß╗úc thiß║┐t kß║┐ nh╞░ mß╗Öt c├┤ng cß╗Ñ ─æo l╞░ß╗¥ng xß║Ñp xß╗ë to├án cß╗Ñc (Global Surrogate), v├á ch├¡nh sß╗▒ thiß║┐u hß╗Ñt ─æß╗Ö nhß║íy cß╗Ñc bß╗Ö cß╗ºa n├│ tr├¬n dß╗» liß╗çu rß╗¥i rß║íc l├á ─æß╗Öng lß╗▒c ─æß╗â nghi├¬n cß╗⌐u thiß║┐t kß║┐ m├┤ h├¼nh phi tham sß╗æ KDE\_Joint.
+
+\subsection{Nhß║¡n x├⌐t 2.2 (threshold calibration identity)}
+\textbf{Nhß║¡n x├⌐t:} ─Éß╗æi vß╗¢i bß╗Ö ph├ít hiß╗çn bß║Ñt th╞░ß╗¥ng dß╗▒a tr├¬n khoß║úng c├ích Mahalanobis (hoß║╖c bß║Ñt kß╗│ bß╗Ö ph├ít hiß╗çn n├áo t╞░╞íng ─æ╞░╞íng vß╗ü mß║╖t cß║Ñu tr├║c to├án cß╗Ñc), DensPct\_Mahal l├á **─æiß╗âm hoß║ít ─æß╗Öng ch├¡nh x├íc (Exact Operating Point)** cß╗ºa ─æ╞░ß╗¥ng cong ROC tß║íi mß╗⌐c Tß╗╖ lß╗ç ph├ít hiß╗çn $TPR = 0.5$.
+
+\textbf{Giß║úi th├¡ch:}
+─Éß╗â bß╗Ö ph├ít hiß╗çn ─æß║ít ─æ╞░ß╗úc Tß╗╖ lß╗ç ph├ít hiß╗çn thß╗▒c tß║┐ $TPR = 0.5$ (ph├ít hiß╗çn th├ánh c├┤ng 50\% sß╗æ tiß║┐n tr├¼nh ─æß╗Öc hß║íi), ng╞░ß╗íng quyß║┐t ─æß╗ïnh (threshold) $\tau^*$ cß╗ºa hß╗ç thß╗æng bß║»t buß╗Öc phß║úi ─æ╞░ß╗úc ─æß║╖t tß║íi trung vß╗ï (\textit{median}) cß╗ºa h├ám mß║¡t ─æß╗Ö ├íp dß╗Ñng tr├¬n tß║¡p dß╗» liß╗çu ─æß╗Öc hß║íi $X_a$:
+\begin{equation}
+    \tau^* = \text{Median}[f_{Mahal}(X_a)]
+\end{equation}
+Tß║íi ng╞░ß╗íng quyß║┐t ─æß╗ïnh $\tau^*$ n├áy, Tß╗╖ lß╗ç b├ío ─æß╗Öng giß║ú (FPR) cß╗ºa hß╗ç thß╗æng ch├¡nh l├á x├íc suß║Ñt mß╗Öt tiß║┐n tr├¼nh l├ánh t├¡nh $X_b$ c├│ mß║¡t ─æß╗Ö thß║Ñp h╞ín hoß║╖c bß║▒ng ng╞░ß╗íng $\tau^*$:
+\begin{equation}
+    FPR@TPR_{0.5} = P(f_{Mahal}(X_b) \le \tau^*) = F_b(\tau^*) = F_b\left(\text{Median}[f_{Mahal}(X_a)]\right)
+\end{equation}
+Ch├║ ├╜ rß║▒ng $F_b(t)$ l├á mß╗Öt h├ám ph├ón phß╗æi t├¡ch l┼⌐y (CDF). Theo ti├¬n ─æß╗ü x├íc suß║Ñt, h├ám CDF lu├┤n l├á mß╗Öt h├ám ─æ╞ín ─æiß╗çu kh├┤ng giß║úm ($monotonically\ non-decreasing$). 
+
+Mß╗Öt ─æß╗ïnh l├╜ c╞í bß║ún cß╗ºa Thß╗æng k├¬ m├┤ tß║ú chß╗ë ra rß║▒ng ph├⌐p biß║┐n ─æß╗òi ─æ╞ín ─æiß╗çu bß║úo to├án t├¡nh trung vß╗ï cß╗ºa biß║┐n ngß║½u nhi├¬n. Tß╗⌐c l├á, vß╗¢i mß╗ìi h├ám ─æ╞ín ─æiß╗çu $g$ v├á biß║┐n ngß║½u nhi├¬n $Y$, ta lu├┤n c├│:
+\begin{equation}
+    g(\text{Median}[Y]) \equiv \text{Median}[g(Y)]
+\end{equation}
+├üp dß╗Ñng ─æß╗ïnh l├╜ bß║úo to├án trung vß╗ï n├áy vß╗¢i h├ám ─æ╞ín ─æiß╗çu $g \equiv F_b$ v├á biß║┐n ngß║½u nhi├¬n $Y \equiv f_{Mahal}(X_a)$, ta c├│ ─æß║│ng thß╗⌐c to├ín hß╗ìc ch├¡nh x├íc:
+\begin{equation}
+    F_b\left(\text{Median}[f_{Mahal}(X_a)]\right) \equiv \text{Median}\left[ F_b(f_{Mahal}(X_a)) \right] = DensPct\_Mahal
+\end{equation}
+Do ─æ├│, ta chß╗⌐ng minh ─æ╞░ß╗úc:
+\begin{equation}
+    FPR@TPR_{0.5} \equiv DensPct\_Mahal
+\end{equation}
+
+─Éß║│ng thß╗⌐c to├ín hß╗ìc n├áy l├á mß╗Öt t├¡nh chß║Ñt cß╗æ hß╗»u (inherent property) cß╗ºa bß║Ñt kß╗│ h├ám ─æ├ính gi├í ─æiß╗âm sß╗æ (score function) ─æ╞ín ─æiß╗çu n├áo. Trong thß╗▒c tiß╗àn vß║¡n h├ánh, ─æß╗ïnh danh n├áy c├│ ├╜ ngh─⌐a nh╞░ mß╗Öt c╞í sß╗ƒ ─æß╗â hiß╗çu chß╗ënh (calibrate) ng╞░ß╗íng cß║únh b├ío, cho thß║Ñy ─æ╞░ß╗¥ng cong ROC cß╗ºa hß╗ç thß╗æng ph├ít hiß╗çn to├án cß╗Ñc c├│ ─æiß╗âm hoß║ít ─æß╗Öng x├íc ─æß╗ïnh tß║íi tß╗ìa ─æß╗Ö $(DensPct\_Mahal, 0.5)$.
+
+\section{Nghß╗ïch l├╜ cß║Ñu tr├║c: global bias v├á Local Pockets}
+\label{section:2.6}
+
+Sß╗▒ ra ─æß╗¥i cß╗ºa th╞░ß╗¢c ─æo DensPct\_Mahal dß║½n ─æß║┐n mß╗Öt kh├ím ph├í quan trß╗ìng giß║úi th├¡ch c╞í chß║┐ thß║Ñt bß║íi cß║Ñu tr├║c cß╗ºa c├íc thuß║¡t to├ín UAD truyß╗ün thß╗æng: **Nghß╗ïch l├╜ Cß║Ñu tr├║c giß╗»a Thi├¬n kiß║┐n Trung t├óm To├án cß╗Ñc (Global Center Bias) v├á Lß╗ù hß╗òng Cß╗Ñc bß╗Ö (Local Pockets)**.
+
+Mß╗Öt ─æiß╗âm dß╗» liß╗çu ho├án to├án c├│ thß╗â ─æß╗ông thß╗¥i c├│ Mahalanobis depth rß║Ñt cao (nß║▒m s├óu b├¬n trong ellipsoid hiß╗çp ph╞░╞íng sai to├án cß╗Ñc, t╞░╞íng th├¡ch vß╗¢i h├¼nh d├íng tß╗òng thß╗â cß╗ºa ─æ├ím ─æ├┤ng l├ánh t├¡nh) nh╞░ng lß║íi c├│ mß║¡t ─æß╗Ö phi tham sß╗æ cß╗Ñc bß╗Ö cß╗▒c kß╗│ thß║Ñp (nß║▒m trong mß╗Öt v├╣ng rß╗ùng cß╗Ñc bß╗Ö - Local Pocket). 
+
+Chiß║┐n dß╗ïch APT29 l├á mß╗Öt tr╞░ß╗¥ng hß╗úp kinh ─æiß╗ân minh hß╗ìa cho nghß╗ïch l├╜ n├áy. C├íc tiß║┐n tr├¼nh cß╗ºa APT29 ─æ╞░ß╗úc thiß║┐t kß║┐ kh├⌐o l├⌐o ─æß╗â chui s├óu v├áo trung t├óm dß╗» liß╗çu l├ánh t├¡nh ($DensPct\_Mahal = 27\%$). Sß╗▒ th├óm nhß║¡p s├óu n├áy tß║ío ra thi├¬n kiß║┐n **Global Center Bias**, khiß║┐n c├íc m├┤ h├¼nh dß╗▒a tr├¬n c├íc l├ít cß║»t bi├¬n (iForest, ECOD) hoß║╖c khoß║úng c├ích h├¼nh hß╗ìc phß║│ng (LOF) ho├án to├án bß╗ï qua mß║╖t. Tuy nhi├¬n, c├íc tiß║┐n tr├¼nh APT29 lß║íi lß╗ìt v├áo c├íc lß╗ù hß╗òng cß║Ñu tr├║c cß╗Ñc bß╗Ö (\textit{Local Pockets}) vß╗æn hiß╗çn r├╡ d╞░ß╗¢i ╞░ß╗¢c l╞░ß╗úng mß║¡t ─æß╗Ö nh├ón phi tham sß╗æ KDE nh╞░ng bß╗ï che mß╗¥ bß╗ƒi xß║Ñp xß╗ë Gaussian cß╗ºa Mahalanobis.
+
+Vß╗ü bß║ún chß║Ñt, ├╜ t╞░ß╗ƒng ph├ít hiß╗çn c├íc ─æiß╗âm dß╗» liß╗çu th╞░a thß╗¢t nß║▒m khuß║Ñt b├¬n trong v├╣ng mß║¡t ─æß╗Ö to├án cß╗Ñc cao kh├┤ng phß║úi l├á ho├án to├án mß╗¢i vß╗ü mß║╖t to├ín hß╗ìc. N├│ l├á nß╗ün tß║úng cß╗ºa c├íc thuß║¡t to├ín ph├ít hiß╗çn cß╗Ñc bß╗Ö (Local Outlier Detection) truyß╗ün thß╗æng nh╞░ LOF, LODA, hay LOCI. Tuy nhi├¬n, ─æ├│ng g├│p cß╗ºa luß║¡n v─ân nß║▒m ß╗ƒ viß╗çc ├íp dß╗Ñng nguy├¬n l├╜ n├áy v├áo b├ái to├ín ph├íp y tiß║┐n tr├¼nh Windows, chß╗⌐ng minh rß║▒ng sß╗▒ sß╗Ñp ─æß╗ò cß╗ºa c├íc m├┤ h├¼nh ph├ít hiß╗çn tr├¬n dß╗» liß╗çu Log (nh╞░ APT29) l├á do sß╗▒ tß╗ôn tß║íi d├áy ─æß║╖c cß╗ºa c├íc "Lß╗ù hß╗òng Cß╗Ñc bß╗Ö" trong mß╗Öt kh├┤ng gian ─æß║╖c tr╞░ng hß╗ùn hß╗úp (mixed-type feature space) rß║Ñt ─æß║╖c th├╣. Do ─æ├│, m├ú ─æß╗Öc ngß╗Ñy trang LotL thß╗▒c chß║Ñt chui v├áo c├íc Local Pockets n├áy ─æß╗â qua mß║╖t Global Bias.
+
+\section{M├┤ h├¼nh chß╗⌐ng minh tß╗ôn tß║íi: kde\_joint}
+\label{section:2.7}
+
+Dß╗▒a tr├¬n lß║¡p luß║¡n vß╗ü Local Pockets, nghi├¬n cß╗⌐u thiß║┐t kß║┐ m├┤ h├¼nh **KDE\_Joint** ─æ├│ng vai tr├▓ nh╞░ mß╗Öt **Bß║▒ng chß╗⌐ng tß╗ôn tß║íi (Existence Proof)** ─æß╗â chß╗⌐ng minh rß║▒ng m├ú ─æß╗Öc ngß╗Ñy trang s├óu ho├án to├án c├│ thß╗â bß╗ï b├│c trß║ºn nß║┐u thuß║¡t to├ín tho├ít khß╗Åi thi├¬n kiß║┐n to├án cß╗Ñc.
+
+KDE\_Joint x├óy dß╗▒ng mß╗Öt m├┤ h├¼nh ╞░ß╗¢c l╞░ß╗úng mß║¡t ─æß╗Ö Kernel ─æß╗ông thß╗¥i (Mixed Product KDE) trß╗▒c tiß║┐p tr├¬n kh├┤ng gian hß╗ùn hß╗úp V10 nguy├¬n bß║ún sß╗¡ dß╗Ñng Mixed Product Kernel (Racine \& Li, 2004). KDE\_Joint t├¡nh to├ín mß║¡t ─æß╗Ö x├íc suß║Ñt cß╗Ñc bß╗Ö cß╗ºa tiß║┐n tr├¼nh l├ánh t├¡nh tß║íi ─æ├║ng tß╗ìa ─æß╗Ö ─æa chiß╗üu cß╗ºa tiß║┐n tr├¼nh cß║ºn kiß╗âm tra. Sß╗▒ cß║úi thiß╗çn hiß╗çu n─âng cß╗ºa KDE\_Joint tr├¬n tß║¡p dß╗» liß╗çu cß╗▒c kh├│ nh╞░ APT29 sß║╜ chß╗⌐ng minh t├¡nh khß║ú thi cß╗ºa viß╗çc khai th├íc cß║Ñu tr├║c cß╗Ñc bß╗Ö phi tham sß╗æ ─æß╗â v╞░ß╗út qua ─æiß╗âm m├╣ cß║Ñu tr├║c cß╗ºa hß╗ìc m├íy truyß╗ün thß╗æng.
+
+\begin{table}[H]
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\caption{Ma trß║¡n so s├ính ─æß║╖c t├¡nh kß╗╣ thuß║¡t v├á ─æiß╗âm m├╣ cß║Ñu tr├║c giß╗»a c├íc thuß║¡t to├ín ph├ít hiß╗çn bß║Ñt th╞░ß╗¥ng}
+\label{tab:algorithm_matrix}
+\begin{tabular}{|p{1.8cm}|p{1.8cm}|p{3.4cm}|>{\centering\arraybackslash}p{1.2cm}|p{5.0cm}|}
+\hline
+\textbf{Thuß║¡t to├ín} & \textbf{Quy m├┤ Ph├ón t├¡ch} & \textbf{Dß║íng m├┤ h├¼nh} & \textbf{Biß║┐n hß╗ùn hß╗úp} & \textbf{─Éiß╗âm m├╣ cß║Ñu tr├║c cß╗æt l├╡i} \\ \hline
+\textbf{iForest} & Cß╗Ñc bß╗Ö & Ph├ón chia ngß║½u nhi├¬n (Random Splits) & K├⌐m & ─Éiß╗âm m├╣ ph├ón phß╗æi bi├¬n (Marginal Blindness) \\ \hline
+\textbf{ECOD} & To├án cß╗Ñc & Ph├ón phß╗æi bi├¬n (Marginal ECDF) & K├⌐m & ─Éiß╗âm m├╣ ph├ón phß╗æi bi├¬n (Marginal Blindness) \\ \hline
+\textbf{LOF} & Cß╗Ñc bß╗Ö & Mß║¡t ─æß╗Ö cß╗Ñc bß╗Ö (kNN local density) & Rß║Ñt k├⌐m & Lß╗¥i nguyß╗ün sß╗æ chiß╗üu (Curse of Dimensionality) \\ \hline
+\textbf{SRAH} & To├án cß╗Ñc / Bi├¬n & T├¡ch hß╗úp ─æa cß║úm biß║┐n & K├⌐m & Sß╗Ñp ─æß╗ò bi├¬n (Marginal Collapse) \\ \hline
+\textbf{Joint-KDE} & Cß╗Ñc bß╗Ö & ╞»ß╗¢c l╞░ß╗úng phi tham sß╗æ (KDE) & Tß╗æt & Nhß║íy cß║úm dß╗» liß╗çu th╞░a (Categorical Sparsity) \\ \hline
+\end{tabular}
+\end{table}
+
+\end{document}

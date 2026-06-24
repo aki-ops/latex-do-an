@@ -2401,8 +2401,12 @@
     <bcf:citekey order="21" intorder="1">papadimitriou2003loci</bcf:citekey>
     <bcf:citekey order="22" intorder="1">pevny2016loda</bcf:citekey>
     <bcf:citekey order="23" intorder="1">hassan2020tactical</bcf:citekey>
-    <bcf:citekey order="24" intorder="1">davis2006relationship</bcf:citekey>
-    <bcf:citekey order="25" intorder="1">saito2015precision</bcf:citekey>
+    <bcf:citekey order="24" intorder="1">liu2008isolation</bcf:citekey>
+    <bcf:citekey order="25" intorder="1">li2023ecod</bcf:citekey>
+    <bcf:citekey order="26" intorder="1">breunig2000lof</bcf:citekey>
+    <bcf:citekey order="27" intorder="1">francois2007concentration</bcf:citekey>
+    <bcf:citekey order="28" intorder="1">davis2006relationship</bcf:citekey>
+    <bcf:citekey order="29" intorder="1">saito2015precision</bcf:citekey>
   </bcf:section>
   <!-- SORTING TEMPLATES -->
   <bcf:sortingtemplate name="none">
