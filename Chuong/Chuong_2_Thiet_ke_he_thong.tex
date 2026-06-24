@@ -197,7 +197,59 @@ Dựa trên lập luận về Local Pockets, mô hình phi tham số **KDE\_Join
 \section{Thiết kế pipeline đo lường}
 \label{section:2.3}
 
-Để triển khai khung đo lường BBS vào thực tiễn, kiến trúc luồng dữ liệu (pipeline) được thiết kế nhằm đảm bảo khả năng xử lý lượng lớn nhật ký hệ thống. Quá trình đo lường được chia thành 4 giai đoạn chính, quy định rõ ràng dữ liệu đầu vào (Input) và kết quả đầu ra (Output) tại mỗi bước:
+Để triển khai khung đo lường BBS vào thực tiễn và làm nổi bật trọng tâm nghiên cứu, một kiến trúc đường ống luồng dữ liệu (pipeline) được thiết kế chuyên biệt. Quá trình đo lường được chia thành 4 giai đoạn chính, quy định rõ ràng dữ liệu đầu vào (Input), luồng xử lý và kết quả đầu ra (Output).
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    node distance=2.5cm,
+    stage_box/.style={rectangle, rounded corners, draw=blue!80, fill=blue!10, very thick, minimum width=3.5cm, minimum height=1.2cm, align=center, font=\bfseries},
+    arrow/.style={->, >=stealth, thick, blue!80}
+]
+    % Nodes
+    \node[stage_box] (stage1) {Giai đoạn 1:\\Tiền xử lý};
+    \node[stage_box, right of=stage1, xshift=2cm] (stage2) {Giai đoạn 2:\\Trích xuất $V_{10}$};
+    \node[stage_box, right of=stage2, xshift=2cm] (stage3) {Giai đoạn 3:\\Tính toán cấu trúc};
+    \node[stage_box, right of=stage3, xshift=2cm] (stage4) {Giai đoạn 4:\\Đánh giá (Scoring)};
+
+    % Arrows
+    \draw[arrow] (stage1) -- (stage2);
+    \draw[arrow] (stage2) -- (stage3);
+    \draw[arrow] (stage3) -- (stage4);
+\end{tikzpicture}
+\caption{Sơ đồ kiến trúc tổng thể Khung đo lường BBS}
+\label{fig:bbs_pipeline}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    node distance=1.8cm,
+    data_box/.style={cylinder, shape border rotate=90, draw=orange!80, fill=orange!20, aspect=0.25, thick, minimum width=2.5cm, minimum height=1cm, align=center, font=\small},
+    proc_box/.style={rectangle, draw=gray!80, fill=gray!10, thick, minimum width=3.0cm, minimum height=0.8cm, align=center, font=\small},
+    arrow/.style={->, >=stealth, thick, gray!80}
+]
+    % Nodes
+    \node[data_box] (raw) {Log thô (.evtx)};
+    \node[proc_box, right of=raw, xshift=2.5cm] (parse) {Parse \& Graph Build};
+    \node[data_box, right of=parse, xshift=2.5cm] (dag) {Đồ thị DAG};
+    \node[proc_box, right of=dag, xshift=2.5cm] (extract) {Ánh xạ Đặc trưng};
+    
+    \node[data_box, below of=extract, yshift=-0.5cm] (v10) {Ma trận $V_{10}$};
+    \node[proc_box, left of=v10, xshift=-2.5cm] (compute) {Ước lượng Mahalanobis/KDE};
+    \node[data_box, left of=compute, xshift=-2.5cm] (score) {Điểm số DDO,\\DensPct};
+
+    % Arrows
+    \draw[arrow] (raw) -- (parse);
+    \draw[arrow] (parse) -- (dag);
+    \draw[arrow] (dag) -- (extract);
+    \draw[arrow] (extract) -- (v10);
+    \draw[arrow] (v10) -- (compute);
+    \draw[arrow] (compute) -- (score);
+\end{tikzpicture}
+\caption{Sơ đồ luồng chạy dữ liệu biến đổi (Data Flow) trong Khung đo lường BBS}
+\label{fig:bbs_dataflow}
+\end{figure}
 
 \begin{enumerate}
     \item \textbf{Giai đoạn 1: Tiền xử lý và Chuẩn hóa (Data Ingestion \& Normalization)}
@@ -229,7 +281,7 @@ Dựa trên lập luận về Local Pockets, mô hình phi tham số **KDE\_Join
 \section{Thiết kế môi trường thử nghiệm}
 \label{section:2.4}
 
-Để kiểm chứng toàn diện năng lực của các bộ đo lường và thuật toán phát hiện, nghiên cứu thiết lập môi trường thử nghiệm tiêu chuẩn trên nền tảng vector đặc trưng và phương pháp tạo sinh dữ liệu.
+Để kiểm chứng toàn diện năng lực của các bộ đo lường và thuật toán phát hiện, nghiên cứu thiết lập môi trường thử nghiệm tiêu chuẩn trên nền tảng vector đặc trưng như sau.
 
 \subsection{Thiết kế không gian đặc trưng hành vi V10}
 Không gian đặc trưng hỗn hợp $V_{10}$ bao phủ ba khía cạnh hoạt động: nội tại tiến trình (spatial), phả hệ thực thi (sequential), và giao tiếp mạng (collective). Vector đặc trưng tuân theo cấu hình kiểu dữ liệu hỗn hợp \texttt{uuuuccooou} (u - binary, c - continuous, o - ordinal):
@@ -256,34 +308,6 @@ $v_{10}$ & \texttt{parent\_sigma\_bin} & u (Binary) & EID 1 & Cha bị phát hi�
 \end{table}
 
 \subsection{Mô hình phát hiện đa cảm biến SRAH}
-SRAH (Security Response \& Analysis Hub) đại diện cho lớp mô hình phân phối biên đa lớp. Kiến trúc SRAH bao gồm:
-\begin{itemize}
-    \item \textbf{Layer 0 (Ingestion Engine):} Triển khai bằng Rust, đọc sự kiện \texttt{.evtx} và truyền vào RAM qua \textbf{PyO3}.
-    \item \textbf{Layer 2 (Graph Builder):} Giải quyết lỗi PID reuse qua ProcessGuid để lập đồ thị tiến trình có hướng (DAG).
-    \item \textbf{Layer 3 (Multi-sensor Scoring):} Tính toán 4 cảm biến biên (điểm, ngữ cảnh, chuỗi, tập thể) để đưa ra rủi ro tổng hợp.
-\end{itemize}
-
-\subsection{Phương pháp luận tạo sinh dữ liệu tổng hợp (Controlled Injection)}
-Để thiết lập các mức độ khó ngụy trang khác nhau, nghiên cứu sử dụng cơ chế **Controlled Injection** bơm trực tiếp các mẫu tấn công mô phỏng vào tập log lành tính nền. Tỷ lệ lớp mã độc được duy trì ở mức $\ll 0.1\%$ nhằm tạo ra môi trường cực độ mất cân bằng.
-\begin{table}[H]
-\centering
-\small
-\setlength{\tabcolsep}{4pt}
-\caption{Đối chiếu các kịch bản Controlled Injection với kỹ thuật MITRE ATT\&CK và cơ chế chế tác}
-\label{tab:controlled_injection_scenarios}
-\begin{tabular}{|p{2.2cm}|p{3.5cm}|p{3.0cm}|p{4.5cm}|}
-\hline
-\textbf{Kịch bản} & \textbf{Kỹ thuật MITRE} & \textbf{Chiến thuật Ngụy trang} & \textbf{Đặc trưng chế tác trên $V_{10}$} \\ \hline
-\textbf{kb1\_macro} & T1204.002 (User Execution) & Lệnh thực thi qua Office Document & Cha-con bất thường, gán cứng $v_6 \to 1.0$ \\ \hline
-\textbf{kb2\_fileless} & T1059.001 (PowerShell) & Thực thi trên RAM, không tạo file & Gán $v_3$ (\texttt{has\_file\_drop}) = 0 \\ \hline
-\textbf{kb3\_wmiburst} & T1047 (WMI) & Lạm dụng WMI trinh sát đồng loạt & Tăng $v_9$ (\texttt{child\_count}) lên mức cực đại \\ \hline
-\textbf{kb4\_inject} & T1055 (Process Injection) & Bơm mã vào tiến trình đáng tin cậy & Kích hoạt $v_2$ (\texttt{has\_injection}) = 1 \\ \hline
-\textbf{kb5\_slow} & T1021.002 (SMB/Windows Admin) & SMB Session di chuyển ngang chậm & Giảm tần suất mạng ($v_1 \approx 0$) tránh rate-limit \\ \hline
-\textbf{kb6\_recon} & T1082 (System Info Discovery) & Lệnh truy vấn cấu hình có sẵn & $v_5$ và $v_6$ (độ hiếm) trung bình, DDO cao \\ \hline
-\textbf{kb7\_ransom} & T1486 (Data Encrypted) & Mã hóa tệp tin hàng loạt & Tăng tần suất I/O và ghi tệp ($v_3 = 1, v_4 = 1$) \\ \hline
-\textbf{kb8\_lateral} & T1021 (Remote Services) & Remote Shell di chuyển ngang phân tán & Tạo đặc trưng thưa thớt, mạng phân tán \\ \hline
-\end{tabular}
-\end{table}
-Cơ chế tạo sinh này cung cấp phổ độ khó chuẩn hóa để đánh giá các thuật toán trong thực nghiệm.
+Trong quá trình thực nghiệm, hệ thống \textbf{SRAH (Security Response \& Analysis Hub)} được sử dụng làm mô hình đối chứng (baseline) đại diện cho lớp mô hình phân phối biên đa lớp tích hợp. Kiến trúc chi tiết, quy trình hoạt động, và sơ đồ luồng dữ liệu của hệ thống SRAH được trình bày cụ thể tại phần \textbf{Phụ lục} của luận văn nhằm giữ cho trọng tâm của chương tập trung vào Khung đo lường BBS.
 
 \end{document}

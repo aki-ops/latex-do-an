@@ -3,12 +3,44 @@
 
 Chương này trình bày chi tiết quá trình thực nghiệm nhằm kiểm chứng các chỉ số và mô hình đã được đề xuất trong Chương 2. Nội dung bao gồm việc mô tả chi tiết các tập dữ liệu, xác định rõ ràng mục tiêu, đầu vào và đầu ra của quá trình, cùng với việc phân tích sâu sắc các kết quả thực nghiệm.
 
-\section{Các dataset thực hiện chạy}
+\section{Các tập dữ liệu thực nghiệm}
 \label{section:3.1}
 
 Các thực nghiệm được tiến hành trên hệ thống máy trạm Windows 11, với bộ vi xử lý AMD Ryzen 5 5600GT @ 3.3GHz, RAM 16GB. Môi trường phân tích sử dụng Python 3.10.12 cùng các thư viện tính toán khoa học lõi (NumPy, SciPy, scikit-learn).
 
-Thực nghiệm được triển khai trên 11 tập dữ liệu toàn diện bao gồm: 3 tập dữ liệu từ các chiến dịch APT thực tế (BOTSv1, FIN6, APT29) và 8 tập dữ liệu tấn công tổng hợp mô phỏng theo MITRE ATT\&CK được tạo ra bằng phương pháp Controlled Injection (từ KB1 đến KB8). Bảng \ref{tab:11datasets} tóm tắt đặc tính của các tập dữ liệu này:
+Thực nghiệm được triển khai trên 11 tập dữ liệu toàn diện. Nhằm mục đích khảo sát ở nhiều mức độ ngụy trang khác nhau, dữ liệu được chia làm hai nhóm chính: Tập dữ liệu thực tế (Real Data) và Tập dữ liệu do AI/Thuật toán tạo sinh (Generated Data). 
+
+\subsection{Tập dữ liệu thực tế (Real Data)}
+Đây là các bản ghi log thu thập từ các hệ thống phòng thủ thực tế bị tấn công bởi các chiến dịch APT khét tiếng, có gán nhãn ground-truth đầy đủ từ các chuyên gia bảo mật.
+\begin{itemize}
+    \item \textbf{BOTSv1 (Boss of the SOC v1):} Kịch bản tấn công của nhóm APT với các công cụ quét mạng và leo thang đặc quyền cơ bản. Mức độ ngụy trang tương đối thấp, dễ bị phát hiện.
+    \item \textbf{FIN6 \& APT3:} Các chiến dịch nhắm vào hệ thống tài chính sử dụng Cobalt Strike và các kỹ thuật LotL cơ bản.
+    \item \textbf{APT29:} Chiến dịch tình báo mạng tinh vi, sử dụng kỹ thuật ngụy trang cực kỳ sâu vào lưu lượng Windows Administration. Tiến trình mã độc có độ hòa trộn rất cao vào phân phối nền.
+\end{itemize}
+
+\subsection{Tập dữ liệu tạo sinh (Generated Data - Controlled Injection)}
+Để thiết lập các mức độ khó ngụy trang chuẩn hóa hơn mà dữ liệu thực tế chưa bao phủ hết, nghiên cứu sử dụng cơ chế **Controlled Injection** để tạo sinh dữ liệu. Quá trình này bơm trực tiếp các mẫu tấn công mô phỏng vào tập log lành tính nền. Dưới đây là mô tả 8 kịch bản dữ liệu tạo sinh (KB1 đến KB8) được đối chiếu theo ma trận MITRE ATT\&CK:
+\begin{table}[H]
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\caption{Đặc tính 8 tập dữ liệu tạo sinh (KB1 - KB8) và kỹ thuật ngụy trang tương ứng}
+\label{tab:controlled_injection_scenarios}
+\begin{tabular}{|p{2.2cm}|p{3.5cm}|p{3.0cm}|p{4.5cm}|}
+\hline
+\textbf{Tập dữ liệu} & \textbf{Kỹ thuật MITRE} & \textbf{Chiến thuật Ngụy trang} & \textbf{Đặc tính trên $V_{10}$} \\ \hline
+\textbf{kb1\_macro} & T1204.002 (User Execution) & Lệnh thực thi qua Office Document & Cha-con bất thường, gán cứng $v_6 \to 1.0$ \\ \hline
+\textbf{kb2\_fileless} & T1059.001 (PowerShell) & Thực thi trên RAM, không tạo file & Gán $v_3$ (\texttt{has\_file\_drop}) = 0 \\ \hline
+\textbf{kb3\_wmiburst} & T1047 (WMI) & Lạm dụng WMI trinh sát đồng loạt & Tăng $v_9$ (\texttt{child\_count}) lên cực đại \\ \hline
+\textbf{kb4\_inject} & T1055 (Process Injection) & Bơm mã vào tiến trình đáng tin cậy & Kích hoạt $v_2$ (\texttt{has\_injection}) = 1 \\ \hline
+\textbf{kb5\_slow} & T1021.002 (SMB/Windows Admin) & SMB Session di chuyển ngang chậm & Giảm tần suất mạng ($v_1 \approx 0$) tránh rate-limit \\ \hline
+\textbf{kb6\_recon} & T1082 (System Info Discovery) & Lệnh truy vấn cấu hình có sẵn & $v_5$ và $v_6$ trung bình, DDO cao \\ \hline
+\textbf{kb7\_ransom} & T1486 (Data Encrypted) & Mã hóa tệp tin hàng loạt & Tăng tần suất I/O và ghi tệp ($v_3 = 1, v_4 = 1$) \\ \hline
+\textbf{kb8\_lateral} & T1021 (Remote Services) & Remote Shell di chuyển ngang phân tán & Tạo đặc trưng thưa thớt, mạng phân tán \\ \hline
+\end{tabular}
+\end{table}
+
+Bảng \ref{tab:11datasets} tóm tắt đặc tính thống kê (DDO và DensPct) của toàn bộ 11 tập dữ liệu (cả thực tế và tạo sinh) trước khi đưa vào các mô hình phát hiện.
 
 \begin{table}[H]
 \centering
@@ -22,14 +54,14 @@ Thực nghiệm được triển khai trên 11 tập dữ liệu toàn diện ba
 \texttt{botsv1} & 3 & 0.5515 & 7.58\% & APT Thực tế \\ \hline
 \texttt{fin6} & 31 & 0.6249 & 0.40\% & APT Thực tế \\ \hline
 \texttt{apt29} & 22 & 0.6453 & 26.98\% & APT Thực tế \\ \hline
-\texttt{kb1\_macro} & 3 & 0.6319 & 0.00\% & Controlled Injection \\ \hline
-\texttt{kb2\_fileless} & 2 & 0.4849 & 4.03\% & Controlled Injection \\ \hline
-\texttt{kb3\_wmiburst} & 8 & 0.6249 & 0.00\% & Controlled Injection \\ \hline
-\texttt{kb4\_inject} & 2 & 0.6239 & 0.00\% & Controlled Injection \\ \hline
-\texttt{kb5\_slow} & 4 & 0.6197 & 2.27\% & Controlled Injection \\ \hline
-\texttt{kb6\_recon} & 25 & 0.7074 & 10.64\% & Controlled Injection \\ \hline
-\texttt{kb7\_ransom} & 18 & 0.6991 & 2.04\% & Controlled Injection \\ \hline
-\texttt{kb8\_lateral} & 51 & 0.6748 & 0.00\% & Controlled Injection \\ \hline
+\texttt{kb1\_macro} & 3 & 0.6319 & 0.00\% & Dữ liệu tạo sinh \\ \hline
+\texttt{kb2\_fileless} & 2 & 0.4849 & 4.03\% & Dữ liệu tạo sinh \\ \hline
+\texttt{kb3\_wmiburst} & 8 & 0.6249 & 0.00\% & Dữ liệu tạo sinh \\ \hline
+\texttt{kb4\_inject} & 2 & 0.6239 & 0.00\% & Dữ liệu tạo sinh \\ \hline
+\texttt{kb5\_slow} & 4 & 0.6197 & 2.27\% & Dữ liệu tạo sinh \\ \hline
+\texttt{kb6\_recon} & 25 & 0.7074 & 10.64\% & Dữ liệu tạo sinh \\ \hline
+\texttt{kb7\_ransom} & 18 & 0.6991 & 2.04\% & Dữ liệu tạo sinh \\ \hline
+\texttt{kb8\_lateral} & 51 & 0.6748 & 0.00\% & Dữ liệu tạo sinh \\ \hline
 \end{tabular}
 \end{table}
 
