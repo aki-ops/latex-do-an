@@ -92,6 +92,34 @@ Quá trình thực nghiệm được thiết kế nhằm giải quyết các m�
 \section{Kết quả và giải thích kết quả}
 \label{section:3.3}
 
+\subsection{Kết quả đo lường Không gian lẩn khuất đa chiều}
+\label{subsection:3.3.1}
+Bảng \ref{tab:bbs_3_axis} trình bày kết quả đo lường độ lẩn khuất trên cả 3 trục theo Khung đo lường BBS. Có thể thấy một hiện tượng thú vị: đối với phần lớn các tập dữ liệu, mã độc đạt điểm số rất cao (tiệm cận $1.0$) ở trục Chuỗi thời gian ($BBS_{seq}$) và Cấu trúc tập thể ($BBS_{col}$). Điều này chứng tỏ các chiến dịch APT ngụy trang thứ tự lệnh và quan hệ cây tiến trình cực kỳ tinh vi, hòa trộn hoàn hảo vào thói quen của người dùng bình thường.
+
+\begin{table}[H]
+\centering
+\small
+\caption{Điểm số Behavioral Blending Score (BBS) trên 3 trục định lượng và điểm cực tiểu tổng hợp}
+\label{tab:bbs_3_axis}
+\begin{tabular}{|l|c|c|c|c|}
+\hline
+\textbf{Tập dữ liệu} & \textbf{$BBS_{spa}$} & \textbf{$BBS_{seq}$} & \textbf{$BBS_{col}$} & \textbf{$BBS_{min}$} \\ \hline
+\texttt{botsv1} & 0.00 & 1.00 & 1.00 & \textbf{0.00} \\ \hline
+\texttt{fin6} & 0.00 & 0.39 & 1.00 & \textbf{0.00} \\ \hline
+\texttt{apt29} & 0.02 & 0.72 & 0.18 & \textbf{0.02} \\ \hline
+\texttt{kb1\_macro} & 0.00 & 1.00 & 1.00 & \textbf{0.00} \\ \hline
+\texttt{kb2\_fileless} & 0.00 & 1.00 & 1.00 & \textbf{0.00} \\ \hline
+\texttt{kb3\_wmiburst} & 0.00 & 1.00 & 1.00 & \textbf{0.00} \\ \hline
+\texttt{kb4\_inject} & 0.00 & 1.00 & 1.00 & \textbf{0.00} \\ \hline
+\texttt{kb5\_slow} & 0.01 & 1.00 & 1.00 & \textbf{0.01} \\ \hline
+\texttt{kb6\_recon} & 0.00 & 1.00 & 1.00 & \textbf{0.00} \\ \hline
+\texttt{kb7\_ransom} & 0.00 & 1.00 & 1.00 & \textbf{0.00} \\ \hline
+\texttt{kb8\_lateral} & 0.00 & 1.00 & 1.00 & \textbf{0.00} \\ \hline
+\end{tabular}
+\end{table}
+
+Tuy nhiên, theo \textit{Nguyên lý Thùng gỗ} ($BBS_{min}$), bề mặt phơi bày lớn nhất của mã độc (thanh gỗ ngắn nhất) lại luôn nằm ở trục Không gian ($BBS_{spa}$ - loanh quanh mức $0.00 - 0.02$). Chính vì $BBS_{spa}$ luôn là điểm yếu chí tử định đoạt điểm $BBS_{min}$ của toàn bộ tập dữ liệu, phần còn lại của chương này sẽ tập trung "mổ xẻ" sâu vào mặt gỗ Không gian (thông qua hai chỉ số phân tích sâu là DDO và DensPct\_Mahal) để giải mã một nghịch lý: \textit{Tại sao mã độc phơi bày sơ hở rõ ràng ở Không gian $V_{10}$ ($BBS_{spa}$ cực thấp), mà các thuật toán UAD truyền thống vẫn không thể phát hiện ra?}
+
 \subsection{Hiệu năng tổng thể của các thuật toán}
 Bảng \ref{tab:3.2} trình bày hiệu năng F1 và AUC của các thuật toán trên 11 tập dữ liệu (sau khi huấn luyện trên dữ liệu nền bình thường).
 

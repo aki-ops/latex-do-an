@@ -235,7 +235,7 @@ Kiến trúc tổng thể tập trung mô tả luồng trung chuyển dữ liệ
         \item \textit{Input:} Đồ thị quan hệ DAG từ Giai đoạn 1.
         \item \textit{Output:} Các vector đặc trưng toán học số hóa ($V_{10}$, Log-Likelihood, Covariance).
     \end{itemize}
-    \item \textbf{Giai đoạn 3: Định lượng mật độ (Density Quantification)}
+    \item \textbf{Giai đoạn 3: Định lượng lẩn khuất đa chiều (Multidimensional Blending Quantification)}
     \begin{itemize}
         \item \textit{Input:} Không gian đặc trưng chia thành tập độc hại (Attack) và lành tính (Benign).
         \item \textit{Output:} Các tỷ số phân phối và mức độ chồng lấn.
@@ -355,8 +355,7 @@ Sơ đồ Activity Map mô tả luồng chạy thực tế của dữ liệu xuy
 
 \node[block] (integrate) at (0, -8.4) {Tích phân Trọng số (Importance Sampling)\\$BBS_{spa} = \mathbb{E}\left[ \frac{\min(f_A, f_B)}{q} \right]$};
 
-\node[block] (min) at (0, -10.2) {Hội tụ 3 trục: $\min(BBS_{spa}, BBS_{seq}, BBS_{col})$};
-\node[data, draw=red!80, fill=red!10] (out) at (0, -12.0) {Độ khó Tập dữ liệu ($BBS_{min}$)};
+\node[data, draw=red!80, fill=red!10] (out) at (0, -10.2) {Mức lẩn khuất Không gian ($BBS_{spa}$)};
 
 % Arrows
 \draw[thick, gray!80!black] (in.south) -- (0, -1.0);
@@ -369,11 +368,10 @@ Sơ đồ Activity Map mô tả luồng chạy thực tế của dữ liệu xuy
 
 \draw[arrow] (mc_gen) -- (kde);
 \draw[arrow] (kde) -- (integrate);
-\draw[arrow] (integrate) -- (min);
-\draw[arrow] (min) -- (out);
+\draw[arrow] (integrate) -- (out);
 
 \end{tikzpicture}
-\caption{Sơ đồ luồng thuật toán định lượng (Density Quantification) dựa trên Mixed KDE và Tích phân Monte Carlo}
+\caption{Sơ đồ luồng thuật toán định lượng Không gian (Trục 1) dựa trên Mixed KDE và Tích phân Monte Carlo}
 \label{fig:bbs_quantification}
 \end{figure}
 
@@ -393,6 +391,15 @@ Khi kẻ tấn công tạo ra các phiên kết nối đảo (reverse shell) ho�
 \end{equation}
 Trong đó $||\cdot||_F$ là chuẩn Frobenius (Frobenius norm) tính khoảng cách giữa hai ma trận, và $\lambda_{col}$ là hệ số chuẩn hóa.
 
+\subsubsection{Tổng hợp chỉ số lẩn khuất (BBS Aggregation)}
+Sau khi hoàn tất định lượng độc lập trên cả ba trục Không gian ($BBS_{spa}$), Chuỗi thời gian ($BBS_{seq}$) và Cấu trúc tập thể ($BBS_{col}$), Khung đo lường BBS tiến hành bước tổng hợp cuối cùng. Do đặc thù của hệ thống phát hiện bất thường đa cảm biến (multi-sensor), một tiến trình độc hại sẽ bị phát hiện nếu nó để lộ sơ hở ở \textbf{bất kỳ} phương diện nào.
+
+Nói cách khác, kẻ tấn công bắt buộc phải duy trì lớp ngụy trang hoàn hảo một cách toàn diện. Khả năng lẩn khuất thực tế của tập dữ liệu (hay mức độ khó nhằn đối với phe phòng thủ) tuân theo Nguyên lý Thùng gỗ (Wooden Barrel Theory): sức chứa của thùng nước được định đoạt bởi thanh gỗ ngắn nhất. Do đó, điểm Behavioral Blending Score tổng quát ($BBS_{min}$) được tính toán thông qua hàm cực tiểu:
+\begin{equation}
+    BBS_{min} = \min(BBS_{spa}, BBS_{seq}, BBS_{col})
+\end{equation}
+
+Quá trình tách biệt 3 trục định lượng này là điểm mấu chốt giúp giải thích sự thất bại của các thuật toán UAD truyền thống (vốn chỉ đo đạc phân phối trên đơn trục Không gian), đồng thời tạo tiền đề cho việc xây dựng kiến trúc đa cảm biến SRAH ở các chương sau.
 
 \section{Thiết kế môi trường thử nghiệm}
 \label{section:2.4}
