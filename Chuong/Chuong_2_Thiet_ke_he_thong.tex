@@ -284,7 +284,7 @@ Kiến trúc tổng thể tập trung mô tả luồng trung chuyển dữ liệ
 \end{itemize}
 
 \subsection{Sơ đồ luồng hoạt động chi tiết (Activity Map)}
-Sơ đồ Activity Map mô tả luồng chạy thực tế của dữ liệu xuyên qua hệ thống. Sơ đồ được chia làm ba làn (Swimlane) để phân định rạch ròi giữa dữ liệu cấp vào, lõi xử lý, và báo cáo trả ra. Việc sử dụng cấu trúc làn giúp dễ dàng theo dõi trạng thái dữ liệu ở bất kỳ thời điểm nào. Khung đo lường BBS thực thi một vòng đời hoàn chỉnh: tự động tiếp nhận log thô, tính toán đồ thị đặc trưng, phân tách tập Attack/Benign dựa trên nhãn Ground-truth và kích hoạt các lõi KDE để đo lường mức độ hòa trộn độc lập trên 3 trục.
+Sơ đồ Activity Map mô tả luồng chạy thực tế của dữ liệu xuyên qua hệ thống. Nhằm hỗ trợ những người làm công tác vận hành hoặc các nhà nghiên cứu ngoài ngành có thể nắm bắt dễ dàng, sơ đồ được thiết kế với cấu trúc phân làn (Swimlane), chia quy trình thành 3 khu vực rạch ròi. Dưới đây là diễn giải chi tiết cho từng luồng thực thi:
 
 \begin{figure}[H]
 \centering
@@ -292,6 +292,25 @@ Sơ đồ Activity Map mô tả luồng chạy thực tế của dữ liệu xuy
 \caption{Sơ đồ luồng hoạt động (Activity Map) với cấu trúc làn phân định rạch ròi}
 \label{fig:bbs_activity_map}
 \end{figure}
+
+\begin{itemize}
+    \item \textbf{Làn 1: Tiếp nhận \& Số hóa (Data Ingestion)}
+    \begin{itemize}
+        \item Khung đo lường bắt đầu bằng việc đọc các tập tin log hệ thống thô (như Windows Sysmon \texttt{.evtx}). Các tập tin này được lấy từ quá trình thực nghiệm, do đó đã được người nghiên cứu gán nhãn thực tế (Ground-truth).
+        \item Hệ thống tiến hành tái tạo lại các sự kiện rời rạc thành một đồ thị quan hệ tiến trình có hướng (DAG), sau đó sử dụng các bộ trích xuất để chuyển đổi đồ thị này thành ba ma trận đặc trưng toán học: Không gian ($V_{10}$), Thời gian ($NLL$), và Cấu trúc ($CoV$).
+    \end{itemize}
+    \item \textbf{Làn 2: Lõi Đo lường (BBS Core Engine)}
+    \begin{itemize}
+        \item Ngay khi nhận được các ma trận đặc trưng, hệ thống tiến hành \textbf{tách tập dữ liệu}. Bằng cách đối chiếu với Nhãn Ground-truth, hệ thống chia tiến trình thành hai nhóm: \textit{Tập tấn công (Attack)} và \textit{Tập bình thường cục bộ (Local Benign)}. 
+        \item Khái niệm \textbf{Local Benign} (Bình thường cục bộ) đóng vai trò then chốt: đây là các tiến trình của người dùng bình thường sinh ra trên cùng một máy tính, trong cùng một khung thời gian diễn ra cuộc tấn công. Việc so sánh mã độc với chính Local Benign (thay vì một tập Benign sạch ở máy khác) sẽ đánh giá chân thực nhất khả năng mã độc "hòa trộn" (blending) vào môi trường nhiễu loạn xung quanh.
+        \item Sau khi kiểm tra xem tập mẫu Local Benign có đủ lớn hay không (nếu không đủ, hệ thống sẽ cảnh báo dừng), ba lõi xử lý KDE độc lập sẽ được kích hoạt song song để đo lường sự phân bố mật độ của Attack so với Local Benign trên ba phương diện không gian, thời gian và cấu trúc.
+    \end{itemize}
+    \item \textbf{Làn 3: Tổng hợp (Aggregation)}
+    \begin{itemize}
+        \item Sau khi ba lõi KDE chạy xong, hệ thống tính toán phần diện tích giao nhau (chồng lấn) giữa hai biểu đồ mật độ phân phối.
+        \item Các điểm số này được đưa qua hàm cực tiểu ($BBS_{min}$) để tìm ra điểm yếu nhất của mã độc. Cuối cùng, hệ thống xuất ra báo cáo định lượng độ khó của tập dữ liệu thử nghiệm.
+    \end{itemize}
+\end{itemize}
 
 \subsection{Thuật toán định lượng Không gian hòa trộn}
 Để tính toán chính xác 3 chỉ số hòa trộn tại Giai đoạn 3, hệ thống áp dụng các phép đo đạc phân phối thống kê và cấu trúc ma trận khác nhau. Mục tiêu cốt lõi của giai đoạn này là tìm ra "khoảng trống ngữ nghĩa", tức là xác định xem mã độc đã ngụy trang (hòa trộn) tốt đến mức nào vào dữ liệu của người dùng thông thường trên cả 3 phương diện.
