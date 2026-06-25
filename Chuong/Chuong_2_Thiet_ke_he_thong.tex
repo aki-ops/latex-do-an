@@ -3,6 +3,36 @@
 
 Chương này trình bày quá trình khảo sát thực tế nguyên nhân khiến các thuật toán phát hiện bất thường không giám sát (UAD) gặp thất bại trước các chiến dịch tấn công ngụy trang (LotL). Từ đó, nghiên cứu đề xuất chi tiết phương pháp luận và cơ sở toán học để định lượng độ khó của dữ liệu thông qua khung đo lường BBS, đi kèm kiến trúc đường ống luồng dữ liệu phân tích và thiết lập môi trường thử nghiệm đa cảm biến.
 
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    node distance=1.5cm,
+    axis_node/.style={circle, draw=blue!80, fill=blue!10, very thick, minimum size=2.8cm, align=center, font=\bfseries\small},
+    center_node/.style={circle, draw=red!80, fill=red!10, very thick, minimum size=2.5cm, align=center, font=\bfseries\large},
+    arrow/.style={->, >=stealth, ultra thick, gray!80}
+]
+    % Central Node
+    \node[center_node] (bbs) {Khung đo lường\\BBS};
+
+    % 3 Axes
+    \node[axis_node, above=of bbs] (spa) {Trục 1:\\Không gian\\($BBS_{spa}$)};
+    \node[axis_node, below left=of bbs, xshift=-0.5cm, yshift=-0.5cm] (seq) {Trục 2:\\Chuỗi thời gian\\($BBS_{seq}$)};
+    \node[axis_node, below right=of bbs, xshift=0.5cm, yshift=-0.5cm] (col) {Trục 3:\\Cấu trúc tập thể\\($BBS_{col}$)};
+
+    % Arrows pointing to center
+    \draw[arrow] (spa) -- (bbs);
+    \draw[arrow] (seq) -- (bbs);
+    \draw[arrow] (col) -- (bbs);
+
+    % Labels for arrows
+    \node[font=\footnotesize, right=0.2cm of spa] (l1) {Mức độ hòa trộn nội tại};
+    \node[font=\footnotesize, left=0.2cm of seq] (l2) {Hòa trộn phả hệ};
+    \node[font=\footnotesize, right=0.2cm of col] (l3) {Biến dạng đồ thị};
+
+\end{tikzpicture}
+\caption{Sơ đồ Khung đo lường độ hòa trộn hành vi (Behavioral Blending Score - BBS) dựa trên 3 trục phân tích lõi.}
+\label{fig:bbs_3_axis}
+\end{figure}
 \section{Khảo sát thực tế: Lý do các phương pháp UAD thất bại}
 \label{section:2.1}
 
@@ -235,7 +265,7 @@ Kiến trúc tổng thể tập trung mô tả luồng trung chuyển dữ liệ
         \item \textit{Input:} Đồ thị quan hệ DAG từ Giai đoạn 1.
         \item \textit{Output:} Các vector đặc trưng toán học số hóa ($V_{10}$, Log-Likelihood, Covariance).
     \end{itemize}
-    \item \textbf{Giai đoạn 3: Định lượng lẩn khuất đa chiều (Multidimensional Blending Quantification)}
+    \item \textbf{Giai đoạn 3: Định lượng hòa trộn đa chiều (Multidimensional Blending Quantification)}
     \begin{itemize}
         \item \textit{Input:} Không gian đặc trưng chia thành tập độc hại (Attack) và lành tính (Benign).
         \item \textit{Output:} Các tỷ số phân phối và mức độ chồng lấn.
@@ -313,11 +343,11 @@ Sơ đồ Activity Map mô tả luồng chạy thực tế của dữ liệu xuy
 \label{fig:bbs_activity_map}
 \end{figure}
 
-\subsection{Thuật toán định lượng Không gian lẩn khuất}
-Để tính toán chính xác 3 chỉ số lẩn khuất tại Giai đoạn 3, hệ thống áp dụng các phép đo đạc phân phối thống kê và cấu trúc ma trận khác nhau. Mục tiêu cốt lõi của giai đoạn này là tìm ra "khoảng trống ngữ nghĩa", tức là xác định xem mã độc đã ngụy trang (hòa trộn) tốt đến mức nào vào dữ liệu của người dùng thông thường trên cả 3 phương diện.
+\subsection{Thuật toán định lượng Không gian hòa trộn}
+Để tính toán chính xác 3 chỉ số hòa trộn tại Giai đoạn 3, hệ thống áp dụng các phép đo đạc phân phối thống kê và cấu trúc ma trận khác nhau. Mục tiêu cốt lõi của giai đoạn này là tìm ra "khoảng trống ngữ nghĩa", tức là xác định xem mã độc đã ngụy trang (hòa trộn) tốt đến mức nào vào dữ liệu của người dùng thông thường trên cả 3 phương diện.
 
-\subsubsection{Trục 1: Lẩn khuất Không gian ($BBS_{spa}$)}
-Đối với trục không gian, sự lẩn khuất được tính toán trên Không gian đặc trưng 10 chiều ($V_{10}$) bằng chuỗi thuật toán ước lượng phân phối phi tham số kết hợp với tích phân Monte Carlo. Việc tính toán này được thực hiện qua các bước sau:
+\subsubsection{Trục 1: Hòa trộn Không gian ($BBS_{spa}$)}
+Đối với trục không gian, sự hòa trộn được tính toán trên Không gian đặc trưng 10 chiều ($V_{10}$) bằng chuỗi thuật toán ước lượng phân phối phi tham số kết hợp với tích phân Monte Carlo. Việc tính toán này được thực hiện qua các bước sau:
 
 \begin{enumerate}
     \item \textbf{Ước lượng Băng thông (Bandwidth Estimation) -- "Chọn ống kính máy ảnh":} \\
@@ -355,7 +385,7 @@ Sơ đồ Activity Map mô tả luồng chạy thực tế của dữ liệu xuy
 
 \node[block] (integrate) at (0, -8.4) {Tích phân Trọng số (Importance Sampling)\\$BBS_{spa} = \mathbb{E}\left[ \frac{\min(f_A, f_B)}{q} \right]$};
 
-\node[data, draw=red!80, fill=red!10] (out) at (0, -10.2) {Mức lẩn khuất Không gian ($BBS_{spa}$)};
+\node[data, draw=red!80, fill=red!10] (out) at (0, -10.2) {Mức hòa Trộn Không gian ($BBS_{spa}$)};
 
 % Arrows
 \draw[thick, gray!80!black] (in.south) -- (0, -1.0);
@@ -375,31 +405,34 @@ Sơ đồ Activity Map mô tả luồng chạy thực tế của dữ liệu xuy
 \label{fig:bbs_quantification}
 \end{figure}
 
-\subsubsection{Trục 2: Lẩn khuất Chuỗi thời gian ($BBS_{seq}$)}
-Sự lẩn khuất chuỗi thời gian phân tích xác suất sinh ra chuỗi hành động của kẻ tấn công dưới góc nhìn của một mô hình đại diện cho người dùng bình thường. Nếu chuỗi hành vi của mã độc có xác suất xuất hiện tương đương với thói quen của người dùng, chúng được coi là hòa trộn thành công. 
+\subsubsection{Trục 2: Hòa Trộn Chuỗi thời gian ($BBS_{seq}$)}
+Sự Hòa Trộn chuỗi thời gian phân tích xác suất sinh ra chuỗi hành động của kẻ tấn công dưới góc nhìn của một mô hình đại diện cho người dùng bình thường. Nếu chuỗi hành vi của mã độc có xác suất xuất hiện tương đương với thói quen của người dùng, chúng được coi là hòa trộn thành công. 
 
 Hệ thống tính toán sự khác biệt về Trung bình Hàm Hợp lý Cực đại Âm (Negative Log-Likelihood - $NLL$) của tập tiến trình tấn công ($A$) và bình thường ($B$):
 \begin{equation}
     BBS_{seq} = \exp\left( - \max\left(0, \overline{NLL}_A - \overline{NLL}_B\right) \right)
 \end{equation}
-Sự chênh lệch càng thấp, giá trị $BBS_{seq}$ càng tiến về $1$, biểu thị sự lẩn khuất thời gian hoàn hảo.
+Sự chênh lệch càng thấp, giá trị $BBS_{seq}$ càng tiến về $1$, biểu thị sự Hòa Trộn thời gian hoàn hảo.
 
-\subsubsection{Trục 3: Lẩn khuất Cấu trúc tập thể ($BBS_{col}$)}
+\subsubsection{Trục 3: Hòa Trộn Cấu trúc tập thể ($BBS_{col}$)}
 Khi kẻ tấn công tạo ra các phiên kết nối đảo (reverse shell) hoặc bơm mã (injection), kiến trúc liên kết của cây tiến trình sẽ bị biến dạng. Trục này đánh giá sự dị thường bằng cách so sánh Ma trận Hiệp phương sai (Covariance Matrix $\Sigma$) của các đặc trưng đồ thị (ví dụ: số lượng tiến trình con $v_9$, luồng mạng $v_1$):
 \begin{equation}
     BBS_{col} = \exp\left( - \lambda_{col} \cdot || \Sigma_A - \Sigma_B ||_F \right)
 \end{equation}
 Trong đó $||\cdot||_F$ là chuẩn Frobenius (Frobenius norm) tính khoảng cách giữa hai ma trận, và $\lambda_{col}$ là hệ số chuẩn hóa.
 
-\subsubsection{Tổng hợp chỉ số lẩn khuất (BBS Aggregation)}
+\subsubsection{Tổng hợp chỉ số Hòa Trộn (BBS Aggregation)}
 Sau khi hoàn tất định lượng độc lập trên cả ba trục Không gian ($BBS_{spa}$), Chuỗi thời gian ($BBS_{seq}$) và Cấu trúc tập thể ($BBS_{col}$), Khung đo lường BBS tiến hành bước tổng hợp cuối cùng. Do đặc thù của hệ thống phát hiện bất thường đa cảm biến (multi-sensor), một tiến trình độc hại sẽ bị phát hiện nếu nó để lộ sơ hở ở \textbf{bất kỳ} phương diện nào.
 
-Nói cách khác, kẻ tấn công bắt buộc phải duy trì lớp ngụy trang hoàn hảo một cách toàn diện. Khả năng lẩn khuất thực tế của tập dữ liệu (hay mức độ khó nhằn đối với phe phòng thủ) tuân theo Nguyên lý Thùng gỗ (Wooden Barrel Theory): sức chứa của thùng nước được định đoạt bởi thanh gỗ ngắn nhất. Do đó, điểm Behavioral Blending Score tổng quát ($BBS_{min}$) được tính toán thông qua hàm cực tiểu:
+Nói cách khác, kẻ tấn công bắt buộc phải duy trì lớp ngụy trang hoàn hảo một cách toàn diện. Khả năng Hòa Trộn thực tế của tập dữ liệu (hay mức độ khó nhằn đối với phe phòng thủ) tuân theo Nguyên lý Thùng gỗ (Wooden Barrel Theory): sức chứa của thùng nước được định đoạt bởi thanh gỗ ngắn nhất. Do đó, điểm Behavioral Blending Score tổng quát ($BBS_{min}$) được tính toán thông qua hàm cực tiểu:
 \begin{equation}
     BBS_{min} = \min(BBS_{spa}, BBS_{seq}, BBS_{col})
 \end{equation}
 
-Quá trình tách biệt 3 trục định lượng này là điểm mấu chốt giúp giải thích sự thất bại của các thuật toán UAD truyền thống (vốn chỉ đo đạc phân phối trên đơn trục Không gian), đồng thời định hướng cho sự cần thiết của các kiến trúc phát hiện dị thường đa cảm biến (multi-sensor) có khả năng phân tích toàn vẹn hành vi tiến trình.
+**Nghịch lý Thùng gỗ và Sự thất bại của UAD:** 
+Khung đo lường BBS vạch trần một nghịch lý vô cùng quan trọng. Trong nhiều trường hợp thực nghiệm, giá trị $BBS_{min} \approx 0$ (nghĩa là kẻ tấn công đã sơ hở nghiêm trọng ở ít nhất một trục, điển hình là trục Không gian $BBS_{spa}$). Theo logic thông thường, mức độ hòa trộn kém thì mô hình phát hiện phải dễ dàng tóm gọn được mã độc. Thế nhưng, các thuật toán UAD truyền thống dạng bảng (như iForest, ECOD) lại **hoàn toàn thất bại** trong việc phát hiện. 
+
+Sự trái ngược này không phải là một mâu thuẫn của phép đo, mà chính là "nỗi đau" (pain point) cốt lõi của bài toán: Kẻ tấn công bộc lộ sơ hở rõ ràng, nhưng các mô hình UAD vẫn "mù lòa" do chúng phẳng hóa dữ liệu và rơi vào bẫy "Local Pockets" (đã chứng minh ở phần trước). Quá trình tách biệt 3 trục định lượng này là điểm mấu chốt giúp giải thích sự thất bại cấu trúc của UAD, đồng thời khẳng định giá trị cốt lõi của Khung đo lường BBS trong việc bóc trần những điểm mù nguy hiểm đó.
 
 \section{Thiết kế môi trường thử nghiệm}
 \label{section:2.4}
@@ -429,6 +462,13 @@ $v_9$ & \texttt{child\_count\_bin} & o (Ordinal) & EID 1 & Số lượng tiến 
 $v_{10}$ & \texttt{parent\_sigma\_bin} & u (Binary) & EID 1 & Cha bị phát hiện bởi tập luật tĩnh Sigma \\ \hline
 \end{tabular}
 \end{table}
+
+\subsection{Phương pháp tạo sinh dữ liệu Controlled Injection}
+Trong thực tế, việc thu thập đủ khối lượng dữ liệu hành vi LotL với đầy đủ gán nhãn Ground-truth là một thách thức vô cùng lớn. Để giải quyết vấn đề này, nghiên cứu sử dụng kỹ thuật \textbf{Controlled Injection (Bơm dữ liệu có kiểm soát)}. Quá trình này bao gồm việc trích xuất các dấu vết hành vi tấn công (attack traces) từ các chiến dịch APT thực tế hoặc các kịch bản mô phỏng MITRE ATT\&CK, sau đó "bơm" (inject) chúng vào một lượng lớn dữ liệu nhật ký hệ thống lành tính (background benign logs). Kỹ thuật này đảm bảo hai yếu tố cực kỳ quan trọng cho bài toán UAD:
+\begin{itemize}
+    \item \textbf{Tính thực tiễn (Realism):} Các tiến trình tấn công giữ nguyên bản chất toán học, sự tương quan chuỗi và cấu trúc đồ thị của mã độc LotL ngoài đời thực, không bị làm sai lệch bởi các hàm phân phối tổng hợp ngẫu nhiên.
+    \item \textbf{Độ thưa thớt tự nhiên (Natural Sparsity):} Bằng cách kiểm soát tỷ lệ bơm, hệ thống giả lập chính xác sự mất cân bằng cực đoan của môi trường doanh nghiệp thực tế (nơi tỷ lệ mã độc thường chiếm $< 0.01\%$ tổng lượng log hệ thống).
+\end{itemize}
 
 \subsection{Mô hình phát hiện đa cảm biến SRAH}
 Trong quá trình thực nghiệm, hệ thống \textbf{SRAH (Security Response \& Analysis Hub)} được sử dụng làm mô hình đối chứng (baseline) đại diện cho lớp mô hình phân phối biên đa lớp tích hợp. Kiến trúc chi tiết, quy trình hoạt động, và sơ đồ luồng dữ liệu của hệ thống SRAH được trình bày cụ thể tại phần \textbf{Phụ lục} của luận văn nhằm giữ cho trọng tâm của chương tập trung vào Khung đo lường BBS.

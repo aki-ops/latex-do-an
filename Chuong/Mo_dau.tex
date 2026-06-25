@@ -1,66 +1,62 @@
 \documentclass[../main.tex]{subfiles}
 \begin{document}
 
-\section*{1. bối cảnh an toàn thông tin trên endpoint và Sysmon}
+\section*{1. Bối cảnh an toàn thông tin trên endpoint và Sysmon}
 \addcontentsline{toc}{section}{1. Bối cảnh an toàn thông tin trên endpoint và Sysmon}
 
-Trong những năm gần đây, sự tiến hóa của các phương thức tấn công mạng đã đặt các Trung tâm Điều hành An ninh (Security Operations Center - SOC) vào trạng thái quá tải liên tục. Nhật ký sự kiện hệ thống (endpoint logs), đặc biệt là Windows System Monitor (Sysmon), đã trở thành nguồn dữ liệu pháp y nền tảng để giám sát và truy vết các hành vi độc hại sâu bên trong hệ điều hành Windows. Tuy nhiên, sự bùng nổ về khối lượng dữ liệu (hàng triệu sự kiện mỗi ngày trên một máy trạm) đã tạo ra một rào cản thông tin khổng lồ, đòi hỏi các giải pháp phân tích tự động thay vì phụ thuộc hoàn toàn vào sức người.
+Trong những năm gần đây, sự phát triển của các phương thức tấn công mạng đã khiến các Trung tâm Điều hành An ninh (SOC) thường xuyên rơi vào tình trạng quá tải. Nhật ký sự kiện hệ thống, đặc biệt là Windows System Monitor (Sysmon), đã trở thành nguồn dữ liệu nền tảng để giám sát và truy vết hành vi độc hại sâu bên trong hệ điều hành Windows. Tuy nhiên, khối lượng dữ liệu khổng lồ sinh ra mỗi ngày đòi hỏi phải có các giải pháp phân tích tự động.
 
-\section*{2. kỹ thuật tấn công living-off-the-land (lotl) và bài toán ngụy trang}
-\addcontentsline{toc}{section}{2. Kỹ thuật tấn công Living-off-the-Land (LotL) và bài toán ngụy trang}
+\section*{2. Kỹ thuật tấn công Living-off-the-Land (LotL)}
+\addcontentsline{toc}{section}{2. Kỹ thuật tấn công Living-off-the-Land (LotL)}
 
-Các tác nhân đe dọa có chủ đích (Advanced Persistent Threat - APT) hiện đại đã thay đổi hoàn toàn chiến thuật để né tránh các hệ thống phòng thủ. Nổi bật nhất là kỹ thuật Living-off-the-Land (LotL) — lạm dụng trực tiếp các tiến trình hệ thống hợp lệ và có sẵn của Windows (như \texttt{powershell.exe}, \texttt{wmic.exe}, \texttt{cmd.exe}) thay vì đưa mã độc lạ vào đĩa cứng. Sự dịch chuyển này làm cho các hệ thống phát hiện dựa trên chữ ký tĩnh (Signature-based EDR/SIEM, ví dụ như các luật Sigma \cite{sigmahq2024}) bị vô hiệu hóa, tạo ra tỷ lệ báo động giả (False Positive) cực kỳ cao do không thể phân biệt giữa hành vi quản trị hệ thống hợp lệ và hành vi tấn công. 
+Các chiến dịch tấn công có chủ đích (APT) hiện đại đã thay đổi chiến thuật để né tránh hệ thống phòng thủ. Nổi bật nhất là kỹ thuật Living-off-the-Land (LotL) — lạm dụng trực tiếp các công cụ hợp lệ có sẵn của Windows (như \texttt{powershell.exe}, \texttt{wmic.exe}) thay vì tải mã độc mới xuống đĩa cứng. Sự dịch chuyển này vô hiệu hóa các hệ thống phát hiện dựa trên chữ ký (như luật Sigma \cite{sigmahq2024}), gây ra tỷ lệ báo động giả cực cao do không thể phân biệt giữa hành vi quản trị hợp lệ và hành vi tấn công. 
 
-Đứng trước sự suy tàn của chữ ký tĩnh, Phát hiện bất thường không giám sát (Unsupervised Anomaly Detection - UAD) được kỳ vọng là giải pháp tối ưu nhờ khả năng tự động học hỏi hành vi bình thường và phát hiện các mối đe dọa Zero-day mà không cần gán nhãn dữ liệu huấn luyện.
+Đứng trước giới hạn của phương pháp dựa trên chữ ký, Phát hiện bất thường không giám sát (Unsupervised Anomaly Detection - UAD) được kỳ vọng là giải pháp tối ưu nhờ khả năng tự động học hỏi hành vi bình thường và phát hiện các mối đe dọa Zero-day.
 
-\section*{3. khoảng trống nghiên cứu và giới hạn hiện tại}
-\addcontentsline{toc}{section}{3. Khoảng trống nghiên cứu và giới hạn hiện tại}
+\section*{3. Khoảng trống nghiên cứu}
+\addcontentsline{toc}{section}{3. Khoảng trống nghiên cứu}
 
-Dù nhận được sự kỳ vọng lớn, thực tế triển khai UAD lại bộc lộ nhiều điểm yếu chí mạng. Nhiều nghiên cứu trong phòng thí nghiệm áp dụng các thuật toán không giám sát truyền thống lên các bộ dữ liệu đơn giản (như LMD hay DARPA OpTC) đã báo cáo mức hiệu năng phát hiện rất cao với F1-Score vượt quá 0.85 \cite{ahmed2016survey, alsaheel2021atlas, han2020unicorn}. 
+Dù nhận được kỳ vọng lớn, thực tế triển khai UAD lại bộc lộ nhiều điểm yếu chí mạng. Nhiều nghiên cứu trong phòng thí nghiệm áp dụng UAD lên các bộ dữ liệu đơn giản đã báo cáo hiệu năng rất cao (F1-Score vượt 0.85) \cite{ahmed2016survey, alsaheel2021atlas, han2020unicorn}. Tuy nhiên, khi đối mặt với các chiến dịch APT thực tế áp dụng LotL (như APT29), hiệu năng của các mô hình này sụp đổ nghiêm trọng \cite{smiliotopoulos2025detection, ugea_lmd_2025}. 
 
-Tuy nhiên, khi đối mặt với các chiến dịch APT thực tế áp dụng LotL (như APT29), hiệu năng của các mô hình này sụp đổ nghiêm trọng. Gần đây, một số công trình học thuật (như Smiliotopoulos et al., 2025 \cite{smiliotopoulos2025detection} hay mô hình UGEA-LMD, 2025 \cite{ugea_lmd_2025}) đã bắt đầu ghi nhận và cảnh báo về "giới hạn" (limits) của học máy không giám sát trước các hành vi ngụy trang tinh vi. 
+Khoảng trống nghiên cứu lớn nhất hiện nay là sự vắng bóng của một thước đo toán học định lượng để chẩn đoán "độ khó nội tại" (intrinsic difficulty) của chính tập dữ liệu tấn công. Các đánh giá hiện tại chủ yếu mang tính kinh nghiệm và phụ thuộc vào thuật toán cụ thể, dẫn đến việc thiếu cơ sở lý thuyết để giải thích *tại sao* và *khi nào* các mô hình UAD thất bại.
 
-Mặc dù vậy, **khoảng trống nghiên cứu lớn nhất hiện nay** là sự vắng bóng hoàn toàn của một thước đo toán học định lượng để chẩn đoán "độ khó nội tại" (intrinsic difficulty) của chính tập dữ liệu tấn công. Các đánh giá hiện tại hoàn toàn mang tính kinh nghiệm và phụ thuộc vào thuật toán, dẫn đến việc thiếu cơ sở lý thuyết để giải thích *tại sao* và *khi nào* các mô hình này thất bại. Cộng đồng học thuật vẫn phụ thuộc vào các phép đo lường sự chồng lấn biên đơn giản (như DDO), vốn chưa đủ để giải thích cơ chế thất bại của các bộ phát hiện.
+\section*{4. Mục tiêu nghiên cứu}
+\addcontentsline{toc}{section}{4. Mục tiêu nghiên cứu}
 
-\section*{4. phát biểu bài toán \& mục tiêu nghiên cứu}
-\addcontentsline{toc}{section}{4. Phát biểu bài toán \& Mục tiêu nghiên cứu}
-
-Luận văn này tập trung giải quyết bài toán: Làm thế nào để lượng hóa một cách độc lập mức độ hòa trộn hành vi của mã độc ngụy trang và giải thích cơ chế thất bại của các thuật toán không giám sát truyền thống? 
+Luận văn này giải quyết bài toán: Làm thế nào để lượng hóa một cách khách quan mức độ hòa trộn hành vi của mã độc ngụy trang và giải thích cơ chế thất bại của các thuật toán UAD truyền thống? 
 
 Mục tiêu nghiên cứu hướng tới ba nội dung cốt lõi:
 \begin{enumerate}
-    \item Lượng hóa độ khó nội tại của dữ liệu tấn công bằng toán học, kiểm chứng lại các giả định gây ra bởi các phép đo lường sự chồng lấn biên đơn giản.
-    \item Giải thích nguyên nhân cốt lõi dẫn đến sự sụp đổ của các mô hình phát hiện hiện tại (thông qua hiện tượng thiên kiến trung tâm toàn cục - Global Center Bias).
-    \item Chứng minh bằng thực nghiệm rằng bài toán phát hiện mã độc ngụy trang sâu có thể được giải quyết bằng hướng tiếp cận cấu trúc phi tham số cục bộ (Local Pockets).
+    \item Đề xuất **Khung đo lường độ hòa trộn hành vi (Behavioral Blending Score - BBS)** để lượng hóa độ khó nội tại của dữ liệu tấn công trên đa không gian.
+    \item Giải thích nguyên nhân cốt lõi dẫn đến sự thất bại của các mô hình phát hiện truyền thống (thông qua hiện tượng thiên kiến trung tâm toàn cục và vùng rỗng cục bộ).
+    \item Chứng minh bằng thực nghiệm rằng bài toán phát hiện mã độc ngụy trang sâu có thể được giải quyết bằng hướng tiếp cận phân tích đồng thời (như KDE\_Joint).
 \end{enumerate}
 
-\section*{5. đối tượng và phạm vi nghiên cứu}
+\section*{5. Đối tượng và phạm vi nghiên cứu}
 \addcontentsline{toc}{section}{5. Đối tượng và phạm vi nghiên cứu}
 
 \begin{itemize}
-    \item \textbf{Đối tượng nghiên cứu:} Các tiến trình (Windows process) được trích xuất từ dữ liệu Windows Event Logs (Sysmon) và được biểu diễn trong không gian đặc trưng đa chiều hỗn hợp ($V_{10}$).
-    \item \textbf{Phạm vi nghiên cứu:} Nghiên cứu được thực hiện trên 11 tập dữ liệu, bao gồm 3 chiến dịch APT thực tế (BOTSv1 \cite{botsv1}, FIN6 \cite{mitre_fin6}, APT29 \cite{mitre_apt29}) và 8 kịch bản tấn công tổng hợp mô phỏng theo kỹ thuật MITRE ATT\&CK được tạo ra bằng cơ chế bơm dữ liệu có kiểm soát (Controlled Injection). Phạm vi nghiên cứu giới hạn ở khía cạnh phân tích dữ liệu pháp y tĩnh (offline forensics), cung cấp một giới hạn trên lý thuyết (theoretical upper bound) về hiệu năng phát hiện trong môi trường quan sát lý tưởng.
+    \item \textbf{Đối tượng nghiên cứu:} Các tiến trình (Windows process) trích xuất từ nhật ký Sysmon, được biểu diễn trong không gian đặc trưng đa chiều hỗn hợp ($V_{10}$).
+    \item \textbf{Phạm vi nghiên cứu:} Đánh giá trên 11 tập dữ liệu, bao gồm 3 chiến dịch APT thực tế (BOTSv1 \cite{botsv1}, FIN6 \cite{mitre_fin6}, APT29 \cite{mitre_apt29}) và 8 kịch bản tấn công tổng hợp mô phỏng theo kỹ thuật MITRE ATT\&CK (sử dụng cơ chế Controlled Injection). Nghiên cứu giới hạn ở phân tích dữ liệu pháp y tĩnh (offline forensics) để thiết lập giới hạn trên lý thuyết (theoretical upper bound).
 \end{itemize}
 
-\section*{6. đóng góp của luận văn}
+\section*{6. Đóng góp của luận văn}
 \addcontentsline{toc}{section}{6. Đóng góp của luận văn}
 
-Thay vì đề xuất thêm một mô hình học máy hộp đen mới, luận văn mang đến hai đóng góp thiết thực nhằm định hình lại cách cộng đồng đánh giá bài toán phát hiện mã độc LotL:
+Luận văn mang đến hai đóng góp thiết thực nhằm định hình lại cách cộng đồng đánh giá bài toán phát hiện mã độc LotL:
 \begin{itemize}
-    \item \textbf{Đóng góp 1 (Thước đo độ khó nội tại):} Đề xuất khung đo lường \texttt{DensPct\_Mahal}, một thước đo độ khó (intrinsic difficulty metric) hoàn toàn độc lập với thuật toán. Thước đo này giải thích cơ chế thất bại của các bộ phát hiện truyền thống tốt hơn hẳn so với thước đo Marginal Overlap (DDO) đang phổ biến.
-    \item \textbf{Đóng góp 2 (Phát hiện và chứng minh Local Pockets):} Khám phá sự tồn tại của các vùng rỗng cục bộ ("Local Pockets") — nơi mã độc lẩn trốn sự giám sát của các phương pháp đo lường toàn cục. Bằng việc sử dụng KDE\_Joint như một phép chứng minh khái niệm (existence proof), nghiên cứu khẳng định các thuật toán phân tích cấu trúc đồng thời có thể vượt qua thiên kiến trung tâm toàn cục.
+    \item \textbf{Đóng góp 1 (Khung đo lường BBS và DensPct\_Mahal):} Đề xuất khung đo lường BBS và thước đo chi tiết \texttt{DensPct\_Mahal} hoàn toàn độc lập với thuật toán. Thước đo này giải thích cơ chế thất bại của các bộ phát hiện truyền thống chính xác hơn nhiều so với việc chỉ đo lường sự chồng lấn biên đơn giản.
+    \item \textbf{Đóng góp 2 (Khám phá Local Pockets):} Phát hiện sự tồn tại của các vùng rỗng cục bộ ("Local Pockets") — nơi mã độc lẩn trốn sự giám sát toàn cục. Việc sử dụng KDE\_Joint đóng vai trò như một phép chứng minh tồn tại (existence proof) rằng các thuật toán phân tích đồng thời có thể vượt qua điểm mù này.
 \end{itemize}
 
-Bên cạnh hai đóng góp cốt lõi trên, quá trình nghiên cứu cũng thẳng thắn chỉ ra điểm yếu chí mạng của các công cụ ước lượng nguyên bản (KDE) trên không gian dữ liệu thưa thớt, từ đó định hình hướng tiếp cận thực tiễn hơn cho tương lai. Các công cụ như không gian V10 và quy trình Controlled Injection đóng vai trò là phương tiện thực nghiệm hỗ trợ đắc lực cho quá trình chứng minh lý thuyết này.
-
-\section*{7. bố cục luận văn}
+\section*{7. Bố cục luận văn}
 \addcontentsline{toc}{section}{7. Bố cục luận văn}
 
 Ngoài phần Mở đầu và Kết luận, luận văn được cấu trúc thành 3 chương chính:
 \begin{itemize}
-    \item \textbf{Chương 1: Cơ sở lý thuyết.} Trình bày cơ sở lý thuyết về bài toán UAD, các giới hạn cấu trúc (Marginal Blindness, Distance Concentration), công cụ toán học ước lượng mật độ KDE và tích phân Monte Carlo.
-    \item \textbf{Chương 2: Thiết kế khung đo lường và hệ thống.} Giới thiệu mô hình phát hiện đa cảm biến SRAH làm baseline, thiết kế không gian đặc trưng V10, phương pháp Controlled Injection tạo sinh các tập dữ liệu, toán học hóa thước đo DensPct\_Mahal và thiết lập Nhận xét về điểm neo hiệu chỉnh ROC.
-    \item \textbf{Chương 3: Thực nghiệm và Phân tích kết quả.} Trình bày thiết lập thực nghiệm, phân tích kết quả tương quan thống kê Spearman để bác bỏ giả định DDO và đánh giá năng lực giải thích của DensPct, chứng minh bằng thực nghiệm năng lực vượt qua giới hạn của KDE\_Joint và thảo luận về các failure mode do dữ liệu thưa thớt.
+    \item \textbf{Chương 1: Cơ sở lý thuyết.} Trình bày bài toán UAD, các giới hạn cấu trúc, và công cụ toán học ước lượng mật độ.
+    \item \textbf{Chương 2: Phương pháp đề xuất.} Thiết kế khung đo lường BBS, cơ sở toán học của DensPct\_Mahal, hiện tượng Local Pockets và phương pháp Controlled Injection.
+    \item \textbf{Chương 3: Thực nghiệm và Đánh giá.} Trình bày kết quả đánh giá BBS, giải thích sự thất bại của UAD thông qua DensPct\_Mahal, và chứng minh sự tồn tại của Local Pockets thông qua KDE\_Joint.
 \end{itemize}
 
 \end{document}
