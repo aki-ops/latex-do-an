@@ -25,9 +25,9 @@ Chương này trình bày quá trình khảo sát thực tế nguyên nhân khi�
     \draw[arrow] (col) -- (bbs);
 
     % Labels for arrows
-    \node[font=\footnotesize, right=0.2cm of spa] (l1) {Mức độ hòa trộn nội tại};
-    \node[font=\footnotesize, left=0.2cm of seq] (l2) {Hòa trộn phả hệ};
-    \node[font=\footnotesize, right=0.2cm of col] (l3) {Biến dạng đồ thị};
+    \node[font=\footnotesize, right=0.5cm of spa] (l1) {Mức độ hòa trộn nội tại};
+    \node[font=\footnotesize, below=0.2cm of seq, align=center, text width=3cm] (l2) {Hòa trộn phả hệ};
+    \node[font=\footnotesize, below=0.2cm of col, align=center, text width=3cm] (l3) {Biến dạng đồ thị};
 
 \end{tikzpicture}
 \caption{Sơ đồ Khung đo lường độ hòa trộn hành vi (Behavioral Blending Score - BBS) dựa trên 3 trục phân tích lõi.}
@@ -105,7 +105,11 @@ ECOD ước lượng Hàm phân phối tích lũy thực nghiệm (ECDF) cho t�
 \subsubsection{Local Outlier Factor (LOF)}
 LOF so sánh mật độ của một điểm dữ liệu với mật độ của $k$ láng giềng gần nhất sử dụng khoảng cách Euclidean \cite{breunig2000lof}. Tuy nhiên, LOF gặp phải hai giới hạn toán học lớn:
 \begin{itemize}
-    \item \textbf{Co cụm khoảng cách (Distance Concentration):} Trong không gian đặc trưng đa chiều ($d \to \infty$), khoảng cách Euclidean giữa điểm gần nhất và xa nhất bị phẳng hóa, hội tụ về cùng một giá trị trung bình \cite{francois2007concentration}. LOF mất khả năng tính toán tỷ số mật độ.
+    \item \textbf{Co cụm khoảng cách (Distance Concentration):} Trong không gian đặc trưng đa chiều ($d \to \infty$), khoảng cách Euclidean giữa điểm gần nhất ($D_{min}$) và xa nhất ($D_{max}$) bị phẳng hóa, khiến tỷ lệ chênh lệch hội tụ về 0:
+    \begin{equation}
+        \lim_{d \to \infty} \frac{D_{max} - D_{min}}{D_{min}} = 0
+    \end{equation}
+    Hiện tượng này \cite{francois2007concentration} khiến LOF hoàn toàn mất khả năng phân biệt tỷ số mật độ kNN, biến các điểm dị thường thành các điểm thông thường.
     \item \textbf{Mù tương quan (Correlation Blindness):} Khoảng cách Euclidean mặc định giả định mọi đặc trưng có vai trò ngang nhau và không thể đo lường chính xác khoảng cách trên không gian hỗn hợp (mixed-type) chứa cả biến phân loại và liên tục.
 \end{itemize}
 
@@ -150,7 +154,7 @@ Giả sử $F_b(t)$ là hàm phân phối tích lũy (CDF) của mật độ d�
 \subsection{Nghịch lý cấu trúc: Global Bias và Local Pockets}
 Sự ra đời của thước đo DensPct\_Mahal dẫn đến một khám phá quan trọng giải thích cơ chế thất bại cấu trúc của UAD: **Nghịch lý Cấu trúc giữa Thiên kiến Trung tâm Toàn cục (Global Center Bias) và Lỗ hổng Cục bộ (Local Pockets)**.
 
-Một điểm dữ liệu hoàn toàn có thể đồng thời có Mahalanobis depth rất cao (chui sâu vào trung tâm dữ liệu lành tính) nhưng lại có mật độ phi tham số cục bộ cực thấp (nằm trong một vùng rỗng - Local Pocket).
+Một điểm dữ liệu hoàn toàn có thể đồng thời có Mahalanobis depth rất cao (chui sâu vào trung tâm dữ liệu lành tính) nhưng lại có mật độ phi tham số cục bộ cực thấp (nằm trong một vùng rỗng - Local Pocket). Nghịch lý này xuất phát từ bản chất toán học của các thuật toán: khoảng cách Mahalanobis (đại diện cho các mô hình toàn cục) mặc định giả định toàn bộ dữ liệu tuân theo một phân phối khối cầu (Gaussian) duy nhất và nguyên khối. Do đó, nó bị "mù lòa" trước các cấu trúc rỗng (hốc) nằm sâu bên trong khối cầu đó. Ngược lại, các phương pháp ước lượng phi tham số (như KDE) phân tích dữ liệu dưới góc độ vi mô đa đỉnh, qua đó dễ dàng "bắt bài" sự sụt giảm mật độ cục bộ đột ngột tại các hốc rỗng này. Kẻ tấn công LotL thường tinh vi điều chỉnh hành vi để lọt vào tâm của khối cầu toàn cục nhằm đánh lừa các mô hình như iForest hay ECOD, nhưng lại không thể lấp đầy các lỗ hổng cục bộ.
 
 \begin{figure}[H]
 \centering
@@ -207,6 +211,8 @@ Một điểm dữ liệu hoàn toàn có thể đồng thời có Mahalanobis d
 \subsection{Mô hình chứng minh tồn tại KDE\_Joint}
 Dựa trên lập luận về Local Pockets, mô hình phi tham số **KDE\_Joint** đóng vai trò như một **Bằng chứng tồn tại (Existence Proof)**. KDE\_Joint sử dụng Mixed Product Kernel để ước lượng mật độ đồng thời trực tiếp trên không gian hỗn hợp, định vị chính xác vùng không gian rỗng cấu trúc để vượt qua thiên kiến toàn cục.
 
+Bảng 2.1 dưới đây tổng hợp lại toàn bộ các phân tích và đối sánh đặc tính kỹ thuật cốt lõi giữa những thuật toán UAD tiêu biểu. Thông qua ma trận này, ta có thể thấy rõ nguồn gốc thất bại của các phương pháp truyền thống (như Marginal Blindness của iForest, ECOD hay Distance Concentration của LOF) khi đối đầu với mã độc LotL, từ đó khẳng định sự cần thiết của một hướng tiếp cận phi tham số không gian hỗn hợp (như KDE\_Joint) nhằm vá lại những điểm mù cấu trúc chí mạng đó.
+
 \begin{table}[H]
 \centering
 \small
@@ -227,10 +233,10 @@ Dựa trên lập luận về Local Pockets, mô hình phi tham số **KDE\_Join
 \section{Thiết kế đường ống đo lường (Pipeline)}
 \label{section:2.3}
 
-Để triển khai khung đo lường BBS vào thực tiễn và làm nổi bật trọng tâm nghiên cứu, kiến trúc đường ống xử lý (pipeline) được chia thành các cấp độ từ vĩ mô đến vi mô.
+Để triển khai khung đo lường BBS vào thực tiễn và khẳng định tính tự chủ của một hệ thống đánh giá dữ liệu từ đầu đến cuối (End-to-End Measurement Framework), kiến trúc đường ống xử lý (pipeline) được thiết kế thành 4 giai đoạn nối tiếp nhau. Khung BBS không phụ thuộc vào bất kỳ hệ thống phát hiện nào mà tự động thực hiện toàn bộ vòng đời từ khâu đọc log thô đến khi xuất ra điểm số.
 
 \subsection{Kiến trúc tổng thể (Macro Pipeline)}
-Kiến trúc tổng thể tập trung mô tả luồng trung chuyển dữ liệu tĩnh giữa các khối chức năng chính. Mỗi giai đoạn được thiết kế tinh gọn để làm rõ tính chất "đầu vào - đầu ra" (Input - Output).
+Kiến trúc tổng thể tập trung mô tả luồng trung chuyển dữ liệu tĩnh giữa các khối chức năng chính.
 
 \begin{figure}[H]
 \centering
@@ -240,10 +246,10 @@ Kiến trúc tổng thể tập trung mô tả luồng trung chuyển dữ liệ
     arrow/.style={->, >=stealth, thick, blue!80}
 ]
     % Nodes with positioning
-    \node[stage_box] (stage1) {Giai đoạn 1:\\Tiền xử lý};
-    \node[stage_box, right=of stage1] (stage2) {Giai đoạn 2:\\Trích xuất};
-    \node[stage_box, right=of stage2] (stage3) {Giai đoạn 3:\\Định lượng};
-    \node[stage_box, right=of stage3] (stage4) {Giai đoạn 4:\\Tổng hợp};
+    \node[stage_box] (stage1) {Giai đoạn 1:\\Tiếp nhận dữ liệu};
+    \node[stage_box, right=of stage1] (stage2) {Giai đoạn 2:\\Số hóa đặc trưng};
+    \node[stage_box, right=of stage2] (stage3) {Giai đoạn 3:\\Đo lường phân mảnh};
+    \node[stage_box, right=of stage3] (stage4) {Giai đoạn 4:\\Tổng hợp chỉ số};
 
     % Arrows
     \draw[arrow] (stage1) -- (stage2);
@@ -255,30 +261,30 @@ Kiến trúc tổng thể tập trung mô tả luồng trung chuyển dữ liệ
 \end{figure}
 
 \begin{itemize}
-    \item \textbf{Giai đoạn 1: Tiền xử lý (Data Ingestion)}
+    \item \textbf{Giai đoạn 1: Tiếp nhận dữ liệu (Data Ingestion)}
     \begin{itemize}
-        \item \textit{Input:} Tập tin log hệ thống thô (ví dụ: Sysmon \texttt{.evtx}).
-        \item \textit{Output:} Đồ thị quan hệ tiến trình có hướng (DAG).
+        \item \textit{Input:} Các tập tin log hệ thống (ví dụ: Sysmon \texttt{.evtx}) từ môi trường có chứa mã độc (Attack) và môi trường bình thường (Benign), kèm theo Nhãn (Ground-truth).
+        \item \textit{Output:} Đồ thị quan hệ tiến trình có hướng (DAG) thô.
     \end{itemize}
-    \item \textbf{Giai đoạn 2: Trích xuất không gian (Feature Extraction)}
+    \item \textbf{Giai đoạn 2: Số hóa đặc trưng (Feature Extraction)}
     \begin{itemize}
         \item \textit{Input:} Đồ thị quan hệ DAG từ Giai đoạn 1.
-        \item \textit{Output:} Các vector đặc trưng toán học số hóa ($V_{10}$, Log-Likelihood, Covariance).
+        \item \textit{Output:} Các ma trận toán học số hóa ($V_{10}$, Log-Likelihood, Covariance).
     \end{itemize}
-    \item \textbf{Giai đoạn 3: Định lượng hòa trộn đa chiều (Multidimensional Blending Quantification)}
+    \item \textbf{Giai đoạn 3: Đo lường phân mảnh (Fragmented Measurement)}
     \begin{itemize}
-        \item \textit{Input:} Không gian đặc trưng chia thành tập độc hại (Attack) và lành tính (Benign).
-        \item \textit{Output:} Các tỷ số phân phối và mức độ chồng lấn.
+        \item \textit{Input:} Tập dữ liệu được phân tách nhãn Attack/Benign dựa trên Ground-truth.
+        \item \textit{Output:} Diện tích chồng lấn phân phối (KDE overlap) trên 3 trục không gian, thời gian và cấu trúc.
     \end{itemize}
     \item \textbf{Giai đoạn 4: Tổng hợp chỉ số (BBS Aggregation)}
     \begin{itemize}
-        \item \textit{Input:} Tỷ số phân phối từ Giai đoạn 3.
+        \item \textit{Input:} 3 điểm số hòa trộn từ Giai đoạn 3.
         \item \textit{Output:} Điểm cực tiểu $BBS_{min}$ đại diện cho độ khó của tập dữ liệu.
     \end{itemize}
 \end{itemize}
 
 \subsection{Sơ đồ luồng hoạt động chi tiết (Activity Map)}
-Sơ đồ Activity Map mô tả luồng chạy thực tế của dữ liệu xuyên qua hệ thống. Sơ đồ được chia làm ba làn (Swimlane) để phân định rạch ròi giữa dữ liệu cấp vào, lõi xử lý, và báo cáo trả ra. Việc sử dụng cấu trúc làn giúp dễ dàng theo dõi trạng thái dữ liệu ở bất kỳ thời điểm nào.
+Sơ đồ Activity Map mô tả luồng chạy thực tế của dữ liệu xuyên qua hệ thống. Sơ đồ được chia làm ba làn (Swimlane) để phân định rạch ròi giữa dữ liệu cấp vào, lõi xử lý, và báo cáo trả ra. Việc sử dụng cấu trúc làn giúp dễ dàng theo dõi trạng thái dữ liệu ở bất kỳ thời điểm nào. Khung đo lường BBS thực thi một vòng đời hoàn chỉnh: tự động tiếp nhận log thô, tính toán đồ thị đặc trưng, phân tách tập Attack/Benign dựa trên nhãn Ground-truth và kích hoạt các lõi KDE để đo lường mức độ hòa trộn độc lập trên 3 trục.
 
 \begin{figure}[H]
 \centering
@@ -352,18 +358,26 @@ Sơ đồ Activity Map mô tả luồng chạy thực tế của dữ liệu xuy
 \subsubsection{Trục 2: Hòa Trộn Chuỗi thời gian ($BBS_{seq}$)}
 Sự Hòa Trộn chuỗi thời gian phân tích xác suất sinh ra chuỗi hành động của kẻ tấn công dưới góc nhìn của một mô hình đại diện cho người dùng bình thường. Nếu chuỗi hành vi của mã độc có xác suất xuất hiện tương đương với thói quen của người dùng, chúng được coi là hòa trộn thành công. 
 
-Hệ thống tính toán sự khác biệt về Trung bình Hàm Hợp lý Cực đại Âm (Negative Log-Likelihood - $NLL$) của tập tiến trình tấn công ($A$) và bình thường ($B$):
+Hệ thống chuyển đổi điểm Trung bình Hàm Hợp lý Cực đại Âm (Negative Log-Likelihood - $NLL$) của từng tiến trình thành hàm logit của xác suất chuyển tiếp:
 \begin{equation}
-    BBS_{seq} = \exp\left( - \max\left(0, \overline{NLL}_A - \overline{NLL}_B\right) \right)
+    z = \ln\left(\frac{\pi}{1-\pi}\right) \quad \text{với} \quad \pi = 2^{-NLL}
 \end{equation}
-Sự chênh lệch càng thấp, giá trị $BBS_{seq}$ càng tiến về $1$, biểu thị sự Hòa Trộn thời gian hoàn hảo.
+Sau đó, sự hòa trộn chuỗi thời gian ($BBS_{seq}$) được định lượng bằng cách tính diện tích chồng lấn giữa hai hàm mật độ phân phối (1D Gaussian KDE) của tập tiến trình tấn công ($A$) và bình thường ($B$):
+\begin{equation}
+    BBS_{seq} = \int_{-\infty}^{\infty} \min\left(KDE_A(z), KDE_B(z)\right) dz
+\end{equation}
+Diện tích chồng lấn càng lớn, giá trị $BBS_{seq}$ càng tiến về $1$, biểu thị sự Hòa Trộn thời gian hoàn hảo.
 
 \subsubsection{Trục 3: Hòa Trộn Cấu trúc tập thể ($BBS_{col}$)}
-Khi kẻ tấn công tạo ra các phiên kết nối đảo (reverse shell) hoặc bơm mã (injection), kiến trúc liên kết của cây tiến trình sẽ bị biến dạng. Trục này đánh giá sự dị thường bằng cách so sánh Ma trận Hiệp phương sai (Covariance Matrix $\Sigma$) của các đặc trưng đồ thị (ví dụ: số lượng tiến trình con $v_9$, luồng mạng $v_1$):
+Khi kẻ tấn công tạo ra các phiên kết nối đảo (reverse shell) hoặc bơm mã (injection), kiến trúc liên kết của cây tiến trình sẽ bị biến dạng. Trục này đánh giá sự dị thường bằng cách tính toán hệ số biến thiên cấu trúc (Covariance Value - $CoV$) trên đồ thị, sau đó chuẩn hóa logarit:
 \begin{equation}
-    BBS_{col} = \exp\left( - \lambda_{col} \cdot || \Sigma_A - \Sigma_B ||_F \right)
+    z = \ln(CoV + \epsilon)
 \end{equation}
-Trong đó $||\cdot||_F$ là chuẩn Frobenius (Frobenius norm) tính khoảng cách giữa hai ma trận, và $\lambda_{col}$ là hệ số chuẩn hóa.
+Tương tự như trục thời gian, sự hòa trộn cấu trúc ($BBS_{col}$) được định lượng bằng diện tích chồng lấn (1D Gaussian KDE) của hệ số $z$ giữa hai tập dữ liệu:
+\begin{equation}
+    BBS_{col} = \int_{-\infty}^{\infty} \min\left(KDE_A(z), KDE_B(z)\right) dz
+\end{equation}
+Diện tích này phản ánh trực tiếp khả năng kẻ tấn công giữ nguyên được cấu trúc liên kết đồ thị (hòa trộn) so với tiến trình bình thường.
 
 \subsubsection{Tổng hợp chỉ số Hòa Trộn (BBS Aggregation)}
 Sau khi hoàn tất định lượng độc lập trên cả ba trục Không gian ($BBS_{spa}$), Chuỗi thời gian ($BBS_{seq}$) và Cấu trúc tập thể ($BBS_{col}$), Khung đo lường BBS tiến hành bước tổng hợp cuối cùng. Do đặc thù của hệ thống phát hiện bất thường đa cảm biến (multi-sensor), một tiến trình độc hại sẽ bị phát hiện nếu nó để lộ sơ hở ở \textbf{bất kỳ} phương diện nào.

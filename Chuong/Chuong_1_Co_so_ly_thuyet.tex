@@ -72,7 +72,7 @@ Sự phân loại này đóng vai trò quan trọng trong việc định hình y
 \label{section:1.4}
 Các chiến dịch tấn công có chủ đích (Advanced Persistent Threat - APT) thường liên quan đến các kỹ thuật xâm nhập phức tạp. Hệ thống giám sát an ninh mạng thường thu thập dữ liệu về các chiến dịch này dưới dạng các bộ dữ liệu (dataset). Trong nghiên cứu này, các thuật toán sẽ được đánh giá trên các tập dữ liệu mô phỏng lại một số chiến dịch APT đã biết, bao gồm:
 \begin{itemize}
-    \item Các kịch bản tấn công theo khuôn mẫu MITRE ATT\&CK (ví dụ: APT29, APT3).
+    \item Các kịch bản tấn công theo khuôn mẫu MITRE ATT\&CK (ví dụ: APT29).
     \item Các hành vi tạo kết nối mạng ẩn danh, truy xuất bộ nhớ, và sửa đổi cấu hình hệ thống (Registry).
 \end{itemize}
 
@@ -120,21 +120,21 @@ Trong đó $h$ là tham số làm mịn (bandwidth). Đối với không gian d�
 \end{equation}
 Với $K_s$ có thể là nhân Gaussian (cho biến liên tục), Aitchison-Aitken (cho biến phân loại), hoặc Wang-van Ryzin (cho biến phân loại có thứ tự).
 
-\section{Khái niệm lẩn khuất hành vi và định lượng đa chiều (BBS)}
+\section{Khái niệm hòa trộn hành vi và định lượng đa chiều (BBS)}
 \label{section:1.7}
 
-Dựa trên sự phân loại bất thường của Chandola et al. (mục \ref{section:1.3}), nghiên cứu này đề xuất khái niệm \textbf{Không gian lẩn khuất (Blending Space)} của mã độc. Kẻ tấn công có chủ đích (APT) thường áp dụng kỹ thuật \textit{Living off the Land} (LotL) để ngụy trang hành vi, trộn lẫn hoạt động của chúng vào hệ thống bình thường. Tuy nhiên, sự lẩn khuất hiếm khi hoàn hảo ở mọi khía cạnh. Để đánh giá toàn diện, mức độ lẩn khuất của mã độc được chiếu lên 3 trục độc lập (tương ứng với 3 loại bất thường):
+Dựa trên sự phân loại bất thường của Chandola et al. (mục \ref{section:1.3}), nghiên cứu này đề xuất khái niệm \textbf{Không gian hòa trộn (Blending Space)} của mã độc. Kẻ tấn công có chủ đích (APT) thường áp dụng kỹ thuật \textit{Living off the Land} (LotL) để ngụy trang hành vi, trộn lẫn hoạt động của chúng vào hệ thống bình thường. Tuy nhiên, sự hòa trộn hiếm khi hoàn hảo ở mọi khía cạnh. Để đánh giá toàn diện, mức độ hòa trộn của mã độc được chiếu lên 3 trục độc lập (tương ứng với 3 loại bất thường):
 
 \begin{itemize}
-    \item \textbf{Sự lẩn khuất Không gian (Spatial Blending - Trục 1):} Tương ứng với bất thường điểm. Mã độc cố gắng giả mạo các đặc trưng nội tại (ví dụ: tên tiến trình, tham số dòng lệnh) sao cho giống với tiến trình hệ thống nhất có thể trong không gian đặc trưng ($V_{10}$).
-    \item \textbf{Sự lẩn khuất Chuỗi thời gian (Sequential Blending - Trục 2):} Tương ứng với bất thường ngữ cảnh. Một tiến trình có vẻ bình thường nhưng thứ tự gọi thực thi của nó trong một khoảng thời gian lại bất thường so với thói quen của quản trị viên.
-    \item \textbf{Sự lẩn khuất Cấu trúc tập thể (Collective Blending - Trục 3):} Tương ứng với bất thường tập thể. Kẻ tấn công thường tạo ra hàng loạt tiến trình con với kiến trúc đồ thị liên kết bất thường (ví dụ: tiến trình mạng tự động sinh ra hàng loạt luồng shell nội bộ).
+    \item \textbf{Sự hòa trộn Không gian (Spatial Blending - Trục 1):} Tương ứng với bất thường điểm. Mã độc cố gắng giả mạo các đặc trưng nội tại (ví dụ: tên tiến trình, tham số dòng lệnh) sao cho giống với tiến trình hệ thống nhất có thể trong không gian đặc trưng ($V_{10}$).
+    \item \textbf{Sự hòa trộn Chuỗi thời gian (Sequential Blending - Trục 2):} Tương ứng với bất thường ngữ cảnh. Một tiến trình có vẻ bình thường nhưng thứ tự gọi thực thi của nó trong một khoảng thời gian lại bất thường so với thói quen của quản trị viên.
+    \item \textbf{Sự hòa trộn Cấu trúc tập thể (Collective Blending - Trục 3):} Tương ứng với bất thường tập thể. Kẻ tấn công thường tạo ra hàng loạt tiến trình con với kiến trúc đồ thị liên kết bất thường (ví dụ: tiến trình mạng tự động sinh ra hàng loạt luồng shell nội bộ).
 \end{itemize}
 
 \subsection{Định lượng thông qua điểm Behavioral Blending Score (BBS)}
-Khung đo lường BBS được thiết kế để chấm điểm sự lẩn khuất trên 3 trục này với giá trị phân bố từ $0$ (lộ liễu hoàn toàn) đến $1$ (hòa trộn hoàn hảo). 
+Khung đo lường BBS được thiết kế để chấm điểm sự hòa trộn trên 3 trục này với giá trị phân bố từ $0$ (lộ liễu hoàn toàn) đến $1$ (hòa trộn hoàn hảo). 
 
-Theo quan điểm phòng thủ, hệ thống giám sát đa chiều sẽ bắt được kẻ tấn công nếu chúng để lộ sơ hở ở bất kỳ phương diện nào. Do đó, độ khó phát hiện chung của một tập dữ liệu (hay mức độ ngụy trang thực tế của mã độc) tuân theo \textbf{Nguyên lý Thùng gỗ} (Nguyên lý điểm cực tiểu - Min Aggregation). Điểm lẩn khuất tổng quát ($BBS_{min}$) được quyết định bởi mặt có khả năng ngụy trang kém nhất:
+Theo quan điểm phòng thủ, hệ thống giám sát đa chiều sẽ bắt được kẻ tấn công nếu chúng để lộ sơ hở ở bất kỳ phương diện nào. Do đó, độ khó phát hiện chung của một tập dữ liệu (hay mức độ ngụy trang thực tế của mã độc) tuân theo \textbf{Nguyên lý Thùng gỗ} (Nguyên lý điểm cực tiểu - Min Aggregation). Điểm hòa trộn tổng quát ($BBS_{min}$) được quyết định bởi mặt có khả năng ngụy trang kém nhất:
 \begin{equation}
     BBS_{min} = \min(BBS_{spa}, BBS_{seq}, BBS_{col})
 \end{equation}
