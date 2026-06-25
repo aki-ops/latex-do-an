@@ -265,13 +265,13 @@ Kiến trúc tổng thể tập trung mô tả luồng trung chuyển dữ liệ
 \begin{itemize}
     \item \textbf{Giai đoạn 1: Tiếp nhận dữ liệu (Data Ingestion)}
     \begin{itemize}
-        \item \textit{Input:} Các tập tin log hệ thống (ví dụ: Sysmon \texttt{.evtx}) từ môi trường có chứa mã độc (Attack) và môi trường bình thường (Benign), kèm theo Nhãn (Ground-truth).
-        \item \textit{Output:} Đồ thị quan hệ tiến trình có hướng (DAG) thô.
+        \item \textit{Input:} Các tập dữ liệu đã được số hóa đặc trưng dạng bảng (ví dụ: CSV) chứa hành vi tiến trình, kèm theo file Nhãn (Ground-truth).
+        \item \textit{Output:} Các DataFrame dữ liệu thô sẵn sàng để phân loại.
     \end{itemize}
-    \item \textbf{Giai đoạn 2: Số hóa đặc trưng (Feature Extraction)}
+    \item \textbf{Giai đoạn 2: Tiền xử lý \& Bóc tách đặc trưng (Preprocessing)}
     \begin{itemize}
-        \item \textit{Input:} Đồ thị quan hệ DAG từ Giai đoạn 1.
-        \item \textit{Output:} Các ma trận toán học số hóa ($V_{10}$, Log-Likelihood, Covariance).
+        \item \textit{Input:} DataFrame từ Giai đoạn 1.
+        \item \textit{Output:} Các ma trận toán học số hóa chuẩn ($V_{10}$, Log-Likelihood, Covariance) được ánh xạ nhãn đầy đủ.
     \end{itemize}
     \item \textbf{Giai đoạn 3: Đo lường phân mảnh (Fragmented Measurement)}
     \begin{itemize}
@@ -296,10 +296,10 @@ Sơ đồ Activity Map mô tả luồng chạy thực tế của dữ liệu xuy
 \end{figure}
 
 \begin{itemize}
-    \item \textbf{Làn 1: Tiếp nhận \& Số hóa (Data Ingestion)}
+    \item \textbf{Làn 1: Tiếp nhận \& Tiền xử lý (Data Ingestion)}
     \begin{itemize}
-        \item Khung đo lường bắt đầu bằng việc đọc các tập tin log hệ thống thô (như Windows Sysmon \texttt{.evtx}). Các tập tin này được lấy từ quá trình thực nghiệm, do đó đã được người nghiên cứu gán nhãn thực tế (Ground-truth).
-        \item Hệ thống tiến hành tái tạo lại các sự kiện rời rạc thành một đồ thị quan hệ tiến trình có hướng (DAG), sau đó sử dụng các bộ trích xuất để chuyển đổi đồ thị này thành ba ma trận đặc trưng toán học: Không gian ($V_{10}$), Thời gian ($NLL$), và Cấu trúc ($CoV$).
+        \item Khung đo lường bắt đầu bằng việc đọc các tập dữ liệu đã được số hóa dạng bảng (ví dụ: file \texttt{.csv} chứa đặc trưng hành vi hệ thống). Vì BBS là một khung đo lường độ khó của dữ liệu, đầu vào chuẩn mực của nó là các tập dữ liệu đặc trưng kèm theo nhãn thực tế (Ground-truth) do chuyên gia định nghĩa.
+        \item Hệ thống tiến hành chuẩn hóa dữ liệu đầu vào, bóc tách các cột dữ liệu thành ba ma trận đặc trưng toán học phục vụ đo lường: Không gian ($V_{10}$), Thời gian ($NLL$), và Cấu trúc ($CoV$).
     \end{itemize}
     \item \textbf{Làn 2: Lõi Đo lường (BBS Core Engine)}
     \begin{itemize}
