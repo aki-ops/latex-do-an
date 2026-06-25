@@ -87,6 +87,8 @@ Quá trình thực nghiệm được thiết kế nhằm giải quyết các m�
     \end{itemize}
 \end{itemize}
 
+\textit{Lưu ý về giới hạn của thuật toán cơ sở:} Các thuật toán UAD truyền thống (iForest, ECOD, LOF) bản chất là các mô hình phát hiện dị thường trên dữ liệu dạng bảng (tabular data). Do cấu trúc toán học giả định các điểm dữ liệu là độc lập (i.i.d), chúng không thể trực tiếp xử lý dữ liệu chuỗi thời gian (Sequential) hay cấu trúc đồ thị (Collective). Do đó, các mô hình này bị ép buộc phải hoạt động duy nhất trên trục Không gian $V_{10}$. Sự mù lòa bẩm sinh với 2 trục còn lại này chính là tiền đề dẫn đến sự thất bại của chúng trước các chiến dịch APT tinh vi.
+
 Để đảm bảo tính khách quan trong việc so sánh hiệu năng nội tại của các thuật toán, thực nghiệm sử dụng ngưỡng tối ưu trên tập dữ liệu (Optimal Oracle Threshold) đồng nhất cho mọi mô hình, giúp loại bỏ nhiễu từ các kỹ thuật chọn ngưỡng riêng biệt.
 
 \section{Kết quả và giải thích kết quả}
