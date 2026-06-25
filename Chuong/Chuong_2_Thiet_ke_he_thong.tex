@@ -313,10 +313,11 @@ Sơ đồ Activity Map mô tả luồng chạy thực tế của dữ liệu xuy
 \label{fig:bbs_activity_map}
 \end{figure}
 
-\subsection{Luồng định lượng mật độ (Density Quantification)}
-Để tính toán chỉ số $BBS_{min}$ tại Giai đoạn 3 một cách chính xác trên không gian 10 chiều, hệ thống áp dụng chuỗi thuật toán ước lượng phân phối phi tham số kết hợp với tích phân Monte Carlo. 
+\subsection{Thuật toán định lượng Không gian lẩn khuất}
+Để tính toán chính xác 3 chỉ số lẩn khuất tại Giai đoạn 3, hệ thống áp dụng các phép đo đạc phân phối thống kê và cấu trúc ma trận khác nhau. Mục tiêu cốt lõi của giai đoạn này là tìm ra "khoảng trống ngữ nghĩa", tức là xác định xem mã độc đã ngụy trang (hòa trộn) tốt đến mức nào vào dữ liệu của người dùng thông thường trên cả 3 phương diện.
 
-Mục tiêu cốt lõi của giai đoạn này là tìm ra "khoảng trống ngữ nghĩa", tức là xác định xem mã độc đã ngụy trang (hòa trộn) tốt đến mức nào vào dữ liệu của người dùng thông thường. Việc tính toán này có thể được giải thích một cách trực quan thông qua các bước sau:
+\subsubsection{Trục 1: Lẩn khuất Không gian ($BBS_{spa}$)}
+Đối với trục không gian, sự lẩn khuất được tính toán trên Không gian đặc trưng 10 chiều ($V_{10}$) bằng chuỗi thuật toán ước lượng phân phối phi tham số kết hợp với tích phân Monte Carlo. Việc tính toán này được thực hiện qua các bước sau:
 
 \begin{enumerate}
     \item \textbf{Ước lượng Băng thông (Bandwidth Estimation) -- "Chọn ống kính máy ảnh":} \\
@@ -375,6 +376,22 @@ Mục tiêu cốt lõi của giai đoạn này là tìm ra "khoảng trống ng�
 \caption{Sơ đồ luồng thuật toán định lượng (Density Quantification) dựa trên Mixed KDE và Tích phân Monte Carlo}
 \label{fig:bbs_quantification}
 \end{figure}
+
+\subsubsection{Trục 2: Lẩn khuất Chuỗi thời gian ($BBS_{seq}$)}
+Sự lẩn khuất chuỗi thời gian phân tích xác suất sinh ra chuỗi hành động của kẻ tấn công dưới góc nhìn của một mô hình đại diện cho người dùng bình thường. Nếu chuỗi hành vi của mã độc có xác suất xuất hiện tương đương với thói quen của người dùng, chúng được coi là hòa trộn thành công. 
+
+Hệ thống tính toán sự khác biệt về Trung bình Hàm Hợp lý Cực đại Âm (Negative Log-Likelihood - $NLL$) của tập tiến trình tấn công ($A$) và bình thường ($B$):
+\begin{equation}
+    BBS_{seq} = \exp\left( - \max\left(0, \overline{NLL}_A - \overline{NLL}_B\right) \right)
+\end{equation}
+Sự chênh lệch càng thấp, giá trị $BBS_{seq}$ càng tiến về $1$, biểu thị sự lẩn khuất thời gian hoàn hảo.
+
+\subsubsection{Trục 3: Lẩn khuất Cấu trúc tập thể ($BBS_{col}$)}
+Khi kẻ tấn công tạo ra các phiên kết nối đảo (reverse shell) hoặc bơm mã (injection), kiến trúc liên kết của cây tiến trình sẽ bị biến dạng. Trục này đánh giá sự dị thường bằng cách so sánh Ma trận Hiệp phương sai (Covariance Matrix $\Sigma$) của các đặc trưng đồ thị (ví dụ: số lượng tiến trình con $v_9$, luồng mạng $v_1$):
+\begin{equation}
+    BBS_{col} = \exp\left( - \lambda_{col} \cdot || \Sigma_A - \Sigma_B ||_F \right)
+\end{equation}
+Trong đó $||\cdot||_F$ là chuẩn Frobenius (Frobenius norm) tính khoảng cách giữa hai ma trận, và $\lambda_{col}$ là hệ số chuẩn hóa.
 
 
 \section{Thiết kế môi trường thử nghiệm}
