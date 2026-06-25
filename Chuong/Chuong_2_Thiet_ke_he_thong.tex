@@ -240,6 +240,7 @@ Kiến trúc tổng thể tập trung mô tả luồng trung chuyển dữ liệ
 
 \begin{figure}[H]
 \centering
+\resizebox{\textwidth}{!}{
 \begin{tikzpicture}[
     node distance=0.8cm,
     stage_box/.style={rectangle, rounded corners, draw=blue!80, fill=blue!10, very thick, minimum width=2.8cm, minimum height=1.2cm, align=center, font=\bfseries},
@@ -256,6 +257,7 @@ Kiến trúc tổng thể tập trung mô tả luồng trung chuyển dữ liệ
     \draw[arrow] (stage2) -- (stage3);
     \draw[arrow] (stage3) -- (stage4);
 \end{tikzpicture}
+}
 \caption{Sơ đồ kiến trúc tổng thể (Pipeline) của Khung đo lường BBS}
 \label{fig:bbs_pipeline}
 \end{figure}
