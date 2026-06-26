@@ -231,10 +231,10 @@ x y
 \label{fig:3.2}
 \end{figure}
 
-Với hệ số $\rho = -0.772$ (kiểm định hoán vị cho $p-value = 0.0077 < 0.01$), kết quả thực nghiệm chỉ ra rằng khi tiến trình độc hại chui càng sâu vào trung tâm phân phối nền (DensPct lớn), độ chính xác của thuật toán càng suy giảm nghiêm trọng. Đặc biệt, chỉ cần mức DensPct từ 5\% đến 10\%, chỉ số F1-Score của các mô hình đã giảm sút mạnh, tạo ra hiện tượng đánh giá sai lệch hiệu năng nếu chỉ nhìn vào đường cong ROC. Phân tích nhạy (leave-one-out) cũng xác nhận tính ổn định của kết luận tương quan nghịch này.
+Với hệ số $\rho = -0.796$ (kiểm định hoán vị cho $p-value = 0.003 < 0.01$), kết quả thực nghiệm chỉ ra rằng khi tiến trình độc hại chui càng sâu vào trung tâm phân phối nền (DensPct lớn), độ chính xác của thuật toán càng suy giảm nghiêm trọng. Đặc biệt, chỉ cần mức DensPct từ 5\% đến 10\%, chỉ số F1-Score của các mô hình đã giảm sút mạnh, tạo ra hiện tượng đánh giá sai lệch hiệu năng nếu chỉ nhìn vào đường cong ROC. Phân tích nhạy (leave-one-out) cũng xác nhận tính ổn định của kết luận tương quan nghịch này.
 
 \subsection{Khai thác mật độ cục bộ (KDE\_Joint)}
-Trên tập dữ liệu APT29 (có độ chui sâu DensPct lên đến $27\%$), các thuật toán cơ sở bị giảm hiệu năng nghiêm trọng (LOF đạt F1 = 0.103, iForest = 0.336). Tuy nhiên, mô hình ước lượng KDE\_Joint đã đạt chỉ số F1 = 0.778. Sự cải thiện này xác nhận sự tồn tại của các \textbf{Lỗ hổng mật độ cục bộ (Local Pockets)}: mã độc có thể rất gần tâm phân phối theo góc nhìn toàn cục, nhưng lại cô lập trong các vùng không gian rỗng về mặt cấu trúc đồng thời. 
+Trên tập dữ liệu APT29 (có độ chui sâu DensPct lên đến $27\%$), các thuật toán cơ sở bị giảm hiệu năng nghiêm trọng (LOF đạt F1 = 0.103, iForest = 0.336). Tuy nhiên, mô hình ước lượng KDE\_Joint đã đạt chỉ số F1 = 0.829. Sự cải thiện này xác nhận sự tồn tại của các \textbf{Lỗ hổng mật độ cục bộ (Local Pockets)}: mã độc có thể rất gần tâm phân phối theo góc nhìn toàn cục, nhưng lại cô lập trong các vùng không gian rỗng về mặt cấu trúc đồng thời. 
 
 Cần nhấn mạnh rõ: \textbf{KDE\_Joint không được đề xuất như một hệ thống UAD hoàn thiện để thay thế các mô hình hiện tại}. Nó chỉ thuần túy đóng vai trò là một \textbf{"Bằng chứng tồn tại" (Existence Proof)}. Việc KDE\_Joint thành công chứng minh rằng Local Pockets là có thật, và giới hạn của UAD hoàn toàn có thể bị phá vỡ nếu các mô hình trong tương lai có khả năng phân tích sự tương quan đồng thời trên không gian đa chiều, thay vì phẳng hóa dữ liệu như hiện tại.
 
