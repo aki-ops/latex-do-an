@@ -1,0 +1,8 @@
+chuong1_old.tex:40: Điều này gây ra lỗi nghiêm trọng trong phân tích an ninh nếu chúng ta chỉ sử dụng PID làm định danh để liên kết các sự kiện log (ví dụ: gán kết nối mạng EID 3 của PID 4120 ở thời điểm $t_2$ cho hành vi tạo file EID 1 của PID 4120 ở thời điểm $t_1$, trong khi thực tế tiến trình độc hại đã kết thúc và nhường PID lại cho một ứng dụng vô hại).
+chuong1_old.tex:185: Để giải quyết bài toán mã độc ngụy trang LotL, chúng ta cần phân biệt rõ hai góc nhìn toán học: Khoảng cách toàn cục tham số (Mahalanobis) và Ước lượng mật độ phi tham số cục bộ (KDE).
+chuong2_old.tex:167: Mß╗Öt ─æß╗ïnh l├╜ c╞í bß║ún cß╗ºa Thß╗æng k├¬ m├┤ tß║ú chß╗ë ra rß║▒ng ph├⌐p biß║┐n ─æß╗òi ─æ╞ín ─æiß╗çu bß║úo to├án t├¡nh trung vß╗ï cß╗ºa biß║┐n ngß║½u nhi├¬n. Tß╗⌐c l├á, vß╗¢i mß╗ìi h├ám ─æ╞ín ─æiß╗çu $g$ v├á biß║┐n ngß║½u nhi├¬n $Y$, ta lu├┤n c├│:
+chuong2_old.tex:171: ├üp dß╗Ñng ─æß╗ïnh l├╜ bß║úo to├án trung vß╗ï n├áy vß╗¢i h├ám ─æ╞ín ─æiß╗çu $g \equiv F_b$ v├á biß║┐n ngß║½u nhi├¬n $Y \equiv f_{Mahal}(X_a)$, ta c├│ ─æß║│ng thß╗⌐c to├ín hß╗ìc ch├¡nh x├íc:
+chuong2_old.tex:175: Do ─æ├│, ta chß╗⌐ng minh ─æ╞░ß╗úc:
+chuong2_old_utf8.tex:167: Mß╗Öt ─æß╗ïnh l├╜ c╞í bß║ún cß╗ºa Thß╗æng k├¬ m├┤ tß║ú chß╗ë ra rß║▒ng ph├⌐p biß║┐n ─æß╗òi ─æ╞ín ─æiß╗çu bß║úo to├án t├¡nh trung vß╗ï cß╗ºa biß║┐n ngß║½u nhi├¬n. Tß╗⌐c l├á, vß╗¢i mß╗ìi h├ám ─æ╞ín ─æiß╗çu $g$ v├á biß║┐n ngß║½u nhi├¬n $Y$, ta lu├┤n c├│:
+chuong2_old_utf8.tex:171: ├üp dß╗Ñng ─æß╗ïnh l├╜ bß║úo to├án trung vß╗ï n├áy vß╗¢i h├ám ─æ╞ín ─æiß╗çu $g \equiv F_b$ v├á biß║┐n ngß║½u nhi├¬n $Y \equiv f_{Mahal}(X_a)$, ta c├│ ─æß║│ng thß╗⌐c to├ín hß╗ìc ch├¡nh x├íc:
+chuong2_old_utf8.tex:175: Do ─æ├│, ta chß╗⌐ng minh ─æ╞░ß╗úc:

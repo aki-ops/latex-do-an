@@ -252,8 +252,8 @@
       \strng{authorfullhash}{4e72e1e76a5f0fc64ef82b21c7267380}
       \strng{authorfullhashraw}{4e72e1e76a5f0fc64ef82b21c7267380}
       \field{extraname}{1}
-      \field{sortinit}{4}
-      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
+      \field{sortinit}{3}
+      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{journaltitle}{Computers, Materials \& Continua}
@@ -281,8 +281,8 @@
       \strng{authornamehash}{2f9304fe9b427489507405bef9a0bb9f}
       \strng{authorfullhash}{2f9304fe9b427489507405bef9a0bb9f}
       \strng{authorfullhashraw}{2f9304fe9b427489507405bef9a0bb9f}
-      \field{sortinit}{5}
-      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
+      \field{sortinit}{4}
+      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{howpublished}{GitHub Repository}
@@ -310,8 +310,8 @@
       \strng{authorfullhash}{ed5f36b0c6246bf884830c7836478e39}
       \strng{authorfullhashraw}{ed5f36b0c6246bf884830c7836478e39}
       \field{extraname}{1}
-      \field{sortinit}{6}
-      \field{sortinithash}{b33bc299efb3c36abec520a4c896a66d}
+      \field{sortinit}{5}
+      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{howpublished}{MITRE ATT\&CK Evaluations}
@@ -339,8 +339,8 @@
       \strng{authorfullhash}{ed5f36b0c6246bf884830c7836478e39}
       \strng{authorfullhashraw}{ed5f36b0c6246bf884830c7836478e39}
       \field{extraname}{2}
-      \field{sortinit}{7}
-      \field{sortinithash}{108d0be1b1bee9773a1173443802c0a3}
+      \field{sortinit}{6}
+      \field{sortinithash}{b33bc299efb3c36abec520a4c896a66d}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{howpublished}{MITRE ATT\&CK Evaluations}
@@ -382,8 +382,8 @@
       \strng{authornamehash}{3843f6427d6ca01b54e95297405107bb}
       \strng{authorfullhash}{135c55bbecd240d054a5541e3cf77609}
       \strng{authorfullhashraw}{135c55bbecd240d054a5541e3cf77609}
-      \field{sortinit}{8}
-      \field{sortinithash}{a231b008ebf0ecbe0b4d96dcc159445f}
+      \field{sortinit}{7}
+      \field{sortinithash}{108d0be1b1bee9773a1173443802c0a3}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{journaltitle}{ACM Computing Surveys}
@@ -427,8 +427,8 @@
       \strng{authorfullhash}{b38d2601a5a1a63e9c41ca76b68a2df4}
       \strng{authorfullhashraw}{b38d2601a5a1a63e9c41ca76b68a2df4}
       \field{extraname}{2}
-      \field{sortinit}{9}
-      \field{sortinithash}{0a5ebc79d83c96b6579069544c73c7d4}
+      \field{sortinit}{8}
+      \field{sortinithash}{a231b008ebf0ecbe0b4d96dcc159445f}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{booktitle}{Proceedings of the IEEE International Conference on Data Mining (ICDM)}
@@ -484,8 +484,8 @@
       \strng{authornamehash}{66e56d6ce7aebd32b88a16eceb4112a0}
       \strng{authorfullhash}{124226ba45558b0c9a07a8f349b45cdb}
       \strng{authorfullhashraw}{124226ba45558b0c9a07a8f349b45cdb}
-      \field{sortinit}{1}
-      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{sortinit}{9}
+      \field{sortinithash}{0a5ebc79d83c96b6579069544c73c7d4}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{journaltitle}{IEEE Transactions on Knowledge and Data Engineering}
@@ -541,50 +541,6 @@
       \range{pages}{12}
       \verb{doi}
       \verb 10.1145/342009.335388
-      \endverb
-    \endentry
-    \entry{francois2007concentration}{article}{}{}
-      \name{author}{3}{}{%
-        {{hash=6d9138a7bd612cf39e7af937d15e5025}{%
-           family={François},
-           familyi={F\bibinitperiod},
-           given={Damien},
-           giveni={D\bibinitperiod}}}%
-        {{hash=308ae3186e8e59257a2aa0f2d4543c89}{%
-           family={Wertz},
-           familyi={W\bibinitperiod},
-           given={Vincent},
-           giveni={V\bibinitperiod}}}%
-        {{hash=88691a3c06eb4d21eecbf7a3688cfc6b}{%
-           family={Verleysen},
-           familyi={V\bibinitperiod},
-           given={Michel},
-           giveni={M\bibinitperiod}}}%
-      }
-      \list{publisher}{1}{%
-        {IEEE}%
-      }
-      \strng{namehash}{1acd6112e90a1bf6dc3308c8ad4f3a46}
-      \strng{fullhash}{818ccd0443133cd7a012e785dd57bfff}
-      \strng{fullhashraw}{818ccd0443133cd7a012e785dd57bfff}
-      \strng{bibnamehash}{818ccd0443133cd7a012e785dd57bfff}
-      \strng{authorbibnamehash}{818ccd0443133cd7a012e785dd57bfff}
-      \strng{authornamehash}{1acd6112e90a1bf6dc3308c8ad4f3a46}
-      \strng{authorfullhash}{818ccd0443133cd7a012e785dd57bfff}
-      \strng{authorfullhashraw}{818ccd0443133cd7a012e785dd57bfff}
-      \field{sortinit}{1}
-      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
-      \field{labelnamesource}{author}
-      \field{labeltitlesource}{title}
-      \field{journaltitle}{IEEE Transactions on Knowledge and Data Engineering}
-      \field{number}{7}
-      \field{title}{The concentration of fractional distances}
-      \field{volume}{19}
-      \field{year}{2007}
-      \field{pages}{873\bibrangedash 886}
-      \range{pages}{14}
-      \verb{doi}
-      \verb 10.1109/TKDE.2007.1037
       \endverb
     \endentry
     \entry{silverman1986density}{book}{}{}
@@ -936,8 +892,8 @@
       \strng{authornamehash}{2541e132e48ea3d61d11fb7ef5cc2fb4}
       \strng{authorfullhash}{6b641fe45043d123c859110c492455cd}
       \strng{authorfullhashraw}{6b641fe45043d123c859110c492455cd}
-      \field{sortinit}{2}
-      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{journaltitle}{Data mining and knowledge discovery}
@@ -969,8 +925,8 @@
       \strng{authornamehash}{a70191c945c2170327144b65be800a2e}
       \strng{authorfullhash}{a70191c945c2170327144b65be800a2e}
       \strng{authorfullhashraw}{a70191c945c2170327144b65be800a2e}
-      \field{sortinit}{2}
-      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{booktitle}{Proceedings of the 23rd international conference on Machine learning}
@@ -1090,70 +1046,6 @@
       \field{pages}{275\bibrangedash 304}
       \range{pages}{30}
     \endentry
-    \entry{ruff2018deep}{inproceedings}{}{}
-      \name{author}{8}{}{%
-        {{hash=002c037bd5c44a3c55a7523254ff0522}{%
-           family={Ruff},
-           familyi={R\bibinitperiod},
-           given={Lukas},
-           giveni={L\bibinitperiod}}}%
-        {{hash=1e584159c8f4d32a1e55772b4b798844}{%
-           family={Vandermeulen},
-           familyi={V\bibinitperiod},
-           given={Robert},
-           giveni={R\bibinitperiod}}}%
-        {{hash=d225927675f1b50ada7afdcd7141a590}{%
-           family={Goernitz},
-           familyi={G\bibinitperiod},
-           given={Nico},
-           giveni={N\bibinitperiod}}}%
-        {{hash=99c57c6d6c2549166bb9eb10bd8357a9}{%
-           family={Deecke},
-           familyi={D\bibinitperiod},
-           given={Lucas},
-           giveni={L\bibinitperiod}}}%
-        {{hash=d25c7f6e3ddb2f5af492ab8ae634e334}{%
-           family={Shoaepour},
-           familyi={S\bibinitperiod},
-           given={Saeed\bibnamedelima A},
-           giveni={S\bibinitperiod\bibinitdelim A\bibinitperiod}}}%
-        {{hash=d122a2a87d21da4007f460564975e967}{%
-           family={Binder},
-           familyi={B\bibinitperiod},
-           given={Alexander},
-           giveni={A\bibinitperiod}}}%
-        {{hash=d2949700f8a8fdee1e69d478901c51d7}{%
-           family={Müller},
-           familyi={M\bibinitperiod},
-           given={Emmanuel},
-           giveni={E\bibinitperiod}}}%
-        {{hash=5f7a97296025f5dcf9ed79d67caa64fc}{%
-           family={Kloft},
-           familyi={K\bibinitperiod},
-           given={Marius},
-           giveni={M\bibinitperiod}}}%
-      }
-      \list{organization}{1}{%
-        {PMLR}%
-      }
-      \strng{namehash}{f49556d617d4a5ffe2baa6d71026cde2}
-      \strng{fullhash}{22b23baa30715979b37a67f60b6b7cd5}
-      \strng{fullhashraw}{22b23baa30715979b37a67f60b6b7cd5}
-      \strng{bibnamehash}{f49556d617d4a5ffe2baa6d71026cde2}
-      \strng{authorbibnamehash}{f49556d617d4a5ffe2baa6d71026cde2}
-      \strng{authornamehash}{f49556d617d4a5ffe2baa6d71026cde2}
-      \strng{authorfullhash}{22b23baa30715979b37a67f60b6b7cd5}
-      \strng{authorfullhashraw}{22b23baa30715979b37a67f60b6b7cd5}
-      \field{sortinit}{2}
-      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
-      \field{labelnamesource}{author}
-      \field{labeltitlesource}{title}
-      \field{booktitle}{International conference on machine learning}
-      \field{title}{Deep one-class classification}
-      \field{year}{2018}
-      \field{pages}{4390\bibrangedash 4399}
-      \range{pages}{10}
-    \endentry
     \entry{hassan2020tactical}{inproceedings}{}{}
       \name{author}{4}{}{%
         {{hash=b13ac878e10c5c6907e05beef27c9ffa}{%
@@ -1197,6 +1089,50 @@
       \field{year}{2020}
       \field{pages}{1188\bibrangedash 1205}
       \range{pages}{18}
+    \endentry
+    \entry{francois2007concentration}{article}{}{}
+      \name{author}{3}{}{%
+        {{hash=6d9138a7bd612cf39e7af937d15e5025}{%
+           family={François},
+           familyi={F\bibinitperiod},
+           given={Damien},
+           giveni={D\bibinitperiod}}}%
+        {{hash=308ae3186e8e59257a2aa0f2d4543c89}{%
+           family={Wertz},
+           familyi={W\bibinitperiod},
+           given={Vincent},
+           giveni={V\bibinitperiod}}}%
+        {{hash=88691a3c06eb4d21eecbf7a3688cfc6b}{%
+           family={Verleysen},
+           familyi={V\bibinitperiod},
+           given={Michel},
+           giveni={M\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {IEEE}%
+      }
+      \strng{namehash}{1acd6112e90a1bf6dc3308c8ad4f3a46}
+      \strng{fullhash}{818ccd0443133cd7a012e785dd57bfff}
+      \strng{fullhashraw}{818ccd0443133cd7a012e785dd57bfff}
+      \strng{bibnamehash}{818ccd0443133cd7a012e785dd57bfff}
+      \strng{authorbibnamehash}{818ccd0443133cd7a012e785dd57bfff}
+      \strng{authornamehash}{1acd6112e90a1bf6dc3308c8ad4f3a46}
+      \strng{authorfullhash}{818ccd0443133cd7a012e785dd57bfff}
+      \strng{authorfullhashraw}{818ccd0443133cd7a012e785dd57bfff}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{IEEE Transactions on Knowledge and Data Engineering}
+      \field{number}{7}
+      \field{title}{The concentration of fractional distances}
+      \field{volume}{19}
+      \field{year}{2007}
+      \field{pages}{873\bibrangedash 886}
+      \range{pages}{14}
+      \verb{doi}
+      \verb 10.1109/TKDE.2007.1037
+      \endverb
     \endentry
   \enddatalist
 \endrefsection
