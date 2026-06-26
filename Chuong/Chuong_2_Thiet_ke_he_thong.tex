@@ -408,10 +408,10 @@ Nói cách khác, kẻ tấn công bắt buộc phải duy trì lớp ngụy tra
     BBS_{min} = \min(BBS_{spa}, BBS_{seq}, BBS_{col})
 \end{equation}
 
-**Nghịch lý Thùng gỗ và Sự thất bại của UAD:** 
-Khung đo lường BBS vạch trần một nghịch lý vô cùng quan trọng. Trong nhiều trường hợp thực nghiệm, giá trị $BBS_{min} \approx 0$ (nghĩa là kẻ tấn công đã sơ hở nghiêm trọng ở ít nhất một trục, điển hình là trục Không gian $BBS_{spa}$). Theo logic thông thường, mức độ hòa trộn kém thì mô hình phát hiện phải dễ dàng tóm gọn được mã độc. Thế nhưng, các thuật toán UAD truyền thống dạng bảng (như iForest, ECOD) lại **hoàn toàn thất bại** trong việc phát hiện. 
+\textbf{Nguyên lý Thùng gỗ và Điểm mù cấu trúc của UAD:} 
+Khung đo lường BBS chỉ ra một thực tế đáng báo động. Theo "Nguyên lý Thùng gỗ", nếu $BBS_{min} \approx 0$ (nghĩa là kẻ tấn công đã sơ hở nghiêm trọng ở ít nhất một phương diện, làm cho lớp ngụy trang bị rò rỉ), hệ thống phòng thủ lẽ ra phải dễ dàng tóm gọn được mã độc. Thế nhưng trong nhiều trường hợp thực nghiệm, các thuật toán UAD truyền thống (như iForest, ECOD) lại **hoàn toàn thất bại** trong việc phát hiện.
 
-Sự trái ngược này không phải là một mâu thuẫn của phép đo, mà chính là "nỗi đau" (pain point) cốt lõi của bài toán: Kẻ tấn công bộc lộ sơ hở rõ ràng, nhưng các mô hình UAD vẫn "mù lòa" do chúng phẳng hóa dữ liệu và rơi vào bẫy "Local Pockets" (đã chứng minh ở phần trước). Quá trình tách biệt 3 trục định lượng này là điểm mấu chốt giúp giải thích sự thất bại cấu trúc của UAD, đồng thời khẳng định giá trị cốt lõi của Khung đo lường BBS trong việc bóc trần những điểm mù nguy hiểm đó.
+Sự thất bại này vạch trần "điểm mù cấu trúc" cốt lõi của UAD: Kẻ tấn công bộc lộ sơ hở rất rõ ràng ở một vài khía cạnh cụ thể, nhưng các mô hình UAD truyền thống vẫn "mù lòa" do chúng đánh giá độc lập từng đặc trưng biên (Marginal Blindness) và rơi vào bẫy "Local Pockets". Quá trình bóc tách rạch ròi 3 trục đo lường của BBS đã giúp giải thích chính xác tại sao UAD lại sụp đổ ngay cả khi kẻ tấn công ngụy trang rất tệ, qua đó khẳng định giá trị cốt lõi của khung BBS trong việc định lượng những điểm mù nguy hiểm đó.
 
 \section{Thiết kế môi trường thử nghiệm}
 \label{section:2.4}
