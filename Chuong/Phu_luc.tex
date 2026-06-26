@@ -21,14 +21,14 @@ Hệ thống SRAH được thiết kế thành một chuỗi luồng xử lý (p
 ]
     % Nodes
     \node[layer_box] (layer0) {Layer 0:\\Ingestion Engine\\(Rust/PyO3)};
-    \node[layer_box, right of=layer0, xshift=2.0cm] (layer2) {Layer 2:\\Graph Builder\\(NetworkX)};
-    \node[layer_box, right of=layer2, xshift=2.0cm] (layer3) {Layer 3:\\Multi-sensor\\Scoring};
-    \node[layer_box, right of=layer3, xshift=2.0cm] (layer4) {Layer 4:\\Ensemble\\(Decision)};
+    \node[layer_box, right of=layer0, xshift=2.0cm] (layer1) {Layer 1:\\Graph Builder\\(NetworkX)};
+    \node[layer_box, right of=layer1, xshift=2.0cm] (layer2) {Layer 2:\\Multi-sensor\\Scoring};
+    \node[layer_box, right of=layer2, xshift=2.0cm] (layer3) {Layer 3:\\Ensemble\\(Decision)};
 
     % Arrows
-    \draw[arrow] (layer0) -- (layer2);
+    \draw[arrow] (layer0) -- (layer1);
+    \draw[arrow] (layer1) -- (layer2);
     \draw[arrow] (layer2) -- (layer3);
-    \draw[arrow] (layer3) -- (layer4);
 \end{tikzpicture}
 \caption{Sơ đồ kiến trúc Pipeline các lớp của hệ thống SRAH}
 \label{fig:srah_pipeline}
@@ -36,9 +36,9 @@ Hệ thống SRAH được thiết kế thành một chuỗi luồng xử lý (p
 
 \begin{itemize}
     \item \textbf{Layer 0 (Ingestion Engine):} Thành phần cốt lõi được viết bằng Rust, tối ưu cho việc đọc file \texttt{.evtx} nhị phân với tốc độ cực cao, parse trực tiếp thành các dictionary và chuyển vùng nhớ thẳng vào RAM của Python thông qua bridge \textbf{PyO3}.
-    \item \textbf{Layer 2 (Graph Builder):} Xây dựng đồ thị tiến trình (Directed Acyclic Graph) dựa trên trường \texttt{ProcessGuid} thay vì PID nhằm tránh lỗi tái sử dụng PID của Windows.
-    \item \textbf{Layer 3 (Multi-sensor Scoring):} Trích xuất đặc trưng và tính toán điểm bất thường độc lập qua 4 cảm biến: Cảm biến điểm (Point), Cảm biến ngữ cảnh (Contextual), Cảm biến chuỗi thời gian (Sequential) và Cảm biến tập thể (Collective).
-    \item \textbf{Layer 4 (Ensemble):} Tổng hợp rủi ro từ 4 cảm biến bằng trọng số để đưa ra quyết định cuối cùng.
+    \item \textbf{Layer 1 (Graph Builder):} Xây dựng đồ thị tiến trình (Directed Acyclic Graph) dựa trên trường \texttt{ProcessGuid} thay vì PID nhằm tránh lỗi tái sử dụng PID của Windows.
+    \item \textbf{Layer 2 (Multi-sensor Scoring):} Trích xuất đặc trưng và tính toán điểm bất thường độc lập qua 4 cảm biến: Cảm biến điểm (Point), Cảm biến ngữ cảnh (Contextual), Cảm biến chuỗi thời gian (Sequential) và Cảm biến tập thể (Collective).
+    \item \textbf{Layer 3 (Ensemble):} Tổng hợp rủi ro từ 4 cảm biến bằng trọng số để đưa ra quyết định cuối cùng.
 \end{itemize}
 
 \section*{2. Sơ đồ luồng chạy dữ liệu của SRAH (Activity Map)}
