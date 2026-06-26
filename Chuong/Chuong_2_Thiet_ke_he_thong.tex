@@ -403,7 +403,7 @@ Diện tích này phản ánh trực tiếp khả năng kẻ tấn công giữ n
 \subsubsection{Tổng hợp chỉ số Hòa Trộn (BBS Aggregation)}
 Sau khi hoàn tất định lượng độc lập trên cả ba trục Không gian ($BBS_{spa}$), Chuỗi thời gian ($BBS_{seq}$) và Cấu trúc tập thể ($BBS_{col}$), Khung đo lường BBS tiến hành bước tổng hợp cuối cùng. Do đặc thù của hệ thống phát hiện bất thường đa cảm biến (multi-sensor), một tiến trình độc hại sẽ bị phát hiện nếu nó để lộ sơ hở ở \textbf{bất kỳ} phương diện nào.
 
-Nói cách khác, kẻ tấn công bắt buộc phải duy trì lớp ngụy trang hoàn hảo một cách toàn diện. Khả năng Hòa Trộn thực tế của tập dữ liệu (hay mức độ khó nhằn đối với phe phòng thủ) tuân theo Nguyên lý Thùng gỗ (Wooden Barrel Theory): sức chứa của thùng nước được định đoạt bởi thanh gỗ ngắn nhất. Do đó, điểm Behavioral Blending Score tổng quát ($BBS_{min}$) được tính toán thông qua hàm cực tiểu:
+Nói cách khác, kẻ tấn công bắt buộc phải duy trì lớp ngụy trang hoàn hảo một cách toàn diện. Khả năng Hòa Trộn thực tế của tập dữ liệu (hay mức độ khó nhằn đối với phe phòng thủ) tuân theo Nguyên lý Thùng gỗ (Min Aggregation): sức chứa của thùng nước được định đoạt bởi thanh gỗ ngắn nhất. Do đó, điểm Behavioral Blending Score tổng quát ($BBS_{min}$) được tính toán thông qua hàm cực tiểu:
 \begin{equation}
     BBS_{min} = \min(BBS_{spa}, BBS_{seq}, BBS_{col})
 \end{equation}

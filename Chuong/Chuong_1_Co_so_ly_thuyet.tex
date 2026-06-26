@@ -134,7 +134,7 @@ Dựa trên sự phân loại bất thường của Chandola et al. (mục \ref{
 \subsection{Định lượng thông qua điểm Behavioral Blending Score (BBS)}
 Khung đo lường BBS được thiết kế để chấm điểm sự hòa trộn trên 3 trục này với giá trị phân bố từ $0$ (lộ liễu hoàn toàn) đến $1$ (hòa trộn hoàn hảo). 
 
-Theo quan điểm phòng thủ, hệ thống giám sát đa chiều sẽ bắt được kẻ tấn công nếu chúng để lộ sơ hở ở bất kỳ phương diện nào. Do đó, độ khó phát hiện chung của một tập dữ liệu (hay mức độ ngụy trang thực tế của mã độc) tuân theo \textbf{Nguyên lý Thùng gỗ} (Nguyên lý điểm cực tiểu - Min Aggregation). Điểm hòa trộn tổng quát ($BBS_{min}$) được quyết định bởi mặt có khả năng ngụy trang kém nhất:
+Theo quan điểm phòng thủ, hệ thống giám sát đa chiều sẽ bắt được kẻ tấn công nếu chúng để lộ sơ hở ở bất kỳ phương diện nào. Do đó, độ khó phát hiện chung của một tập dữ liệu (hay mức độ ngụy trang thực tế của mã độc) tuân theo \textbf{Nguyên lý Thùng gỗ (Min Aggregation)}. Điểm hòa trộn tổng quát ($BBS_{min}$) được quyết định bởi mặt có khả năng ngụy trang kém nhất:
 \begin{equation}
     BBS_{min} = \min(BBS_{spa}, BBS_{seq}, BBS_{col})
 \end{equation}
