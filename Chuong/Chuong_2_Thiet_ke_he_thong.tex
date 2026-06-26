@@ -151,20 +151,21 @@ Giả sử $F_b(t)$ là hàm phân phối tích lũy (CDF) của mật độ d�
 
 \textbf{Nhận xét (Threshold Calibration Identity):} Đối với các bộ phát hiện dựa trên Mahalanobis, để hệ thống đạt được TPR = 0.5, ngưỡng quyết định $\tau^*$ phải được đặt tại trung vị của hàm mật độ trên tập dữ liệu độc hại. Tại ngưỡng này, Tỷ lệ báo động giả (FPR) chính là xác suất $F_b(\tau^*)$. Theo định lý thống kê bảo toàn trung vị, có thể chứng minh được đẳng thức chính xác $FPR@TPR_{0.5} \equiv DensPct\_Mahal$. Định danh này cung cấp cơ sở toán học vững chắc cho chỉ số đo lường.
 
-\subsection{Nghịch lý cấu trúc: Mâu thuẫn giữa Góc nhìn Toàn cục và Cục bộ}
+\subsection{Nghịch lý cấu trúc: Mối liên kết giữa Global Center Bias và Local Pockets}
 
-Việc định nghĩa chỉ số \textit{DensPct\_Mahal} không chỉ dừng lại ở một công cụ đo lường độ chui sâu của mã độc, mà nó còn đóng vai trò là "chiếc gương soi" phơi bày lỗ hổng nghiêm trọng trong các giả định toán học của UAD. Để hiểu rõ sự chuyển tiếp này, chúng ta cần phân tích bản chất sự khác biệt giữa hai góc nhìn: Toàn cục (Global) và Cục bộ (Local).
+Việc ứng dụng chỉ số đo lường \textit{DensPct\_Mahal} đã dẫn đến một chuỗi suy luận logic giúp giải mã hoàn toàn sự thất bại của các thuật toán UAD:
 
-\textbf{Sự ảo tưởng của góc nhìn Toàn cục (Global Center Bias):} 
-Khoảng cách Mahalanobis, cũng như nguyên lý hoạt động của nhiều thuật toán UAD truyền thống, mang một giả định ngầm định cực kỳ mạnh: chúng xem toàn bộ tập dữ liệu nhật ký hệ thống là một khối mây duy nhất, đặc và đồng nhất (Gaussian blob). Dưới lăng kính này, mọi phép đo rủi ro đều dựa trên khoảng cách từ một điểm quy chiếu về "tâm" của khối mây đó. Khi một mã độc LotL khéo léo ngụy trang để đạt được chỉ số \textit{DensPct\_Mahal} cao, hệ thống toàn cục sẽ đánh giá nó đang nằm sâu bên trong lõi an toàn của tập dữ liệu lành tính và bỏ qua nó. Thiên kiến đánh giá dựa trên khoảng cách đến tâm này được gọi là \textbf{Global Center Bias}.
+\textbf{Bước 1: Khởi nguồn từ phép đo (Global Center Bias):} 
+Chỉ số \textit{DensPct\_Mahal} cho thấy mã độc LotL thường có độ chui sâu rất lớn vào trung tâm phân phối của hệ thống. Nguyên nhân là do khoảng cách Mahalanobis ngầm định dữ liệu là một khối mây phân phối chuẩn (Gaussian blob) duy nhất. Khi mã độc di chuyển dần về "tâm" của khối mây này, hệ thống sẽ đánh giá nó an toàn tuyệt đối. Hiện tượng mã độc đánh lừa mô hình bằng cách hội tụ về tâm phân phối toàn cục được gọi là \textbf{Thiên kiến Trung tâm Toàn cục (Global Center Bias)}.
 
-\textbf{Thực tại phân mảnh của dữ liệu thực tế:} 
-Tuy nhiên, các tiến trình trên hệ điều hành Windows không bao giờ hoạt động như một khối đồng nhất. Dữ liệu sinh ra từ các dịch vụ hệ thống (như \texttt{svchost.exe}), trình duyệt (\texttt{chrome.exe}), hay công cụ quản trị (\texttt{powershell.exe}) luôn tạo thành những cụm hành vi (clusters) riêng biệt và đa đỉnh (multimodal). Chính vì sự phân cụm đan xen phức tạp này, ngay bên trong "lõi" tưởng chừng đặc ruột của khối mây toàn cục thực chất lại chứa đầy những khoảng trống vô hình, những kẽ hở mật độ nơi không có bất kỳ một tiến trình lành tính nào tồn tại. Các kẽ hở này được gọi là \textbf{Lỗ hổng Cục bộ (Local Pockets)}.
+\textbf{Bước 2: Nghịch lý UAD và Dữ liệu thực tế:} 
+Việc mã độc chui sâu vào tâm giải thích lý do các mô hình UAD truyền thống (như iForest, ECOD) đánh giá nó là lành tính và bị vô hiệu hóa. Tuy nhiên, điều này đặt ra một câu hỏi cốt lõi: \textit{Nếu mã độc đã lọt thỏm vào giữa lõi dày đặc của dữ liệu bình thường, tại sao chúng ta vẫn có cơ sở để tin rằng nó có thể bị phát hiện?} 
 
-\textbf{Sự hình thành Nghịch lý Cấu trúc:} 
-Sự đối lập giữa giả định toán học và thực tế dữ liệu làm nảy sinh một nghịch lý cấu trúc cốt lõi: **Một tiến trình độc hại hoàn toàn có thể đồng thời nằm ở vị trí trung tâm nhất của không gian toàn cục (Global Bias cao), nhưng lại đứng trơ trọi một mình trong một hốc rỗng tuyệt đối ở không gian vi mô (Local Pocket).** 
+\textbf{Bước 3: Lời giải từ Lỗ hổng cục bộ (Local Pockets):} 
+Câu trả lời nằm ở bản chất hình học của dữ liệu hệ thống Windows. Khối mây toàn cục đó thực chất không hề "đặc ruột"! Dữ liệu log sinh ra từ nhiều dịch vụ khác nhau luôn tạo thành các cụm hành vi (clusters) rời rạc và đa đỉnh (multimodal). Chính vì sự phân cụm này, ngay bên trong lõi trung tâm tưởng chừng đông đúc lại chứa vô số khoảng trống, nơi không có bất kỳ tiến trình lành tính nào tồn tại. Các kẽ hở này chính là \textbf{Lỗ hổng Cục bộ (Local Pockets)}. Kẻ tấn công LotL dù đạt điểm \textit{DensPct\_Mahal} cực kỳ cao (nằm ở trung tâm không gian toàn cục), thực chất lại đang lọt vào một trong những Local Pockets và đứng trơ trọi một mình ở không gian vi mô.
 
-Kẻ tấn công LotL thường tinh vi điều chỉnh các thông số hành vi (như thay đổi kích thước payload, chia nhỏ tần suất kết nối) sao cho hành vi của chúng nằm lọt thỏm vào dải phân phối chung của hệ thống nhằm qua mặt các mô hình như iForest hay ECOD. Thế nhưng, chúng không thể bắt chước hoàn hảo cấu trúc vi mô đan chéo của một ứng dụng hợp lệ. Hậu quả là, mã độc LotL chui sâu vào vỏ bọc an toàn của toàn cục, nhưng lại tự cô lập chính mình trong các hốc rỗng cấu trúc đồng thời đa chiều. Việc các thuật toán UAD truyền thống chỉ nhìn vào bức tranh tổng thể và hoàn toàn "mù lòa" trước các \textit{Local Pockets} này chính là lời giải thích trọn vẹn nhất cho sự thất bại của chúng trong thực tiễn đo lường.
+\textbf{Bước 4: Bằng chứng tồn tại từ KDE\_Joint:} 
+Nghịch lý Cấu trúc này không chỉ tồn tại trên lý thuyết. Ở phần tiếp theo, mô hình phi tham số \textbf{KDE\_Joint} được sử dụng như một "bằng chứng tồn tại" (existence proof). Bằng cách từ bỏ góc nhìn khối cầu toàn cục để soi xét mật độ đồng thời ở mức cục bộ, KDE\_Joint có thể định vị chính xác mã độc đang lẩn trốn trong các Local Pockets. Điều này chứng minh rằng UAD truyền thống thất bại là do "mù lòa cấu trúc" (chỉ nhìn thấy khối mây toàn cục mà bỏ qua các hốc rỗng), chứ không phải do mã độc hoàn toàn tàng hình.
 
 \begin{figure}[H]
 \centering
