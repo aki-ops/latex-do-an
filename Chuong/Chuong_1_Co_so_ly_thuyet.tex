@@ -1,4 +1,4 @@
-﻿\documentclass[../main.tex]{subfiles}
+\documentclass[../main.tex]{subfiles}
 \begin{document}
 
 Chương này trình bày cơ sở lý thuyết về hệ điều hành Windows, nhật ký giám sát Sysmon, và phân tích cấu trúc toán học của các mô hình phát hiện bất thường không giám sát (Unsupervised Anomaly Detection - UAD). Đồng thời, nghiên cứu giới thiệu các công cụ toán học tham số và phi tham số nhằm phục vụ việc phân tích phân phối dữ liệu trong không gian đa chiều.
@@ -120,6 +120,8 @@ Trong đó $h$ là tham số làm mịn (bandwidth). Đối với không gian d�
 \end{equation}
 Với $K_s$ có thể là nhân Gaussian (cho biến liên tục), Aitchison-Aitken (cho biến phân loại), hoặc Wang-van Ryzin (cho biến phân loại có thứ tự).
 
+Mặc dù các công cụ toán học như Mahalanobis và KDE cung cấp nền tảng mạnh mẽ để định lượng mật độ và cấu trúc dữ liệu, việc áp dụng chúng đơn lẻ sẽ không phản ánh được toàn cảnh bài toán phát hiện mã độc LotL — nơi kẻ tấn công liên tục thay đổi hình thái ngụy trang. Thay vào đó, các phép đo toán học này cần được đóng gói và tích hợp như những "động cơ cốt lõi" bên trong một cấu trúc đánh giá bao quát hơn. Đây chính là tiền đề dẫn đến việc xây dựng Khung đo lường mức độ hòa trộn hành vi (BBS) đa chiều trong phần tiếp theo.
+
 \section{Khái niệm hòa trộn hành vi và định lượng đa chiều (BBS)}
 \label{section:1.7}
 
@@ -143,10 +145,12 @@ Cơ sở toán học để tính toán chi tiết các giá trị $BBS$ này đ�
 \section{Các nghiên cứu liên quan}
 \label{section:1.8}
 
-Trong thập kỷ qua, các nghiên cứu nền tảng về chiều sâu dữ liệu (statistical data depth) \cite{liu1993quality, zuo2000general} đã chỉ ra đặc tính của các mô hình tham số (parametric models). Khoảng cách Mahalanobis, có thể được ước lượng thông qua các thuật toán như Minimum Covariance Determinant (MCD) \cite{rousseeuw1999fast}, cung cấp ước lượng cấu trúc toàn cục mạnh mẽ. 
+Nghiên cứu này được xây dựng trên cơ sở đối chiếu và tiếp nối ba mảng tài liệu chuyên ngành chính: lý thuyết chiều sâu dữ liệu, phương pháp luận đánh giá thuật toán bất thường, và lý thuyết phát hiện cục bộ.
 
-Việc xây dựng các bộ dữ liệu chuẩn (benchmarks) để đánh giá hệ thống phát hiện bất thường đã được cộng đồng nghiên cứu quan tâm. Các nghiên cứu như của Janssens \& Postma (2012) \cite{janssens2012data} hay Zimek et al. (2012) \cite{zimek2012survey} phân tích tác động của số chiều dữ liệu. Công trình của Emmott et al. (2013) \cite{emmott2013systematic} và Campos et al. (2016) \cite{campos2016evaluation} cho thấy các thước đo cấu trúc phân phối có ảnh hưởng lớn đến kết quả thuật toán.
+Đầu tiên, liên quan đến việc lượng hóa cấu trúc phân phối, các nghiên cứu nền tảng về chiều sâu dữ liệu (statistical data depth) \cite{liu1993quality, zuo2000general} đã khẳng định khả năng đo lường vị trí tương đối của dữ liệu bằng các tham số thống kê. Cụ thể, khoảng cách Mahalanobis (được tối ưu qua các kỹ thuật như MCD \cite{rousseeuw1999fast}) thường được sử dụng để thiết lập đường bao cấu trúc toàn cục, làm tiền đề để định vị các điểm bất thường.
 
-Các nghiên cứu của Davis \& Goadrich (2006) \cite{davis2006relationship} và Saito \& Rehmsmeier (2015) \cite{saito2015precision} đã phân tích tính chất của đường cong ROC trên dữ liệu mất cân bằng. Sự ra đời của các phương pháp phát hiện cục bộ (Local Outlier Detection) như LOCI \cite{papadimitriou2003loci} hay LODA \cite{pevny2016loda} nhằm bổ sung cho phân phối toàn cục. 
+Thứ hai, việc đánh giá sức mạnh của các thuật toán phân tách đòi hỏi các bộ dữ liệu chuẩn (benchmarks) mang tính thử thách cao \cite{janssens2012data, zimek2012survey}. Công trình của Emmott et al. (2013) \cite{emmott2013systematic} và Campos et al. (2016) \cite{campos2016evaluation} đã chỉ ra rằng độ khó nội tại của tập dữ liệu — sự hòa trộn giữa lớp bình thường và bất thường — ảnh hưởng mang tính quyết định đến hiệu năng thuật toán. Hơn nữa, khi đánh giá trên các hệ thống mất cân bằng cực đoan như nhật ký SOC, Davis \& Goadrich (2006) \cite{davis2006relationship} và Saito \& Rehmsmeier (2015) \cite{saito2015precision} đặc biệt cảnh báo rằng phân tích đường cong ROC đơn thuần thường mang lại "ảo giác hiệu năng", đòi hỏi những thước đo chặt chẽ hơn.
+
+Cuối cùng, để vượt qua giới hạn của các đánh giá toàn cục khi đối mặt với dữ liệu ngụy trang tinh vi, sự ra đời của các phương pháp phát hiện cục bộ (Local Outlier Detection) như LOCI \cite{papadimitriou2003loci} hay LODA \cite{pevny2016loda} đã gợi mở một hướng tiếp cận vi mô. Sự hội tụ của ba mảng nghiên cứu này — từ đo lường độ sâu toàn cục, nhu cầu thiết kế các kịch bản chuẩn hóa chặt chẽ, cho đến tầm quan trọng của góc nhìn cục bộ — chính là chất xúc tác trực tiếp để luận văn định hình khung đo lường BBS và thiết kế phương pháp kiểm chứng KDE\_Joint. 
 
 \end{document}
