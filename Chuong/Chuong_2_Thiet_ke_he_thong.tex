@@ -105,7 +105,7 @@ ECOD ước lượng Hàm phân phối tích lũy thực nghiệm (ECDF) cho t�
 \subsubsection{Local Outlier Factor (LOF)}
 LOF so sánh mật độ của một điểm dữ liệu với mật độ của $k$ láng giềng gần nhất sử dụng khoảng cách Euclidean \cite{breunig2000lof}. Tuy nhiên, LOF gặp phải hai giới hạn toán học lớn:
 \begin{itemize}
-    \item \textbf{Co cụm khoảng cách (Distance Concentration):} Trong không gian đặc trưng đa chiều ($d \to \infty$), khoảng cách Euclidean giữa điểm gần nhất ($D_{min}$) và xa nhất ($D_{max}$) bị phẳng hóa, khiến tỷ lệ chênh lệch hội tụ về 0:
+    \item \textbf{Co cụm khoảng cách do Lời nguyền số chiều (Curse of Dimensionality):} Trong không gian đặc trưng nhiều chiều, dữ liệu phân bố cực kỳ thưa thớt, khiến khái niệm về "khoảng cách" mất dần ý nghĩa hình học. Cụ thể, khi số chiều tăng lên ($d \to \infty$), khoảng cách Euclidean giữa điểm gần nhất ($D_{min}$) và xa nhất ($D_{max}$) tới một điểm tham chiếu bất kỳ bị phẳng hóa, khiến tỷ lệ chênh lệch hội tụ về 0:
     \begin{equation}
         \lim_{d \to \infty} \frac{D_{max} - D_{min}}{D_{min}} = 0
     \end{equation}
@@ -142,6 +142,7 @@ Khoảng cách Mahalanobis của một vector đặc trưng $x$ được tính b
 \begin{equation}
     D_M(x) = \sqrt{(x - \mu)^T \Sigma^{-1} (x - \mu)}
 \end{equation}
+trong đó $\mu$ là vector trung bình (tâm của dữ liệu) và $\Sigma$ là ma trận hiệp phương sai. Về mặt trực quan, ma trận hiệp phương sai đo lường sự tương quan giữa các đặc trưng (ví dụ: kích thước file lớn thường đi kèm thời gian xử lý lâu), qua đó định hình khối dữ liệu thành một hình bầu dục (ellipsoid) nghiêng trong không gian nhiều chiều thay vì một hình cầu hoàn hảo. Phân phối chuẩn (Gaussian) chính là mô hình toán học đại diện cho khối hình bầu dục này, nơi dữ liệu tập trung dày đặc ở tâm và thưa dần ra ngoài rìa.
 Để chuyển đổi thành hàm mật độ tương đương $f_{Mahal}(x)$ định nghĩa dựa trên Gaussian:
 \begin{equation}
     f_{Mahal}(x) = (2\pi)^{-d/2} |\Sigma|^{-1/2} \exp\left(-\frac{1}{2} D_M^2(x)\right)

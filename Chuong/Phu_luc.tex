@@ -1,4 +1,4 @@
-﻿\documentclass[../main.tex]{subfiles}
+\documentclass[../main.tex]{subfiles}
 \begin{document}
 
 \chapter*{PHỤ LỤC: KIẾN TRÚC HỆ THỐNG SRAH}
@@ -35,7 +35,7 @@ Hệ thống SRAH được thiết kế thành một chuỗi luồng xử lý (p
 \end{figure}
 
 \begin{itemize}
-    \item \textbf{Layer 0 (Ingestion Engine):} Thành phần cốt lõi được viết bằng Rust, tối ưu cho việc đọc file \texttt{.evtx} nhị phân với tốc độ cực cao, parse trực tiếp thành các dictionary và chuyển vùng nhớ thẳng vào RAM của Python thông qua bridge \textbf{PyO3}.
+    \item \textbf{Layer 0 (Ingestion Engine):} Thành phần cốt lõi được viết bằng ngôn ngữ Rust, tối ưu cho việc phân tích cú pháp (parse) trực tiếp cấu trúc file \texttt{.evtx} nhị phân nguyên bản với tốc độ cực cao. Kết quả phân tách được nạp thẳng vào không gian bộ nhớ của Python thông qua \textbf{PyO3} (một thư viện liên kết native-binding cho phép Python gọi và thực thi trực tiếp các chương trình biên dịch bằng Rust mà không tốn chi phí sao chép dữ liệu nối tiếp).
     \item \textbf{Layer 1 (Graph Builder):} Xây dựng đồ thị tiến trình (Directed Acyclic Graph) dựa trên trường \texttt{ProcessGuid} thay vì PID nhằm tránh lỗi tái sử dụng PID của Windows.
     \item \textbf{Layer 2 (Multi-sensor Scoring):} Trích xuất đặc trưng và tính toán điểm bất thường độc lập qua 4 cảm biến: Cảm biến điểm (Point), Cảm biến ngữ cảnh (Contextual), Cảm biến chuỗi thời gian (Sequential) và Cảm biến tập thể (Collective).
     \item \textbf{Layer 3 (Ensemble):} Tổng hợp rủi ro từ 4 cảm biến bằng trọng số để đưa ra quyết định cuối cùng.

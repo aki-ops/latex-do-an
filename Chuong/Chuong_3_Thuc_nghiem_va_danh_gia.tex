@@ -1,7 +1,16 @@
 \documentclass[../main.tex]{subfiles}
 \begin{document}
 
-Chương này trình bày chi tiết quá trình thực nghiệm nhằm kiểm chứng các chỉ số và mô hình đã được đề xuất trong Chương 2. Nội dung bao gồm việc mô tả chi tiết các tập dữ liệu, xác định rõ ràng mục tiêu, đầu vào và đầu ra của quá trình, cùng với việc phân tích sâu sắc các kết quả thực nghiệm.
+Chương này trình bày chi tiết quá trình thực nghiệm nhằm kiểm chứng các chỉ số và mô hình đã được đề xuất trong Chương 2. Nội dung bao gồm việc mô tả chi tiết các tập dữ liệu, định nghĩa các độ đo đánh giá hiệu năng, và phân tích sâu sắc các kết quả thực nghiệm.
+
+\section{Các độ đo đánh giá hiệu năng}
+\label{section:3.0}
+Trong bối cảnh dữ liệu nhật ký hệ thống bị mất cân bằng cực đoan (lượng log bình thường áp đảo lượng log tấn công), việc lựa chọn độ đo là yếu tố sống còn để phản ánh đúng năng lực mô hình. Nghiên cứu sử dụng các chỉ số tiêu chuẩn sau:
+\begin{itemize}
+    \item \textbf{FPR (False Positive Rate) và TPR (True Positive Rate):} Tỷ lệ cảnh báo nhầm tiến trình sạch thành mã độc (FPR) và tỷ lệ phát hiện đúng mã độc (TPR). Hai thông số này cấu thành nên đường cong \textbf{ROC (Receiver Operating Characteristic)}.
+    \item \textbf{AUC (Area Under the ROC Curve):} Diện tích dưới đường cong ROC, biểu diễn khả năng phân tách tổng quát của mô hình bất kể ngưỡng cắt (threshold).
+    \item \textbf{F1-Score:} Trung bình điều hòa giữa Độ chính xác (Precision) và Độ phủ (Recall). Trái với AUC mang tính lý thuyết, F1-Score là thước đo nghiêm ngặt nhất, phản ánh chân thực hiệu năng của hệ thống trong thực tiễn vận hành.
+\end{itemize}
 
 \section{Các tập dữ liệu thực nghiệm}
 \label{section:3.1}
@@ -89,7 +98,7 @@ Quá trình thực nghiệm được thiết kế nhằm giải quyết các m�
 
 \textit{Lưu ý về lý do chọn đặc trưng $V_{10}$ cho các thuật toán cơ sở:} Các thuật toán phát hiện dị thường truyền thống (như iForest, ECOD, LOF) bản chất là các mô hình phân tích dữ liệu điểm rời rạc (tabular data). Mặc dù có thể "ép" hoặc nén một phần thông tin chuỗi/tập thể thành các đặc trưng tĩnh (như đếm số lượng tiến trình con, hoặc dùng xác suất Markov làm một chiều dữ liệu trong $V_{10}$), các mô hình này vẫn đánh giá mỗi tiến trình một cách độc lập. Chúng không có khả năng tính toán trực tiếp trên toàn bộ cấu trúc đồ thị (như ma trận hiệp phương sai của trục Tập thể) hay đánh giá chuỗi trạng thái liên tục (như hàm hợp lý của trục Chuỗi thời gian) vắt chéo qua nhiều hàng dữ liệu. Việc "phẳng hóa" (flattening) hành vi đa chiều xuống mặt phẳng vector độc lập khiến chúng đánh mất ngữ cảnh diện rộng, do đó thực tế các mô hình này chỉ đang đánh giá bề mặt tĩnh của không gian $V_{10}$. Đây là lý do chính khiến chúng thất bại trước các chiến dịch APT tinh vi.
 
-Để đảm bảo tính khách quan trong việc so sánh hiệu năng nội tại của các thuật toán, thực nghiệm sử dụng ngưỡng tối ưu trên tập dữ liệu (Optimal Oracle Threshold) đồng nhất cho mọi mô hình. Ngưỡng Oracle được xác định bằng cách quyét qua mọi điểm dữ liệu để tìm ra mức F1 cao nhất có thể. Mục đích của việc sử dụng ngưỡng này là nhằm đo lường "sức mạnh nội tại tinh khiết" (intrinsic anomaly scoring capability) của thuật toán, tách bạch hoàn toàn sự đánh giá khỏi những rủi ro báo động giả do các kỹ thuật chọn ngưỡng động (thresholding heuristic) kém cỏi gây ra.
+Để đảm bảo tính khách quan trong việc so sánh hiệu năng nội tại của các thuật toán, thực nghiệm sử dụng khái niệm \textbf{Ngưỡng Oracle tối ưu (Optimal Oracle Threshold)} đồng nhất cho mọi mô hình. Trong đánh giá học máy, "Oracle" ám chỉ một cơ chế có khả năng nhìn thấu nhãn thực tế (ground-truth) của tập dữ liệu kiểm thử. Theo đó, ngưỡng Oracle được xác định bằng cách quét qua toàn bộ kết quả dự đoán và chọn ra chính xác điểm cắt (threshold) mang lại giá trị F1-Score cao nhất. Mặc dù trong thực tiễn vận hành không thể áp dụng ngưỡng này (vì việc dùng nhãn tập test để chọn ngưỡng vi phạm nguyên tắc và gây rò rỉ dữ liệu), việc sử dụng nó trong môi trường thử nghiệm tạo ra một "sân chơi công bằng tuyệt đối". Mục đích cốt lõi là thiết lập một giới hạn trên lý thuyết (theoretical upper bound) để đo lường "sức mạnh nội tại tinh khiết" (intrinsic anomaly scoring capability) của từng thuật toán. Cách tiếp cận này giúp tách bạch hoàn toàn năng lực phân tách phân phối của mô hình khỏi những sai số ngẫu nhiên do các kỹ thuật tự chọn ngưỡng động (thresholding heuristic) gây ra.
 
 \section{Kết quả và giải thích kết quả}
 \label{section:3.3}
