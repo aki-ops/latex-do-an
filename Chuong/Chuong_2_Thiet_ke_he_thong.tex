@@ -422,7 +422,14 @@ Sự thất bại này vạch trần "điểm mù cấu trúc" cốt lõi của 
 Để kiểm chứng toàn diện năng lực của các bộ đo lường và thuật toán phát hiện, nghiên cứu thiết lập môi trường thử nghiệm tiêu chuẩn trên nền tảng vector đặc trưng như sau.
 
 \subsection{Thiết kế không gian đặc trưng hành vi V10}
-Không gian đặc trưng hỗn hợp $V_{10}$ bao phủ ba khía cạnh hoạt động: nội tại tiến trình (spatial), phả hệ thực thi (sequential), và giao tiếp mạng (collective). Vector đặc trưng tuân theo cấu hình kiểu dữ liệu hỗn hợp \texttt{uuuuccooou} (u - binary, c - continuous, o - ordinal):
+Không gian đặc trưng hỗn hợp $V_{10}$ được thiết kế bám sát ba trục đo lường của khung BBS:
+\begin{itemize}
+    \item \textbf{Trục Nội tại tiến trình (Spatial):} Gồm các đặc trưng $v_2, v_3, v_4, v_5, v_7, v_8$ phản ánh cấu trúc dòng lệnh, mức độ hiếm của tiến trình, và hành vi can thiệp hệ thống.
+    \item \textbf{Trục Phả hệ thực thi (Sequential):} Gồm các đặc trưng $v_6, v_9, v_{10}$ phản ánh mức độ bất thường trong mối quan hệ cha-con và hình thái cây tiến trình.
+    \item \textbf{Trục Giao tiếp mạng (Collective):} Đặc trưng $v_1$ phản ánh dấu hiệu thiết lập kết nối ra bên ngoài để điều khiển từ xa.
+\end{itemize}
+
+Vector đặc trưng tuân theo cấu hình kiểu dữ liệu hỗn hợp \texttt{uuuuccooou} (u - binary, c - continuous, o - ordinal):
 \begin{table}[H]
 \centering
 \small
