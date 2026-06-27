@@ -126,7 +126,7 @@ Từ sự sai lệch này, luận văn chính thức định nghĩa hiện tư�
 Để giải quyết bài toán mã độc ngụy trang LotL, cần phân biệt rõ hai góc nhìn toán học về phân phối dữ liệu, từ đó thiết lập khung đo lường gồm các chỉ số nền tảng.
 
 \subsection{Phép thử đánh giá độ chồng lấn biên DDO}
-Trong nhiều nghiên cứu thực nghiệm, sự chồng lấn ở các phân phối biên đơn chiều (Marginal Overlap) thường được sử dụng làm baseline để đánh giá độ khó của dữ liệu. Đại diện tiêu biểu là chỉ số **DDO (Degree of Distribution Overlap)**:
+Trong nhiều nghiên cứu thực nghiệm, sự chồng lấn ở các phân phối biên đơn chiều (Marginal Overlap) thường được sử dụng làm baseline để đánh giá độ khó của dữ liệu. Đại diện tiêu biểu là chỉ số \textbf{DDO (Degree of Distribution Overlap - Mức độ chồng lấn phân phối)}:
 \begin{equation}
     DDO = \frac{1}{d} \sum_{s=1}^{d} OVL_s
 \end{equation}
@@ -137,7 +137,7 @@ Trong đó $OVL_s$ là diện tích chồng lấn phân phối xác suất đơn
 Hạn chế lớn nhất của DDO là nó dựa trên giả định các đặc trưng độc lập, do đó nó không thể lý giải chính xác nguyên nhân thất bại của các bộ phát hiện đa chiều trong không gian đồng thời.
 
 \subsection{Khung đo lường cốt lõi: Độ sâu toàn cục DensPct\_Mahal}
-Để khắc phục điểm mù biên của DDO, nghiên cứu đề xuất sử dụng chỉ số **DensPct\_Mahal** (Density Percentile based on Mahalanobis) để lượng hóa độ sâu toàn cục (Global Depth) của tiến trình độc hại trong phân phối lành tính.
+Để khắc phục điểm mù biên của DDO, nghiên cứu đề xuất sử dụng chỉ số \textbf{DensPct\_Mahal} (Density Percentile based on Mahalanobis) để lượng hóa độ sâu toàn cục (Global Depth) của tiến trình độc hại trong phân phối lành tính. Khái niệm này tương tự như việc sử dụng hệ thống radar định vị tầm xa để đo lường xem máy bay tàng hình của kẻ địch đã tiến chui sâu vào trung tâm không phận an toàn được bao nhiêu phần trăm trước khi bị phát hiện.
 Khoảng cách Mahalanobis của một vector đặc trưng $x$ được tính bằng:
 \begin{equation}
     D_M(x) = \sqrt{(x - \mu)^T \Sigma^{-1} (x - \mu)}
@@ -215,7 +215,7 @@ Sự tồn tại của Nghịch lý Cấu trúc cung cấp tiền đề lý thuy
 \end{figure}
 
 \subsection{Mô hình chứng minh tồn tại KDE\_Joint}
-Dựa trên lập luận về Local Pockets, mô hình phi tham số **KDE\_Joint** đóng vai trò như một **Bằng chứng tồn tại (Existence Proof)**. KDE\_Joint sử dụng Mixed Product Kernel để ước lượng mật độ đồng thời trực tiếp trên không gian hỗn hợp, định vị chính xác vùng không gian rỗng cấu trúc để vượt qua thiên kiến toàn cục.
+Dựa trên lập luận về Local Pockets, mô hình phi tham số \textbf{KDE\_Joint (Joint Kernel Density Estimation - Ước lượng mật độ nhân đồng thời)} đóng vai trò như một \textbf{Bằng chứng tồn tại (Existence Proof)}. KDE\_Joint sử dụng Mixed Product Kernel để ước lượng mật độ đồng thời trực tiếp trên không gian hỗn hợp, định vị chính xác vùng không gian rỗng cấu trúc để vượt qua thiên kiến toàn cục. Điều này giống như việc thay thế radar tầm xa bằng một máy quét cộng hưởng từ (MRI) đa chiều, có khả năng soi chiếu đồng thời mọi lớp cắt (thời gian, không gian, mạng) để phát hiện chính xác các khối u bất thường (Local Pockets) đang ẩn nấp sâu bên trong khối dữ liệu hệ thống.
 
 Bảng 2.1 dưới đây tổng hợp lại toàn bộ các phân tích và đối sánh đặc tính kỹ thuật cốt lõi giữa những thuật toán UAD tiêu biểu. Thông qua ma trận này, có thể thấy rõ nguồn gốc thất bại của các phương pháp truyền thống (như Marginal Blindness của iForest, ECOD hay Distance Concentration của LOF) khi đối đầu với mã độc LotL, từ đó khẳng định sự cần thiết của một hướng tiếp cận phi tham số không gian hỗn hợp (như KDE\_Joint) nhằm vá lại những điểm mù cấu trúc chí mạng đó.
 
@@ -456,13 +456,13 @@ $v_{10}$ & \texttt{parent\_sigma\_bin} & u (Binary) & EID 1 & Cha bị phát hi�
 \end{table}
 
 \subsection{Phương pháp tạo sinh dữ liệu Controlled Injection}
-Trong thực tế, việc thu thập đủ khối lượng dữ liệu hành vi LotL với đầy đủ gán nhãn Ground-truth là một thách thức vô cùng lớn. Để giải quyết vấn đề này, nghiên cứu sử dụng kỹ thuật \textbf{Controlled Injection (Bơm dữ liệu có kiểm soát)}. Quá trình này bao gồm việc trích xuất các dấu vết hành vi tấn công (attack traces) từ các chiến dịch APT thực tế hoặc các kịch bản mô phỏng MITRE ATT\&CK, sau đó "bơm" (inject) chúng vào một lượng lớn dữ liệu nhật ký hệ thống lành tính (background benign logs). Kỹ thuật này đảm bảo hai yếu tố cực kỳ quan trọng cho bài toán UAD:
+Trong thực tế, việc thu thập đủ khối lượng dữ liệu hành vi LotL với đầy đủ nhãn thực tế (ground-truth) là một thách thức vô cùng lớn. Để giải quyết vấn đề này, nghiên cứu sử dụng kỹ thuật \textbf{Controlled Injection (Bơm dữ liệu có kiểm soát)}. Quá trình này bao gồm việc trích xuất các dấu vết hành vi tấn công (attack traces) từ các chiến dịch APT thực tế hoặc các kịch bản mô phỏng MITRE ATT\&CK, sau đó "bơm" (inject) chúng vào một lượng lớn dữ liệu nhật ký hệ thống lành tính (benign baseline logs). Kỹ thuật này đảm bảo hai yếu tố cực kỳ quan trọng cho bài toán UAD:
 \begin{itemize}
     \item \textbf{Tính thực tiễn (Realism):} Các tiến trình tấn công giữ nguyên bản chất toán học, sự tương quan chuỗi và cấu trúc đồ thị của mã độc LotL ngoài đời thực, không bị làm sai lệch bởi các hàm phân phối tổng hợp ngẫu nhiên.
     \item \textbf{Độ thưa thớt tự nhiên (Natural Sparsity):} Bằng cách kiểm soát tỷ lệ bơm, hệ thống giả lập chính xác sự mất cân bằng cực đoan của môi trường doanh nghiệp thực tế (nơi tỷ lệ mã độc thường chiếm $< 0.01\%$ tổng lượng log hệ thống).
 \end{itemize}
 
 \subsection{Mô hình phát hiện đa cảm biến SRAH}
-Sau khi đã thiết kế không gian đặc trưng và chuẩn bị môi trường dữ liệu giả lập, bước tiếp theo là thiết lập các công cụ phát hiện để tiến hành đối chiếu. Bên cạnh các thuật toán học máy cơ sở tiêu chuẩn (như iForest, ECOD, LOF), môi trường thực nghiệm đòi hỏi một nền tảng giám sát hệ thống ở quy mô công nghiệp để đại diện cho chiến lược phòng thủ đa lớp hiện đại. Vì lý do này, hệ thống \textbf{SRAH (Security Response \& Analysis Hub)} được tích hợp vào môi trường thử nghiệm. Trong quá trình đánh giá, SRAH được sử dụng làm mô hình đối chứng (baseline), đại diện tiêu biểu cho lớp các mô hình phân phối biên đa cảm biến (multi-sensor marginal models). Việc sử dụng SRAH nhằm chứng minh một luận điểm cốt lõi: ngay cả một hệ thống phần mềm phức tạp với nhiều lớp đánh giá phân mảnh cũng sẽ bị vượt qua bởi kỹ thuật ngụy trang LotL nếu nó mắc phải "Điểm mù phân phối biên". Chi tiết về kiến trúc, quy trình hoạt động, và sơ đồ luồng dữ liệu của hệ thống SRAH được trình bày cụ thể tại phần \textbf{Phụ lục} của luận văn nhằm giữ cho trọng tâm của chương tập trung vào các khái niệm cấu trúc.
+Sau khi đã thiết kế không gian đặc trưng và chuẩn bị môi trường dữ liệu giả lập, bước tiếp theo là thiết lập các công cụ phát hiện để tiến hành đối chiếu. Bên cạnh các thuật toán học máy cơ sở tiêu chuẩn (như iForest, ECOD, LOF), môi trường thực nghiệm đòi hỏi một nền tảng giám sát hệ thống ở quy mô công nghiệp để đại diện cho chiến lược phòng thủ đa lớp hiện đại. Vì lý do này, hệ thống \textbf{SRAH (Security Response \& Analysis Hub)} được tích hợp vào môi trường thử nghiệm. Hệ thống này hoạt động tương tự như một mạng lưới an ninh tòa nhà đa cảm biến (bao gồm camera độc lập, thẻ từ, báo khói) liên tục thu thập dữ liệu riêng lẻ từ nhiều góc độ. Trong quá trình đánh giá, SRAH được sử dụng làm mô hình đối chứng (baseline), đại diện tiêu biểu cho lớp các mô hình phân phối biên đa cảm biến (multi-sensor marginal models). Việc sử dụng SRAH nhằm chứng minh một luận điểm cốt lõi: ngay cả một hệ thống phần mềm phức tạp với nhiều lớp đánh giá phân mảnh cũng sẽ bị vượt qua bởi kỹ thuật ngụy trang LotL nếu nó mắc phải "Điểm mù phân phối biên" (giống như việc kẻ gian có thể đánh lừa từng cảm biến riêng lẻ một cách tuần tự). Chi tiết về kiến trúc, quy trình hoạt động, và sơ đồ luồng dữ liệu của hệ thống SRAH được trình bày cụ thể tại phần \textbf{Phụ lục} của luận văn nhằm giữ cho trọng tâm của chương tập trung vào các khái niệm cấu trúc.
 
 \end{document}

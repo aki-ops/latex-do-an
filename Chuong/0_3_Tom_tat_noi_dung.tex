@@ -1,4 +1,4 @@
-﻿\documentclass[../main.tex]{subfiles}
+\documentclass[../main.tex]{subfiles}
 \begin{document}
 
 \begin{center}
@@ -6,7 +6,7 @@
 \end{center}
 \vspace{0.5cm}
 
-Trong lĩnh vực an ninh mạng hiện đại, việc phát hiện các cuộc tấn công lạm dụng công cụ hợp lệ sẵn có của hệ điều hành (Living-off-the-Land - LotL) là một thách thức cốt lõi do hành vi xâm nhập bị hòa lẫn hoàn toàn vào các hoạt động quản trị thông thường. Mặc dù các mô hình phát hiện bất thường không giám sát (Unsupervised Anomaly Detection - UAD) được kỳ vọng mang lại khả năng tự động nhận diện các mối đe dọa chưa từng biết (Zero-day), hiệu năng thực tế của chúng thường suy giảm nghiêm trọng mà không có sự giải thích rõ ràng về mặt lý thuyết. Nghiên cứu này giải quyết khoảng trống tri thức đó bằng cách đề xuất một khung phân tích định lượng lý thuyết độc lập để đo lường độ khó nội tại của dữ liệu tấn công, thay vì dựa vào các đánh giá hiệu năng mang tính kinh nghiệm và phụ thuộc thuật toán.
+Trong lĩnh vực an ninh mạng hiện đại, việc phát hiện các cuộc tấn công lạm dụng công cụ hợp lệ sẵn có của hệ điều hành (Living-off-the-Land - LotL) là một thách thức cốt lõi do hành vi xâm nhập bị hòa lẫn hoàn toàn vào các hoạt động quản trị thông thường. Mặc dù các mô hình phát hiện bất thường không giám sát (Unsupervised Anomaly Detection - UAD) được kỳ vọng mang lại khả năng tự động nhận diện các mối đe dọa chưa từng được biết đến (zero-day), hiệu năng thực tế của chúng thường suy giảm nghiêm trọng mà không có sự giải thích rõ ràng về mặt lý thuyết. Nghiên cứu này giải quyết khoảng trống tri thức đó bằng cách đề xuất một khung phân tích định lượng lý thuyết độc lập để đo lường độ khó nội tại của dữ liệu tấn công, thay vì dựa vào các đánh giá hiệu năng mang tính kinh nghiệm và phụ thuộc thuật toán.
 
 Nghiên cứu mang lại hai đóng góp cốt lõi: Thứ nhất, đề xuất khung đo lường độ khó nội tại (DensPct\_Mahal), cung cấp một công cụ toán học định lượng độc lập với thuật toán để đánh giá mức độ ngụy trang của LotL. Bằng chứng thực nghiệm gợi ý rằng thước đo này có khả năng giải thích sự suy giảm hiệu năng của các thuật toán phát hiện bất thường tốt hơn so với độ chồng lấn phân phối biên (DDO). Thứ hai, thông qua quá trình thực nghiệm, nghiên cứu đã phát hiện và ghi nhận sự tồn tại của các vùng rỗng cục bộ (Local Pockets). Bằng việc sử dụng ước lượng phi tham số đồng thời (KDE\_Joint) như một phép chứng minh khái niệm (existence proof), nghiên cứu cho thấy các thuật toán hoàn toàn có thể vượt qua thiên kiến trung tâm toàn cục (Global Center Bias). Tuy nhiên, nghiên cứu cũng thẳng thắn chỉ ra các điểm yếu chí mạng của KDE nguyên bản khi xử lý dữ liệu thưa thớt, từ đó định hình hướng tiếp cận thực tiễn hơn bằng các công cụ đo lường khoảng cách lân cận trong tương lai.
 
